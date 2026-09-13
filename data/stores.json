@@ -1,21 +1,12 @@
 [
   {
-    "id": "super99",
-    "name": "Súper 99",
-    "homepage": "https://www.super99.com",
-    "searchUrl": "https://www.super99.com/catalogsearch/result/?q={q}",
-    "platform": "Magento",
-    "color": "#d62828",
-    "connector": { "type": "demo" }
-  },
-  {
-    "id": "ribasmith",
-    "name": "Riba Smith",
-    "homepage": "https://www.ribasmith.com",
-    "searchUrl": "https://www.ribasmith.com/index.php/catalogsearch/result/?q={q}",
-    "platform": "Magento",
-    "color": "#2a9d4b",
-    "connector": { "type": "demo" }
+    "id": "superxtra",
+    "name": "Super Xtra",
+    "homepage": "https://www.superxtra.com",
+    "searchUrl": "https://www.superxtra.com/{q}?_q={q}&map=ft",
+    "platform": "VTEX",
+    "color": "#1d4ed8",
+    "connector": { "type": "vtex" }
   },
   {
     "id": "elmachetazo",
@@ -24,16 +15,7 @@
     "searchUrl": "https://www.elmachetazo.com/{q}?_q={q}&map=ft",
     "platform": "VTEX",
     "color": "#f08c00",
-    "connector": { "type": "demo" }
-  },
-  {
-    "id": "superxtra",
-    "name": "Super Xtra",
-    "homepage": "https://www.superxtra.com",
-    "searchUrl": "https://www.superxtra.com/{q}?_q={q}&map=ft",
-    "platform": "VTEX",
-    "color": "#1d4ed8",
-    "connector": { "type": "demo" }
+    "connector": { "type": "vtex" }
   },
   {
     "id": "superunico",
@@ -42,7 +24,27 @@
     "searchUrl": "https://superunico.com/?s={q}&post_type=product",
     "platform": "WooCommerce",
     "color": "#7c3aed",
-    "connector": { "type": "demo" }
+    "connector": { "type": "woocommerce" }
+  },
+  {
+    "id": "super99",
+    "name": "Súper 99",
+    "homepage": "https://www.super99.com",
+    "searchUrl": "https://www.super99.com/catalogsearch/result/?q={q}",
+    "platform": "Magento",
+    "color": "#d62828",
+    "enabled": false,
+    "note": "su API de productos responde con error; falta otro método"
+  },
+  {
+    "id": "ribasmith",
+    "name": "Riba Smith",
+    "homepage": "https://www.ribasmith.com",
+    "searchUrl": null,
+    "platform": "Next.js",
+    "color": "#2a9d4b",
+    "enabled": false,
+    "note": "cambió su sitio; falta ubicar su API de búsqueda"
   },
   {
     "id": "rey",
@@ -51,15 +53,7 @@
     "searchUrl": null,
     "platform": "App Rey Delivery",
     "color": "#0e7490",
-    "connector": { "type": "demo" }
-  },
-  {
-    "id": "minisuper-ejemplo",
-    "name": "Minisúper La Esquina (socio de ejemplo)",
-    "homepage": "https://example.com/minisuper",
-    "searchUrl": null,
-    "platform": "Feed CSV",
-    "color": "#64748b",
-    "connector": { "type": "feed", "file": "data/feeds/minisuper-ejemplo.csv" }
+    "enabled": false,
+    "note": "vende solo por app"
   }
 ]

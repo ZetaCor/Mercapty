@@ -3,4 +3,5 @@ data/*.db
 data/*.db-*
 data/images/
 data/admin-key.txt
-.env
+.env*
+.vercel

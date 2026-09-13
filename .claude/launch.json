@@ -4,8 +4,8 @@
     {
       "name": "panaprecio",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["--disable-warning=ExperimentalWarning", "server/index.js"],
-      "port": 3000
+      "runtimeArgs": ["server/index.js", "3001"],
+      "port": 3001
     }
   ]
 }

@@ -2,9 +2,9 @@ import { getJson } from '../api.js';
 import { html, storeAvatar, timeAgo, icons } from '../ui.js';
 
 const SOURCE_LABEL = {
-  demo: 'precios de demostración',
+  vtex: 'precios de su web',
+  woocommerce: 'precios de su web',
   feed: 'inventario compartido',
-  vtex: 'catálogo público',
 };
 
 export async function renderStores() {

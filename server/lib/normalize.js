@@ -62,6 +62,34 @@ export function unitPrice(price, sizeValue, sizeUnit) {
   return { amount: price / sizeValue, per: 'unidad' };
 }
 
+// Cada súper nombra sus categorías a su manera ("Lácteos, Quesos y
+// refrigerados", "Supermercado/Despensa/Leches"...). Se llevan a una lista
+// común buscando palabras clave en la categoría y, si no hay, en el nombre.
+// El orden importa: la primera regla que coincide gana.
+const CATEGORY_RULES = [
+  ['Bebé', /\b(bebe|bebes|panal|panales|toallitas|infantil|formula infantil)\b/],
+  ['Mascotas', /\b(mascota|mascotas|perro|perros|gato|gatos)\b/],
+  ['Frutas y verduras', /\b(fruta|frutas|verdura|verduras|vegetales|hortalizas)\b/],
+  ['Carnes y embutidos', /\b(carne|carnes|pollo|res|cerdo|embutido|embutidos|jamon|salchicha|salchichas|mariscos|pescado|pescados|deli)\b/],
+  ['Lácteos y huevos', /\b(lacteo|lacteos|leche|leches|queso|quesos|yogur|yogurt|mantequilla|huevo|huevos|refrigerados)\b/],
+  ['Congelados', /\b(congelado|congelados|helado|helados)\b/],
+  ['Panadería y snacks', /\b(pan|panes|panaderia|reposteria|galleta|galletas|snack|snacks|golosina|golosinas|dulces|chocolate|chocolates|cereal|cereales)\b/],
+  ['Bebidas', /\b(bebida|bebidas|agua|jugo|jugos|refresco|refrescos|soda|sodas|cerveza|cervezas|vino|vinos|licor|licores|ron|whisky)\b/],
+  ['Limpieza', /\b(limpieza|detergente|detergentes|cloro|desinfectante|lavaplatos|suavizante|lavanderia|hogar)\b/],
+  ['Cuidado personal', /\b(cuidado personal|higiene|shampoo|champu|jabon|desodorante|dental|belleza|farmacia|papel higienico)\b/],
+  ['Despensa', /\b(despensa|abarrotes|arroz|frijol|frijoles|aceite|aceites|azucar|pasta|pastas|enlatado|enlatados|condimento|condimentos|salsa|salsas|harina|granos|cafe|sopa|sopas|atun)\b/],
+];
+
+export function canonicalCategory(...texts) {
+  for (const text of texts) {
+    const normalized = normalizeText(text);
+    if (!normalized) continue;
+    const match = CATEGORY_RULES.find(([, re]) => re.test(normalized));
+    if (match) return match[0];
+  }
+  return 'Otros';
+}
+
 // Llave para decidir si dos ofertas de tiendas distintas son el mismo producto.
 // El código de barras es la única coincidencia confiable; sin él se usa
 // marca + nombre + presentación, que sirve para socios con catálogos simples.

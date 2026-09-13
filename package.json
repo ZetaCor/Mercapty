@@ -1,16 +1,19 @@
 {
   "name": "panaprecio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Comparador de precios de supermercados en Panamá",
   "type": "module",
   "engines": {
-    "node": ">=22.13"
+    "node": "22.x"
   },
   "scripts": {
-    "ingest": "node --disable-warning=ExperimentalWarning scripts/ingest.js",
-    "start": "node --disable-warning=ExperimentalWarning server/index.js",
-    "dev": "node --disable-warning=ExperimentalWarning --watch server/index.js",
-    "setup": "npm run ingest && npm start"
+    "ingest": "node scripts/ingest.js",
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.18.0",
+    "@vercel/blob": "^2.8.0"
   }
 }

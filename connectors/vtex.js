@@ -1,25 +1,25 @@
 // Conector para tiendas en VTEX (hoy: Super Xtra y El Machetazo), usando la
 // API pública de catálogo que la propia tienda expone a su sitio web.
-// Devuelve código de barras, precio, precio regular, disponibilidad y el
-// enlace directo al producto.
-//
-// IMPORTANTE: úsalo solo con autorización de la tienda o después de revisar
-// sus términos de uso. Está desactivado por defecto (ver data/stores.json).
-import { sleep } from './util.js';
+// Devuelve código de barras, precio, precio regular, disponibilidad, foto y
+// el enlace directo al producto.
+import { BOT_HEADERS, envList, sleep } from './util.js';
 
-// Términos de búsqueda por defecto: productos de la canasta básica.
+// Términos de búsqueda por defecto: lo más comprado en un súper.
 const DEFAULT_QUERIES = [
-  'leche', 'arroz', 'frijoles', 'lentejas', 'aceite', 'azucar', 'sal', 'cafe',
-  'huevos', 'pan', 'pasta', 'atun', 'pollo', 'queso', 'mantequilla', 'avena',
-  'papel higienico', 'detergente', 'cloro', 'jabon', 'pasta dental', 'panales',
+  'leche', 'queso', 'yogurt', 'mantequilla', 'huevos', 'arroz', 'frijoles', 'lentejas',
+  'aceite', 'azucar', 'sal', 'cafe', 'pasta', 'harina', 'avena', 'cereal', 'atun',
+  'sardina', 'salsa', 'mayonesa', 'pan', 'galletas', 'pollo', 'carne', 'jamon',
+  'salchichas', 'agua', 'jugo', 'refresco', 'cerveza', 'papel higienico', 'detergente',
+  'cloro', 'suavizante', 'lavaplatos', 'jabon', 'shampoo', 'pasta dental',
+  'desodorante', 'panales', 'toallitas',
 ];
 const PAGE_SIZE = 50; // máximo que acepta VTEX por página
 
 export async function fetchOffers(store, { log = console.log } = {}) {
   const cfg = store.connector;
   const base = cfg.baseUrl ?? new URL(store.homepage).origin;
-  const queries = cfg.queries ?? DEFAULT_QUERIES;
-  const maxPages = cfg.maxPages ?? 2;
+  const queries = envList('INGEST_QUERIES') ?? cfg.queries ?? DEFAULT_QUERIES;
+  const maxPages = Number(process.env.INGEST_MAX_PAGES) || cfg.maxPages || 2;
   const delayMs = cfg.delayMs ?? 1500; // no saturar el sitio de la tienda
   const seen = new Map();
 
@@ -27,7 +27,7 @@ export async function fetchOffers(store, { log = console.log } = {}) {
     for (let page = 0; page < maxPages; page++) {
       const from = page * PAGE_SIZE;
       const url = `${base}/api/catalog_system/pub/products/search?ft=${encodeURIComponent(query)}&_from=${from}&_to=${from + PAGE_SIZE - 1}`;
-      const res = await fetch(url, { headers: { 'User-Agent': 'PanaPrecioBot/0.1', Accept: 'application/json' } });
+      const res = await fetch(url, { headers: BOT_HEADERS });
       if (!res.ok) { log(`  ${store.name}: "${query}" respondió ${res.status}`); break; }
       const products = await res.json();
 
@@ -42,7 +42,7 @@ export async function fetchOffers(store, { log = console.log } = {}) {
             title: product.productName,
             name: product.productName,
             brand: product.brand,
-            category: vtexCategory(product.categories),
+            category: product.categories?.[0] ?? '', // "/Lácteos, Quesos y refrigerados/Leche/"
             size: null, // se deduce del nombre ("946ml", "5 lb"...)
             price: offer.Price,
             listPrice: offer.ListPrice,
@@ -58,11 +58,4 @@ export async function fetchOffers(store, { log = console.log } = {}) {
     await sleep(delayMs);
   }
   return [...seen.values()];
-}
-
-// "/Supermercado/Lácteos/Leche/" -> "Lácteos"
-function vtexCategory(categories) {
-  const parts = (categories?.[0] ?? '').split('/').filter(Boolean);
-  const meaningful = parts.filter((p) => !/^supermercado$/i.test(p));
-  return meaningful[0] ?? parts[0] ?? 'Otros';
 }

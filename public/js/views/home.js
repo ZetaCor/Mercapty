@@ -7,11 +7,14 @@ const SORT_OPTIONS = [
   ['ahorro', 'Mayor ahorro entre tiendas'],
 ];
 
-function searchHref({ q = '', categoria = '', orden = '' }) {
+const PAGE_SIZE = 48;
+
+function searchHref({ q = '', categoria = '', orden = '', pagina = 1 }) {
   const params = new URLSearchParams();
   if (q) params.set('q', q);
   if (categoria) params.set('categoria', categoria);
   if (orden) params.set('orden', orden);
+  if (pagina > 1) params.set('pagina', String(pagina));
   const qs = params.toString();
   return `#/buscar${qs ? `?${qs}` : ''}`;
 }
@@ -82,13 +85,14 @@ export async function renderHome({ stores }) {
   };
 }
 
-export async function renderSearch({ params, stores }) {
+export async function renderSearch({ params, stores, refresh }) {
   const current = {
     q: params.get('q') ?? '',
     categoria: params.get('categoria') ?? '',
     orden: params.get('orden') ?? 'nombre',
   };
-  const qs = new URLSearchParams({ ...current, limit: '100' });
+  const page = Math.max(1, Number.parseInt(params.get('pagina'), 10) || 1);
+  const qs = new URLSearchParams({ ...current, limit: String(PAGE_SIZE * page) });
   const [result, categories] = await Promise.all([
     getJson(`/api/products?${qs}`),
     getJson('/api/categories'),
@@ -113,10 +117,18 @@ export async function renderSearch({ params, stores }) {
             <div class="big">🔎</div>
             <p>No encontramos productos para esa búsqueda.</p>
             <p>Prueba con otra palabra (por ejemplo «leche», «arroz» o una marca) o <a href="#/buscar">mira todo el catálogo</a>.</p>
-          </div>`}`,
+          </div>`}
+      ${result.total > result.items.length
+        ? html`<div class="more"><button class="btn" type="button" data-more>Ver más productos (${result.total - result.items.length})</button></div>`
+        : ''}`,
     bind(root) {
       root.querySelector('#sort').addEventListener('change', (event) => {
         location.hash = searchHref({ ...current, orden: event.target.value });
+      });
+      // "Ver más" cambia la URL sin saltar al inicio de la página.
+      root.querySelector('[data-more]')?.addEventListener('click', () => {
+        history.replaceState(null, '', searchHref({ ...current, pagina: page + 1 }));
+        refresh();
       });
     },
   };

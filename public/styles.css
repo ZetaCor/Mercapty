@@ -242,6 +242,7 @@ select, .input {
 .best-actions { display: grid; grid-template-columns: 1fr auto; gap: .5rem; }
 .best-actions .btn-primary { white-space: normal; text-align: center; }
 .grid.wide { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.more { display: flex; justify-content: center; margin: 1.75rem 0 .5rem; }
 code { padding: .1rem .35rem; border-radius: 6px; background: var(--soft); font-size: .85em; }
 .saving-note { margin-top: .9rem; padding: .55rem .8rem; border-radius: 10px; background: var(--good-soft); color: var(--good); font-size: .88rem; }
 

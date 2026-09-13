@@ -63,6 +63,8 @@ const CATEGORY_STYLE = {
   'Cuidado personal': ['🪥', '#f5ebfd'],
   Bebé: ['🍼', '#fdedf3'],
   'Frutas y verduras': ['🥬', '#ebf7e6'],
+  Congelados: ['🧊', '#e7f3fb'],
+  Mascotas: ['🐾', '#f4efe8'],
 };
 const categoryStyle = (category) => CATEGORY_STYLE[category] ?? ['🛒', '#f1f4f8'];
 export const categoryIcon = (category) => categoryStyle(category)[0];

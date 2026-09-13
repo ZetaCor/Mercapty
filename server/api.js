@@ -41,16 +41,17 @@ function productSummary(row) {
 }
 
 export function createApi(db) {
-  function meta() {
-    const sources = db.prepare('SELECT DISTINCT source FROM stores').all().map((r) => r.source);
-    const counts = db.prepare(
-      'SELECT (SELECT COUNT(*) FROM products) AS products, (SELECT COUNT(*) FROM offers WHERE in_stock = 1) AS offers, (SELECT MAX(updated_at) FROM offers) AS updatedAt',
-    ).get();
-    return { demo: sources.includes('demo'), ...counts };
+  async function meta() {
+    const row = await db.get(`
+      SELECT (SELECT COUNT(*) FROM products) AS products,
+        (SELECT COUNT(*) FROM offers WHERE in_stock = 1) AS offers,
+        (SELECT MAX(updated_at) FROM offers) AS updatedAt,
+        (SELECT COUNT(*) FROM stores WHERE source = 'demo') AS demoStores`);
+    return { demo: row.demoStores > 0, products: row.products, offers: row.offers, updatedAt: row.updatedAt };
   }
 
   function listStores() {
-    return db.prepare(`
+    return db.all(`
       ${RANKED}
       SELECT s.id, s.name, s.homepage, s.platform, s.color, s.source,
         (SELECT COUNT(*) FROM offers o WHERE o.store_id = s.id AND o.in_stock = 1) AS offers,
@@ -59,16 +60,19 @@ export function createApi(db) {
         (SELECT COUNT(*) FROM clicks c JOIN offers o ON o.id = c.offer_id WHERE o.store_id = s.id) AS clicks
       FROM stores s
       ORDER BY bestCount DESC, s.name
-    `).all();
+    `);
   }
 
+  // Solo categorías con algo disponible, para no mostrar filtros vacíos.
   function listCategories() {
-    return db.prepare(
-      'SELECT category AS name, COUNT(*) AS count FROM products GROUP BY category ORDER BY count DESC',
-    ).all();
+    return db.all(`
+      SELECT p.category AS name, COUNT(DISTINCT p.id) AS count
+      FROM products p JOIN offers o ON o.product_id = p.id AND o.in_stock = 1
+      GROUP BY p.category ORDER BY count DESC
+    `);
   }
 
-  function searchProducts({ q = '', category = '', sort = 'nombre', limit = 24, offset = 0 }) {
+  async function searchProducts({ q = '', category = '', sort = 'nombre', limit = 24, offset = 0 }) {
     const where = [];
     const params = [];
     for (const term of normalizeText(q).split(' ').filter(Boolean).slice(0, 8)) {
@@ -82,41 +86,45 @@ export function createApi(db) {
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
     const join = 'FROM products p JOIN ranked r ON r.product_id = p.id AND r.rn = 1';
 
-    const { total } = db.prepare(`${RANKED} SELECT COUNT(*) AS total ${join} ${whereSql}`).get(...params);
-    const rows = db.prepare(`
-      ${RANKED} SELECT ${BEST_OFFER_COLUMNS} ${join} ${whereSql}
-      ORDER BY ${SORTS[sort] ?? SORTS.nombre} LIMIT ? OFFSET ?
-    `).all(...params, limit, offset);
-    return { total, items: rows.map(productSummary) };
+    const [count, rows] = await Promise.all([
+      db.get(`${RANKED} SELECT COUNT(*) AS total ${join} ${whereSql}`, params),
+      db.all(`
+        ${RANKED} SELECT ${BEST_OFFER_COLUMNS} ${join} ${whereSql}
+        ORDER BY ${SORTS[sort] ?? SORTS.nombre} LIMIT ? OFFSET ?
+      `, [...params, limit, offset]),
+    ]);
+    return { total: count.total, items: rows.map(productSummary) };
   }
 
   // Productos donde elegir bien la tienda ahorra más dinero.
-  function deals(limit = 8) {
-    return db.prepare(`
+  async function deals(limit = 8) {
+    const rows = await db.all(`
       ${RANKED} SELECT ${BEST_OFFER_COLUMNS}
       FROM products p JOIN ranked r ON r.product_id = p.id AND r.rn = 1
       WHERE r.store_count > 1
       ORDER BY (r.max_price - r.price) DESC LIMIT ?
-    `).all(limit).map(productSummary);
+    `, [limit]);
+    return rows.map(productSummary);
   }
 
-  function getProduct(id) {
-    const p = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+  async function getProduct(id) {
+    const [p, offers, history] = await Promise.all([
+      db.get('SELECT * FROM products WHERE id = ?', [id]),
+      db.all(`
+        SELECT o.id, o.store_id, o.title, o.price, o.list_price, o.in_stock, o.updated_at,
+          s.name AS store_name, s.color AS store_color, s.source AS store_source
+        FROM offers o JOIN stores s ON s.id = o.store_id
+        WHERE o.product_id = ?
+        ORDER BY o.in_stock DESC, o.price ASC
+      `, [id]),
+      db.all(`
+        SELECT substr(h.seen_at, 1, 10) AS day, MIN(h.price) AS price
+        FROM price_history h JOIN offers o ON o.id = h.offer_id
+        WHERE o.product_id = ?
+        GROUP BY day ORDER BY day
+      `, [id]),
+    ]);
     if (!p) return null;
-
-    const offers = db.prepare(`
-      SELECT o.id, o.store_id, o.title, o.price, o.list_price, o.in_stock, o.updated_at,
-        s.name AS store_name, s.color AS store_color, s.source AS store_source
-      FROM offers o JOIN stores s ON s.id = o.store_id
-      WHERE o.product_id = ?
-      ORDER BY o.in_stock DESC, o.price ASC
-    `).all(id);
-    const history = db.prepare(`
-      SELECT substr(h.seen_at, 1, 10) AS day, MIN(h.price) AS price
-      FROM price_history h JOIN offers o ON o.id = h.offer_id
-      WHERE o.product_id = ?
-      GROUP BY day ORDER BY day
-    `).all(id);
 
     const available = offers.filter((o) => o.in_stock);
     const best = available[0];
@@ -153,7 +161,7 @@ export function createApi(db) {
 
   // Dada una lista de compras, compara: todo en una sola tienda vs. repartir
   // cada producto en la tienda donde está más barato.
-  function optimizeList(rawItems) {
+  async function optimizeList(rawItems) {
     const qtyById = new Map();
     for (const item of Array.isArray(rawItems) ? rawItems.slice(0, 100) : []) {
       const id = Number(item?.productId);
@@ -164,19 +172,17 @@ export function createApi(db) {
     if (!ids.length) return { split: { total: 0, stores: [] }, perStore: [], unavailable: [], considered: 0, thumbs: {}, bestSingle: null, savings: null };
 
     const marks = ids.map(() => '?').join(',');
-    const products = new Map(
-      db.prepare(`SELECT id, name, brand, category, size_label, image_url, custom_image FROM products WHERE id IN (${marks})`).all(...ids)
-        .map((p) => [p.id, p]),
-    );
+    const [productRows, offerRows, stores] = await Promise.all([
+      db.all(`SELECT id, name, brand, category, size_label, image_url, custom_image FROM products WHERE id IN (${marks})`, ids),
+      db.all(`SELECT id, product_id, store_id, price FROM offers WHERE in_stock = 1 AND product_id IN (${marks}) ORDER BY price`, ids),
+      db.all('SELECT id, name, color FROM stores'),
+    ]);
+    const products = new Map(productRows.map((p) => [p.id, p]));
     const offersByProduct = new Map();
-    for (const o of db.prepare(`
-      SELECT id, product_id, store_id, price FROM offers
-      WHERE in_stock = 1 AND product_id IN (${marks}) ORDER BY price
-    `).all(...ids)) {
+    for (const o of offerRows) {
       if (!offersByProduct.has(o.product_id)) offersByProduct.set(o.product_id, []);
       offersByProduct.get(o.product_id).push(o);
     }
-    const stores = db.prepare('SELECT id, name, color FROM stores').all();
     const storeById = new Map(stores.map((s) => [s.id, s]));
     const label = (p) => [p.name, p.brand, p.size_label].filter(Boolean).join(' · ');
 
@@ -231,7 +237,7 @@ export function createApi(db) {
       perStore,
       unavailable,
       considered: ids.filter((id) => offersByProduct.has(id)).length,
-      thumbs: Object.fromEntries([...products.values()].map((p) => [
+      thumbs: Object.fromEntries(productRows.map((p) => [
         p.id, { image: p.custom_image ?? p.image_url ?? null, category: p.category },
       ])),
       bestSingle,
@@ -242,12 +248,12 @@ export function createApi(db) {
   // Registra el clic y devuelve la URL de la tienda con parámetros UTM, para
   // que la tienda pueda atribuir la venta a PanaPrecio. Solo se redirige a
   // URLs guardadas por los conectores, nunca a una recibida en la petición.
-  function redirectTarget(offerId) {
-    const row = db.prepare(`
+  async function redirectTarget(offerId) {
+    const row = await db.get(`
       SELECT o.id, o.url, s.homepage FROM offers o JOIN stores s ON s.id = o.store_id WHERE o.id = ?
-    `).get(offerId);
+    `, [offerId]);
     if (!row) return null;
-    db.prepare('INSERT INTO clicks (offer_id, clicked_at) VALUES (?, ?)').run(row.id, new Date().toISOString());
+    await db.run('INSERT INTO clicks (offer_id, clicked_at) VALUES (?, ?)', [row.id, new Date().toISOString()]);
 
     let target;
     try { target = new URL(row.url); } catch { target = new URL(row.homepage); }
@@ -258,30 +264,31 @@ export function createApi(db) {
   }
 
   // --- Imágenes (panel de administración) ---
-  // image_url viene de la tienda (conectores); custom_image la sube el
+  // image_url viene de la tienda (bots); custom_image la sube el
   // administrador y tiene prioridad. La ingesta nunca toca custom_image.
-  function adminProducts() {
-    return db.prepare(`
+  async function adminProducts() {
+    const rows = await db.all(`
       SELECT p.id, p.name, p.brand, p.size_label AS size, p.category,
         p.image_url AS storeImage, p.custom_image AS customImage,
         (SELECT COUNT(*) FROM offers o WHERE o.product_id = p.id AND o.in_stock = 1) AS offers
       FROM products p
       ORDER BY p.name, p.brand
-    `).all().map((p) => ({ ...p, image: p.customImage ?? p.storeImage ?? null }));
+    `);
+    return rows.map((p) => ({ ...p, image: p.customImage ?? p.storeImage ?? null }));
   }
 
-  const productExists = (id) => Boolean(db.prepare('SELECT 1 FROM products WHERE id = ?').get(id));
+  const productExists = async (id) => Boolean(await db.get('SELECT 1 AS ok FROM products WHERE id = ?', [id]));
 
-  // Guarda la ruta de la imagen subida (o la borra con null) y devuelve la
-  // anterior, para que el servidor elimine ese archivo.
-  function setCustomImage(id, imagePath) {
-    const previous = db.prepare('SELECT custom_image FROM products WHERE id = ?').get(id)?.custom_image ?? null;
-    db.prepare('UPDATE products SET custom_image = ? WHERE id = ?').run(imagePath, id);
+  // Guarda la URL de la imagen subida (o la borra con null) y devuelve la
+  // anterior, para que se elimine ese archivo.
+  async function setCustomImage(id, imageUrl) {
+    const previous = (await db.get('SELECT custom_image FROM products WHERE id = ?', [id]))?.custom_image ?? null;
+    await db.run('UPDATE products SET custom_image = ? WHERE id = ?', [imageUrl, id]);
     return previous;
   }
 
-  function productImage(id) {
-    const p = db.prepare('SELECT image_url, custom_image FROM products WHERE id = ?').get(id);
+  async function productImage(id) {
+    const p = await db.get('SELECT image_url, custom_image FROM products WHERE id = ?', [id]);
     return { image: p.custom_image ?? p.image_url ?? null, customImage: p.custom_image, storeImage: p.image_url };
   }
 

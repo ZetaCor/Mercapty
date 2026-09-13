@@ -51,9 +51,9 @@
     "name": "Supermercados Rey",
     "homepage": "https://www.smrey.com",
     "searchUrl": null,
-    "platform": "App Rey Delivery",
+    "platform": "Instaleap",
     "color": "#0e7490",
     "enabled": false,
-    "note": "vende solo por app"
+    "note": "bot en progreso: falta el ID interno de la tienda en la API de Instaleap"
   }
 ]

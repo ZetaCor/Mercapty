@@ -43,7 +43,7 @@ unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`).
 | Superunico | WooCommerce | ✅ Bot activo (Store API pública) |
 | Súper 99 | Magento | ⏳ Pendiente: su API de productos responde con error |
 | Riba Smith | Next.js | ⏳ Pendiente: cambió su sitio, falta ubicar su API de búsqueda |
-| Supermercados Rey | App Rey Delivery | ⏳ Pendiente: vende solo por app |
+| Supermercados Rey | Instaleap (Next.js) | 🔧 En progreso: su API responde; falta el ID interno de la tienda (ver notas abajo) |
 
 Las tiendas se configuran en `data/stores.json`. Una tienda con `"enabled": false` se omite.
 
@@ -94,6 +94,19 @@ Cuidados que tienen los bots:
 Para sumar una tienda, crea `connectors/<nombre>.js` con
 `fetchOffers(store) -> [{ sku, gtin, name, brand, category, size, price, listPrice, inStock, url, image }]`
 y regístralo en `connectors/index.js`.
+
+### Notas para el bot de Rey (Instaleap)
+
+- smrey.com es Next.js sobre Instaleap (`clientId: GRUPO_REY`, `storeReference: 1038`) y está
+  protegida con Imperva. La búsqueda del sitio (`/search?name=`) carga los productos en el navegador.
+- API GraphQL: `POST https://deadpool.instaleap.io/api/v2`. No pide clave y tiene la introspección
+  desactivada.
+- Forma válida de la consulta:
+  `getProducts(storeId: ID!, search: { text, language: ES }, pagination: { pageSize, currentPage })`
+  devolviendo `products { name sku ean price isAvailable photosUrls slug brand unit }` y
+  `paginator { pages page }`.
+- Con `storeId: "1038"` responde `products: null`. Falta obtener el ID interno de la tienda,
+  probablemente con una consulta de tiendas del mismo API usando `clientId: "GRUPO_REY"`.
 
 **Importante:** revisa los términos de uso de cada súper. Lo ideal es un acuerdo (feed o
 afiliados): da precios más confiables y abre la puerta a cobrar comisión.

@@ -1,5 +1,5 @@
 // Clave del panel de administración, guardada solo en este navegador.
-const KEY = 'panaprecio:admin';
+const KEY = 'mercapty:admin';
 
 export function getAdminKey() {
   try { return localStorage.getItem(KEY); } catch { return null; }

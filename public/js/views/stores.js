@@ -14,7 +14,7 @@ export async function renderStores() {
       <div class="section-head">
         <div>
           <h1>Tiendas</h1>
-          <span class="muted">Supermercados que PanaPrecio compara hoy.</span>
+          <span class="muted">Supermercados que Mercapty compara hoy.</span>
         </div>
       </div>
       <div class="grid wide">
@@ -38,7 +38,7 @@ export async function renderStores() {
       </div>
       <section class="cta-panel">
         <h2>¿Tienes un supermercado o minisúper?</h2>
-        <p>Comparte tu inventario con PanaPrecio en un archivo CSV o Excel (código de barras, nombre, marca,
+        <p>Comparte tu inventario con Mercapty en un archivo CSV o Excel (código de barras, nombre, marca,
           presentación, precio, disponibilidad, enlace y foto) y apareces en las comparaciones. Los clientes
           llegan directo a tu tienda en línea para comprar.</p>
       </section>`,

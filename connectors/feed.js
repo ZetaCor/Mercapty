@@ -1,4 +1,4 @@
-// Conector para tiendas que comparten su inventario con PanaPrecio mediante
+// Conector para tiendas que comparten su inventario con Mercapty mediante
 // un archivo CSV o JSON (local o publicado en una URL). Es la vía recomendada
 // para socios: la tienda controla qué publica y con qué frecuencia.
 //

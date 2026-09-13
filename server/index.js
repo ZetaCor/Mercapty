@@ -6,7 +6,7 @@ import { handler, admin } from './app.js';
 const PORT = Number(process.env.PORT) || Number(process.argv[2]) || 3000; // npm start -- 3001
 
 http.createServer(handler).listen(PORT, () => {
-  console.log(`PanaPrecio listo en http://localhost:${PORT}`);
+  console.log(`Mercapty listo en http://localhost:${PORT}`);
   console.log(admin.generated
     ? `Panel de imágenes: http://localhost:${PORT}/#/admin?clave=${admin.key}`
     : `Panel de imágenes: http://localhost:${PORT}/#/admin (clave definida en ADMIN_KEY)`);

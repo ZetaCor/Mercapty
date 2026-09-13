@@ -1,5 +1,6 @@
 import { getJson } from '../api.js';
-import { html, productGrid, timeAgo, categoryIcon, categoryTint } from '../ui.js';
+import { html, productGrid, categoryIcon, categoryTint } from '../ui.js';
+import { renderHero, bindHero } from './hero.js';
 
 const SORT_OPTIONS = [
   ['nombre', 'Nombre'],
@@ -50,17 +51,7 @@ export async function renderHome({ stores }) {
   ]);
   return {
     html: html`
-      <section class="hero">
-        <span class="eyebrow">Supermercados en línea de Panamá</span>
-        <h1>Compra el súper <span>al mejor precio</span></h1>
-        <p>Compara producto por producto entre ${stores.size} tiendas y te llevamos directo a la que lo tiene más barato.</p>
-        <div class="hero-stats">
-          <div><b>${meta.products}</b><span>productos</span></div>
-          <div><b>${stores.size}</b><span>tiendas</span></div>
-          <div><b>${meta.offers}</b><span>precios comparados</span></div>
-        </div>
-        <div class="meta hero-updated">Precios actualizados ${timeAgo(meta.updatedAt)}</div>
-      </section>
+      ${renderHero({ meta, stores, deals })}
 
       <section class="section">
         <div class="section-head"><h2>Categorías</h2></div>
@@ -82,6 +73,7 @@ export async function renderHome({ stores }) {
         </div>
         ${productGrid(all.items, stores)}
       </section>`,
+    bind: bindHero,
   };
 }
 

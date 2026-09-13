@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "panaprecio",
+      "name": "mercapty",
       "runtimeExecutable": "node",
       "runtimeArgs": ["server/index.js", "3001"],
       "port": 3001

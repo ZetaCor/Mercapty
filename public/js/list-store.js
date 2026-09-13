@@ -1,5 +1,5 @@
 // "Mi lista" vive en el navegador del usuario (no requiere cuenta).
-const KEY = 'panaprecio:lista';
+const KEY = 'mercapty:lista';
 
 export function getList() {
   try {

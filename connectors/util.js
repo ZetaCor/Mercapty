@@ -7,7 +7,7 @@ export function storeSearchUrl(store, query) {
 
 // Los bots se identifican y piden JSON, igual que el sitio de la tienda.
 export const BOT_HEADERS = {
-  'User-Agent': 'PanaPrecioBot/0.2 (comparador de precios de supermercados de Panama)',
+  'User-Agent': 'MercaptyBot/0.3 (comparador de precios de supermercados de Panama)',
   Accept: 'application/json',
 };
 

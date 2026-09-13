@@ -33,6 +33,8 @@ export const icons = {
   camera: icon('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'),
   trash: icon('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>'),
   back: icon('<path d="M15 18l-6-6 6-6"/>'),
+  next: icon('<path d="M9 6l6 6-6 6"/>'),
+  phone: icon('<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>'),
 };
 
 export const money = (n) => (n == null ? '—' : `$${Number(n).toFixed(2)}`);

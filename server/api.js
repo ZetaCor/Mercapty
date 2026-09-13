@@ -246,7 +246,7 @@ export function createApi(db) {
   }
 
   // Registra el clic y devuelve la URL de la tienda con parámetros UTM, para
-  // que la tienda pueda atribuir la venta a PanaPrecio. Solo se redirige a
+  // que la tienda pueda atribuir la venta a Mercapty. Solo se redirige a
   // URLs guardadas por los conectores, nunca a una recibida en la petición.
   async function redirectTarget(offerId) {
     const row = await db.get(`
@@ -258,7 +258,7 @@ export function createApi(db) {
     let target;
     try { target = new URL(row.url); } catch { target = new URL(row.homepage); }
     if (!['http:', 'https:'].includes(target.protocol)) target = new URL(row.homepage);
-    target.searchParams.set('utm_source', 'panaprecio');
+    target.searchParams.set('utm_source', 'mercapty');
     target.searchParams.set('utm_medium', 'comparador');
     return target.toString();
   }

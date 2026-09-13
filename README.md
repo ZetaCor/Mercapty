@@ -1,4 +1,4 @@
-# PanaPrecio
+# Mercapty
 
 Comparador de precios de supermercados en línea de Panamá. El cliente busca un producto, ve el
 precio en cada tienda, cuál lo tiene más barato, y con un clic va a esa tienda a comprarlo.
@@ -12,7 +12,7 @@ Los precios los recogen **bots propios** que recorren las webs de los súper cad
 - **Ficha de producto:** precio en cada tienda ordenado de menor a mayor, mejor precio destacado,
   ofertas, disponibilidad, precio por kg/L, historial y botón **«Comprar en…»**.
 - **Redirección medible:** `/go/:id` registra el clic y envía al cliente a la tienda con
-  `utm_source=panaprecio`. Esa cifra es la base para negociar comisiones.
+  `utm_source=mercapty`. Esa cifra es la base para negociar comisiones.
 - **Mi lista:** compara «todo en una tienda» contra «repartir cada producto donde está más barato».
 - **Tiendas:** cuántos productos tiene cada una, en cuántos gana y cuántas visitas le enviamos.
 - **Fotos:** las que publica cada tienda, o las que subes tú desde el panel de imágenes.
@@ -87,7 +87,7 @@ los bots y el servidor usan Turso. Prueba rápida de los bots:
   (ejemplo en `data/feeds/minisuper-ejemplo.csv`).
 
 Cuidados que tienen los bots:
-- Se identifican como `PanaPrecioBot` y esperan 1.5 s entre peticiones.
+- Se identifican como `MercaptyBot` y esperan 1.5 s entre peticiones.
 - Si una tienda no responde o devuelve 0 productos, no se toca lo guardado.
 - Si llegan muchos menos productos que la vez anterior, no se marca nada como agotado.
 

@@ -8,7 +8,7 @@ import path from 'node:path';
 import { openDb, upsertStore, upsertOffers, countInStock, markUnseenOffersOutOfStock, ROOT } from '../server/db.js';
 import { connectors } from '../connectors/index.js';
 import { storeSearchUrl } from '../connectors/util.js';
-import { canonicalCategory, normalizeGtin, parseSize } from '../server/lib/normalize.js';
+import { canonicalCategory, matchKey, normalizeGtin, parsePack, parseSize } from '../server/lib/normalize.js';
 import { createMatcher } from '../server/lib/matching.js';
 
 const only = process.argv.slice(2);
@@ -24,6 +24,9 @@ function normalizeOffer(store, raw) {
   const listPrice = Number(raw.listPrice);
   const sizeLabel = String(raw.size ?? '').trim() || null;
   const size = parseSize(sizeLabel ?? '') ?? parseSize(raw.title ?? name);
+  const pack = Math.max(size?.count ?? 1, parsePack(raw.title ?? name));
+  // "946 ml (Pack de 12)": el tamaño del nombre es de una unidad; el total son 12 × 946 ml.
+  const sizeValue = size ? (size.count > 1 ? size.value : size.value * pack) : null;
   return {
     sku: raw.sku ? String(raw.sku) : null,
     gtin: normalizeGtin(raw.gtin),
@@ -32,8 +35,9 @@ function normalizeOffer(store, raw) {
     brand: String(raw.brand ?? '').trim() || null,
     category: canonicalCategory(raw.category, name),
     sizeLabel,
-    sizeValue: size?.value ?? null,
+    sizeValue,
     sizeUnit: size?.unit ?? null,
+    pack,
     price,
     listPrice: listPrice > price ? listPrice : null,
     inStock: raw.inStock !== false,
@@ -42,17 +46,19 @@ function normalizeOffer(store, raw) {
   };
 }
 
-// Productos sin código de barras: se intenta unir cada uno con el mismo
-// producto de otra tienda (ver server/lib/matching.js). Cada producto de otra
-// tienda se une como máximo con uno de esta; gana el parecido más alto.
+// Productos sin código de barras, o con uno que ninguna otra tienda usa (cada
+// súper puede usar otro código para lo mismo): se intenta unir cada uno con el
+// mismo producto de otra tienda (ver server/lib/matching.js). Cada producto de
+// otra tienda se une como máximo con uno de esta; gana el parecido más alto.
 async function attachByName(storeId, offers) {
-  const pending = offers.filter((o) => !o.gtin);
-  if (!pending.length) return 0;
   const candidates = await db.all(`
-    SELECT p.match_key AS matchKey, p.name, p.brand, p.category, p.size_value AS sizeValue, p.size_unit AS sizeUnit
+    SELECT p.match_key AS matchKey, p.name, p.brand, p.category
     FROM products p
     WHERE EXISTS (SELECT 1 FROM offers o WHERE o.product_id = p.id AND o.store_id <> ? AND o.in_stock = 1)
   `, [storeId]);
+  const known = new Set(candidates.map((c) => c.matchKey));
+  const pending = offers.filter((o) => !o.gtin || !known.has(matchKey(o)));
+  if (!pending.length) return 0;
   const findMatch = createMatcher(candidates);
   const proposals = pending
     .map((offer) => ({ offer, match: findMatch(offer) }))

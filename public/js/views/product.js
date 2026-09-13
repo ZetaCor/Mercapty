@@ -1,5 +1,5 @@
 import { getJson } from '../api.js';
-import { html, money, storeAvatar, unitPriceText, timeAgo, productLabel, productMedia, icons, toast } from '../ui.js';
+import { html, money, storeAvatar, unitPriceText, timeAgo, productLabel, productMedia, productGrid, icons, toast } from '../ui.js';
 import { isAdmin } from '../admin-auth.js';
 import { uploadProductImage, removeProductImage } from '../images.js';
 import { adSlot } from '../ads.js';
@@ -74,7 +74,7 @@ function adminControls(product) {
     </div>`;
 }
 
-export async function renderProduct({ match, refresh }) {
+export async function renderProduct({ match, stores, refresh }) {
   const product = await getJson(`/api/products/${match[1]}`);
   const best = product.offers.find((o) => o.isBest);
   const available = product.offers.filter((o) => o.inStock).length;
@@ -118,6 +118,14 @@ export async function renderProduct({ match, refresh }) {
           <div class="section-head"><h2>Compara en ${available} tienda${available === 1 ? '' : 's'}</h2></div>
           <div class="offers">${product.offers.map(offerRow)}</div>
         </section>
+        ${product.similar?.length
+          ? html`
+            <section class="section">
+              <div class="section-head"><h2>Parecidos en otras tiendas</h2></div>
+              <p class="notice-soft">Pueden ser el mismo producto con otro nombre o presentación. Revisa la marca y el tamaño antes de comparar.</p>
+              ${productGrid(product.similar, stores)}
+            </section>`
+          : ''}
         ${adSlot('product')}
         ${priceHistory(product.history, product.bestPrice)}
       </div>`,

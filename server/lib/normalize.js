@@ -40,7 +40,10 @@ export function isValidGtin(gtin) {
 export function normalizeGtin(raw) {
   const digits = String(raw ?? '').replace(/\D/g, '');
   if (digits.length < 8 || digits.length > 14) return null;
-  return digits.padStart(14, '0');
+  const gtin = digits.padStart(14, '0');
+  // Códigos de circulación interna (prefijos 2, 02 y 04): cada tienda los
+  // inventa para productos pesados o propios, así que no sirven para comparar.
+  return /^(02|002|004)/.test(gtin) ? null : gtin;
 }
 
 const UNITS = {
@@ -53,14 +56,24 @@ const UNITS = {
 };
 const SIZE_RE = /(?:(\d+)\s*[x×]\s*)?(\d+(?:[.,]\d+)?)\s*(kg|mg|grs|gr|g|lbs|lb|oz|ml|litros|litro|lts|lt|l|gal|unidades|unid|und|un|rollos|sobres|pack)(?![a-z])/;
 
-// Devuelve { value, unit } en unidades base (g, ml, un) o null.
+// Devuelve { value, unit, count } en unidades base (g, ml, un) o null. En
+// "6 x 355 ml", value es el total (2130 ml) y count las unidades (6).
 export function parseSize(text) {
   const m = SIZE_RE.exec(stripAccents(text).toLowerCase());
   if (!m) return null;
   const [, multiplier, amount, unitRaw] = m;
   const [unit, factor] = UNITS[unitRaw];
-  const value = Number(amount.replace(',', '.')) * factor * (multiplier ? Number(multiplier) : 1);
-  return { value: Math.round(value * 100) / 100, unit };
+  const count = multiplier ? Number(multiplier) : 1;
+  const value = Number(amount.replace(',', '.')) * factor * count;
+  return { value: Math.round(value * 100) / 100, unit, count };
+}
+
+// Paquetes de varias unidades: "Pack de 12", "6 pack", "3pack", "Paquete de 3", "Caja de 24".
+const PACK_RE = /(?:pack|paquete|caja)\s*(?:de\s*)?(\d{1,3})\b|\b(\d{1,3})\s*pack\b/;
+export function parsePack(text) {
+  const m = PACK_RE.exec(normalizeText(text).replace(/(\d)pack\b/g, '$1 pack'));
+  const n = m ? Number(m[1] ?? m[2]) : 1;
+  return n > 1 && n <= 100 ? n : 1;
 }
 
 // Precio por kg, por litro o por unidad, para comparar presentaciones distintas.
@@ -102,8 +115,10 @@ export function canonicalCategory(...texts) {
 // Llave para decidir si dos ofertas de tiendas distintas son el mismo producto.
 // El código de barras es la única coincidencia confiable; sin él se usa
 // marca + nombre + presentación, que sirve para socios con catálogos simples.
-export function matchKey({ gtin, brand, name, sizeValue, sizeUnit }) {
-  if (gtin) return `gtin:${gtin}`;
+export function matchKey({ gtin, brand, name, sizeValue, sizeUnit, pack = 1 }) {
+  // Un paquete de 12 no es lo mismo que una unidad, aunque la tienda use el
+  // código de barras de la unidad (Superunico lo hace).
+  if (gtin) return pack > 1 ? `gtin:${gtin}|x${pack}` : `gtin:${gtin}`;
   const size = sizeValue ? `${Math.round(sizeValue)}${sizeUnit}` : '';
   return `name:${normalizeText(brand)}|${normalizeText(name)}|${size}`;
 }

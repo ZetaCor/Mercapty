@@ -1,4 +1,5 @@
-import { normalizeText, productPath, unitPrice } from './lib/normalize.js';
+import { canonicalCategory, normalizeText, productPath, unitPrice } from './lib/normalize.js';
+import { nameSimilarity } from './lib/matching.js';
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
@@ -19,6 +20,50 @@ const SORTS = {
   nombre: 'p.name, p.brand',
   precio: 'r.price ASC',
   ahorro: '(r.max_price - r.price) DESC, r.price ASC',
+};
+
+// --- Búsqueda por relevancia ---
+
+const SEARCH_STOPWORDS = new Set(['de', 'del', 'la', 'el', 'los', 'las', 'con', 'y', 'en', 'para', 'por', 'a', 'al']);
+
+// Singular de lo que escribe el cliente, para encontrar ambas formas:
+// "leches" -> "leche", "frijoles" -> "frijol", "galletas" -> "galleta".
+function searchStem(t) {
+  if (t.length > 4 && t.endsWith('es') && /[lnrdzj]$/.test(t.slice(0, -2))) return t.slice(0, -2);
+  if (t.length > 3 && t.endsWith('s') && !t.endsWith('ss')) return t.slice(0, -1);
+  return t;
+}
+
+function queryTerms(q) {
+  return [...new Set(normalizeText(q).split(' ').filter((t) => t && !SEARCH_STOPWORDS.has(t)).map(searchStem))].slice(0, 8);
+}
+
+// Qué tan bien responde un producto a la búsqueda. Primero lo que ES el
+// producto buscado («Leche Entera…» al buscar «leche»), después lo que solo lo
+// contiene («Arroz con leche», «Jabón de leche de coco»).
+function relevance(row, terms, intent) {
+  const name = normalizeText(row.name);
+  const words = name.split(' ');
+  let matched = 0;
+  let score = 0;
+  for (const t of terms) {
+    if (words.some((w) => w.startsWith(t))) { matched++; score += 15; }
+    else if (row.search_text.includes(t)) { matched++; score += 5; } // en la marca o el tamaño
+  }
+  if (words[0]?.startsWith(terms[0])) score += 40;
+  const content = words.filter((w) => !SEARCH_STOPWORDS.has(w)).join(' ');
+  if (terms.length > 1 && content.includes(terms.join(' '))) score += 25; // palabras juntas y en orden
+  if (new RegExp(`(^| )(de|con) ${terms[0]}`).test(name)) score -= 15;
+  if (intent !== 'Otros' && row.category === intent) score += 20;
+  score += Math.min(12, 3 * (row.store_count - 1)); // los que se comparan en varias tiendas, antes
+  return { score, matched };
+}
+
+const RELEVANCE_SORTS = {
+  relevancia: (a, b) => b.score - a.score || b.row.store_count - a.row.store_count || a.row.price - b.row.price,
+  precio: (a, b) => a.row.price - b.row.price,
+  ahorro: (a, b) => (b.row.max_price - b.row.price) - (a.row.max_price - a.row.price) || a.row.price - b.row.price,
+  nombre: (a, b) => a.row.name.localeCompare(b.row.name, 'es'),
 };
 
 function productSummary(row) {
@@ -73,28 +118,40 @@ export function createApi(db) {
     `);
   }
 
-  async function searchProducts({ q = '', category = '', sort = 'nombre', limit = 24, offset = 0 }) {
-    const where = [];
-    const params = [];
-    for (const term of normalizeText(q).split(' ').filter(Boolean).slice(0, 8)) {
-      where.push('p.search_text LIKE ?');
-      params.push(`%${term}%`);
+  async function searchProducts({ q = '', category = '', sort = '', limit = 24, offset = 0 }) {
+    const join = 'FROM products p JOIN ranked r ON r.product_id = p.id AND r.rn = 1';
+    const terms = queryTerms(q);
+
+    // Sin palabras (por ejemplo, una categoría): orden directo en la base.
+    if (!terms.length) {
+      const whereSql = category ? 'WHERE p.category = ?' : '';
+      const params = category ? [category] : [];
+      const [count, rows] = await Promise.all([
+        db.get(`${RANKED} SELECT COUNT(*) AS total ${join} ${whereSql}`, params),
+        db.all(`
+          ${RANKED} SELECT ${BEST_OFFER_COLUMNS} ${join} ${whereSql}
+          ORDER BY ${SORTS[sort] ?? SORTS.nombre} LIMIT ? OFFSET ?
+        `, [...params, limit, offset]),
+      ]);
+      return { total: count.total, approximate: false, items: rows.map(productSummary) };
     }
+
+    // Con palabras: se traen los productos que tengan alguna y se ordenan por
+    // relevancia. Si ninguno tiene todas, se muestran los más parecidos.
+    const where = [`(${terms.map(() => 'p.search_text LIKE ?').join(' OR ')})`];
+    const params = terms.map((t) => `%${t}%`);
     if (category) {
       where.push('p.category = ?');
       params.push(category);
     }
-    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
-    const join = 'FROM products p JOIN ranked r ON r.product_id = p.id AND r.rn = 1';
-
-    const [count, rows] = await Promise.all([
-      db.get(`${RANKED} SELECT COUNT(*) AS total ${join} ${whereSql}`, params),
-      db.all(`
-        ${RANKED} SELECT ${BEST_OFFER_COLUMNS} ${join} ${whereSql}
-        ORDER BY ${SORTS[sort] ?? SORTS.nombre} LIMIT ? OFFSET ?
-      `, [...params, limit, offset]),
-    ]);
-    return { total: count.total, items: rows.map(productSummary) };
+    const rows = await db.all(`${RANKED} SELECT ${BEST_OFFER_COLUMNS} ${join} WHERE ${where.join(' AND ')} LIMIT 5000`, params);
+    const intent = canonicalCategory(q);
+    const scored = rows.map((row) => ({ row, ...relevance(row, terms, intent) }));
+    const complete = scored.filter((s) => s.matched === terms.length);
+    const approximate = complete.length === 0 && scored.length > 0;
+    const pool = approximate ? scored : complete;
+    pool.sort(RELEVANCE_SORTS[sort] ?? RELEVANCE_SORTS.relevancia);
+    return { total: pool.length, approximate, items: pool.slice(offset, offset + limit).map((s) => productSummary(s.row)) };
   }
 
   // Productos donde elegir bien la tienda ahorra más dinero.
@@ -106,6 +163,28 @@ export function createApi(db) {
       ORDER BY (r.max_price - r.price) DESC LIMIT ?
     `, [limit]);
     return rows.map(productSummary);
+  }
+
+  // Productos de otras tiendas que se parecen pero no se unieron (otro nombre u
+  // otra presentación): se muestran aparte para que el cliente compare.
+  async function similarProducts(p, storeIds) {
+    const words = normalizeText(p.name).split(' ').filter((w) => w.length >= 4 && !/^\d/.test(w));
+    const keys = [...new Set(words)].sort((a, b) => b.length - a.length).slice(0, 2);
+    if (!keys.length) return [];
+    const rows = await db.all(`
+      ${RANKED} SELECT ${BEST_OFFER_COLUMNS}
+      FROM products p JOIN ranked r ON r.product_id = p.id AND r.rn = 1
+      WHERE p.id <> ? AND ${keys.map(() => 'p.search_text LIKE ?').join(' AND ')}
+      LIMIT 300
+    `, [p.id, ...keys.map((k) => `%${k}%`)]);
+    const sameCategory = (row) => !p.category || p.category === 'Otros' || row.category === p.category;
+    return rows
+      .filter((row) => row.store_count > 1 || !storeIds.has(row.store_id)) // que aporte otra tienda
+      .map((row) => ({ row, ...nameSimilarity(`${p.brand ?? ''} ${p.name}`, `${row.brand ?? ''} ${row.name}`) }))
+      .filter((s) => s.score >= 0.6 && !s.variantConflict && sameCategory(s.row))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6)
+      .map((s) => productSummary(s.row));
   }
 
   async function getProduct(id) {
@@ -127,6 +206,7 @@ export function createApi(db) {
     ]);
     if (!p) return null;
 
+    const similar = await similarProducts(p, new Set(offers.map((o) => o.store_id)));
     const available = offers.filter((o) => o.in_stock);
     const best = available[0];
     const worst = available.at(-1);
@@ -158,6 +238,7 @@ export function createApi(db) {
         diff: best && o.in_stock ? round2(o.price - best.price) : null,
       })),
       history,
+      similar,
     };
   }
 

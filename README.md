@@ -8,7 +8,12 @@ Los precios los recogen **bots propios** que recorren las webs de los súper cad
 
 ## Qué hace
 
-- **Búsqueda** por nombre, marca o código de barras (sin importar tildes) y por categoría.
+- **Búsqueda** por nombre, marca o código de barras (sin importar tildes) y por categoría, ordenada por
+  relevancia: al buscar «leche» salen primero las leches y después lo que solo la contiene («arroz con
+  leche»). Entiende singular y plural y, si ninguna coincidencia tiene todas las palabras, muestra las
+  más parecidas con un aviso.
+- **Parecidos en otras tiendas:** en cada ficha, productos de otras tiendas que se parecen pero no se
+  unieron (otro nombre u otra presentación), para comparar a mano.
 - **Ficha de producto:** precio en cada tienda ordenado de menor a mayor, mejor precio destacado,
   ofertas, disponibilidad, precio por kg/L, historial y botón **«Comprar en…»**.
 - **Redirección medible:** `/go/:id` registra el clic y envía al cliente a la tienda con
@@ -34,17 +39,26 @@ La clave es **reconocer que dos tiendas venden el mismo producto**. Se usa el c�
 de barras, se usa marca + nombre + presentación como respaldo. Las categorías de cada súper se
 unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`).
 
-**Emparejamiento por nombre** (`server/lib/matching.js`): los productos sin código de barras (Riba
-Smith) se unen con el mismo producto de otra tienda solo si se cumplen todas estas reglas:
-- el tamaño coincide (con 3 % de margen, así 2 lb ≈ 908 g) y la marca coincide;
-- la categoría es la misma;
-- los nombres se parecen al menos 75 %, entendiendo abreviaturas («desl», «intg», «c/») y nombres
-  cortados;
-- ninguna palabra de variante («entera», «descremada», «light», «pavo»…) aparece en un solo nombre.
+**Paquetes:** «946 ml (Pack de 12)», «6 pack», «Caja de 24» o «6 x 355 ml» se reconocen como
+paquetes. Un paquete nunca se une con la unidad, aunque la tienda use el mismo código de barras, y
+su precio por litro o por kilo se calcula sobre el total. Los códigos internos de productos pesados
+(prefijos 2, 02 y 04) se descartan porque cada tienda inventa los suyos.
 
-Sin marca o sin tamaño no se une: compararlo con un producto concreto engañaría al cliente. Cada
-producto de otra tienda se une con uno solo. Para revisar las uniones:
-`INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
+**Emparejamiento por nombre** (`server/lib/matching.js`): los productos sin código de barras (Riba
+Smith), o con uno que ninguna otra tienda usa, se unen con el mismo producto de otra tienda solo si
+se cumplen todas estas reglas:
+- el tamaño por unidad y la cantidad de unidades coinciden (con 3 % de margen, así 2 lb ≈ 908 g) y la
+  marca coincide;
+- la categoría es la misma;
+- los nombres se parecen al menos 75 %. Se ignoran las palabras de empaque y medida («UHT», «Pura»,
+  «Suelta», «Caja», «litros»…) y se entienden abreviaturas («desl», «intg», «c/») y nombres cortados;
+- ninguna palabra de variante («entera», «descremada», «light», «pavo», «soya», «girasol»…) aparece en
+  un solo nombre, y no puede haber palabras distintas en los dos nombres a la vez (girasol/soya): solo
+  se permiten palabras de más en uno de ellos («Aceite Pabo» ≈ «Aceite Pabo Vegetal»).
+
+Sin marca o sin tamaño no se une: compararlo con un producto concreto engañaría al cliente. Esos
+productos aparecen en «Parecidos en otras tiendas». Cada producto de otra tienda se une con uno solo.
+Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 
 ## Supermercados (septiembre 2026)
 

@@ -347,7 +347,7 @@ async function route(req, res) {
     return sendJson(res, 200, await api.searchProducts({
       q: searchParams.get('q') ?? '',
       category: searchParams.get('categoria') ?? '',
-      sort: searchParams.get('orden') ?? 'nombre',
+      sort: searchParams.get('orden') ?? '', // la API elige: relevancia si hay palabras, nombre si no
       limit: intParam(searchParams.get('limit'), 1, 500, 24),
       offset: intParam(searchParams.get('offset'), 0, 1_000_000, 0),
     }));

@@ -5,6 +5,7 @@ import { adSlot } from '../ads.js';
 import { navigate } from '../nav.js';
 
 const SORT_OPTIONS = [
+  ['relevancia', 'Más relevantes'],
   ['nombre', 'Nombre'],
   ['precio', 'Menor precio'],
   ['ahorro', 'Mayor ahorro entre tiendas'],
@@ -85,7 +86,7 @@ export async function renderSearch({ params, stores }) {
   const current = {
     q: params.get('q') ?? '',
     categoria: params.get('categoria') ?? '',
-    orden: params.get('orden') ?? 'nombre',
+    orden: params.get('orden') ?? (params.get('q') ? 'relevancia' : 'nombre'),
   };
   const page = Math.max(1, Number.parseInt(params.get('pagina'), 10) || 1);
   const qs = new URLSearchParams({ ...current, limit: String(PAGE_SIZE * page) });
@@ -108,6 +109,9 @@ export async function renderSearch({ params, stores }) {
         </select>
       </div>
       ${categoryChips(categories, current)}
+      ${result.approximate
+        ? html`<p class="notice-soft">No encontramos productos con todas las palabras de «${current.q}». Te mostramos los más parecidos.</p>`
+        : ''}
       ${result.items.length
         ? productGrid(result.items, stores)
         : html`<div class="empty">

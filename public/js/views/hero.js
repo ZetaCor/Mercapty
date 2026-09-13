@@ -74,8 +74,8 @@ export function renderHero({ meta, stores, deals }) {
         <p>Mercapty compara arroz, pollo, huevos, leche y decenas de productos en ${list}. Arma tu canasta y te
           decimos exactamente dónde te costará menos.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary btn-lg" href="#/buscar">Arma tu canasta</a>
-          <a class="btn btn-lg" href="#/buscar?orden=ahorro">Ver dónde se ahorra más</a>
+          <a class="btn btn-primary btn-lg" href="/buscar">Arma tu canasta</a>
+          <a class="btn btn-lg" href="/buscar?orden=ahorro">Ver dónde se ahorra más</a>
         </div>
         <div class="hero-stats">
           <div><b>${meta.products}</b><span>productos</span></div>
@@ -93,8 +93,8 @@ export function renderHero({ meta, stores, deals }) {
         <p>Agrega lo que compras cada semana y te decimos si conviene comprar todo en un súper o repartir la compra
           entre varios.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary btn-lg" href="#/buscar">Empezar mi lista</a>
-          <a class="btn btn-lg" href="#/lista">Ver mi lista</a>
+          <a class="btn btn-primary btn-lg" href="/buscar">Empezar mi lista</a>
+          <a class="btn btn-lg" href="/lista">Ver mi lista</a>
         </div>`,
     },
     {
@@ -110,7 +110,7 @@ export function renderHero({ meta, stores, deals }) {
           <span class="store-badge">${icons.phone}<span><small>Próximamente en</small>App Store</span></span>
           <span class="store-badge">${icons.phone}<span><small>Próximamente en</small>Google Play</span></span>
         </div>
-        <div class="hero-actions"><a class="btn btn-lg" href="#/app">Conoce la app</a></div>`,
+        <div class="hero-actions"><a class="btn btn-lg" href="/app">Conoce la app</a></div>`,
     },
   ];
 

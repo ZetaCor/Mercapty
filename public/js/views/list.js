@@ -70,7 +70,7 @@ export async function renderList({ refresh }) {
           <div class="big">🛒</div>
           <p>Tu lista está vacía.</p>
           <p>Agrega productos con el botón <b>+</b> y te decimos dónde te sale más barato comprarlos.</p>
-          <a class="btn btn-primary" href="#/buscar">Ver productos</a>
+          <a class="btn btn-primary" href="/buscar">Ver productos</a>
         </div>`,
     };
   }
@@ -96,7 +96,7 @@ export async function renderList({ refresh }) {
               return html`
                 <div class="list-item">
                   ${productMedia({ image: thumb.image, category: thumb.category, name: item.label }, { className: 'thumb' })}
-                  <a href="#/producto/${item.productId}">${item.label}</a>
+                  <a href="/producto/${item.productId}">${item.label}</a>
                   <div class="qty">
                     <button type="button" data-qty="${item.productId}" data-delta="-1" aria-label="Quitar uno">−</button>
                     <span>${item.qty}</span>

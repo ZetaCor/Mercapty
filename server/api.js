@@ -1,4 +1,4 @@
-import { normalizeText, unitPrice } from './lib/normalize.js';
+import { normalizeText, productPath, unitPrice } from './lib/normalize.js';
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
@@ -24,6 +24,7 @@ const SORTS = {
 function productSummary(row) {
   return {
     id: row.id,
+    path: productPath(row.id, row.name),
     name: row.name,
     brand: row.brand,
     category: row.category,
@@ -131,6 +132,7 @@ export function createApi(db) {
     const worst = available.at(-1);
     return {
       id: p.id,
+      path: productPath(p.id, p.name),
       name: p.name,
       brand: p.brand,
       category: p.category,
@@ -201,7 +203,7 @@ export function createApi(db) {
       }
       const group = splitByStore.get(store.id);
       const subtotal = cheapest.price * qty;
-      group.lines.push({ productId: id, label: label(product), qty, price: cheapest.price, subtotal: round2(subtotal), offerId: cheapest.id });
+      group.lines.push({ productId: id, path: productPath(id, product.name), label: label(product), qty, price: cheapest.price, subtotal: round2(subtotal), offerId: cheapest.id });
       group.subtotal = round2(group.subtotal + subtotal);
       splitTotal += subtotal;
     }
@@ -292,8 +294,17 @@ export function createApi(db) {
     return { image: p.custom_image ?? p.image_url ?? null, customImage: p.custom_image, storeImage: p.image_url };
   }
 
+  // Productos con algo disponible, para el mapa del sitio (sitemap.xml).
+  function sitemapEntries() {
+    return db.all(`
+      SELECT p.id, p.name, MAX(o.updated_at) AS updatedAt
+      FROM products p JOIN offers o ON o.product_id = p.id AND o.in_stock = 1
+      GROUP BY p.id ORDER BY p.id
+    `);
+  }
+
   return {
     meta, listStores, listCategories, searchProducts, deals, getProduct, optimizeList, redirectTarget,
-    adminProducts, productExists, setCustomImage, productImage,
+    adminProducts, productExists, setCustomImage, productImage, sitemapEntries,
   };
 }

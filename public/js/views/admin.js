@@ -1,4 +1,4 @@
-// Panel para agregar fotos a los productos (#/admin). Protegido con la clave
+// Panel para agregar fotos a los productos (/admin). Protegido con la clave
 // de administrador que muestra el servidor al iniciar.
 import { adminRequest } from '../api.js';
 import { html, productMedia, icons, toast } from '../ui.js';

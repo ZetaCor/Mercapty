@@ -7,6 +7,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { openDb, ROOT } from './db.js';
 import { createApi } from './api.js';
+import { productPath } from './lib/normalize.js';
 import { saveImage, deleteImage, canStoreImages, IMAGES_DIR, LOCAL_IMAGE_RE } from './storage.js';
 
 const PUBLIC_DIR = path.join(ROOT, 'public');
@@ -157,6 +158,157 @@ async function handleAdmin(req, res, pathname, api) {
   throw new HttpError(404, 'Ruta no encontrada');
 }
 
+function needApi() {
+  return getApi().catch((err) => {
+    console.error(err);
+    throw new HttpError(503, 'La base de datos no está disponible. Si acabas de publicar, conecta Turso al proyecto en Vercel.');
+  });
+}
+
+// --- Páginas para Google: dirección normal + título, descripción y datos ---
+
+const DEFAULT_DESCRIPTION = 'Compara producto por producto los precios de los supermercados en línea de Panamá y compra donde está más barato.';
+const STATIC_PAGES = {
+  '/': ['Compara precios de supermercados en Panamá', DEFAULT_DESCRIPTION],
+  '/tiendas': ['Supermercados que comparamos', 'Mira qué supermercados de Panamá compara Mercapty y en cuántos productos tiene cada uno el mejor precio.'],
+  '/app': ['Descarga la app', 'Instala Mercapty en tu celular y compara los precios del súper desde el pasillo.'],
+  '/lista': ['Mi lista', DEFAULT_DESCRIPTION, 'noindex'],
+  '/admin': ['Panel de imágenes', DEFAULT_DESCRIPTION, 'noindex'],
+};
+
+const money = (n) => `$${Number(n).toFixed(2)}`;
+const escapeHtml = (s) => String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+const absoluteUrl = (url, origin) => (!url ? null : /^https?:\/\//.test(url) ? url : `${origin}${url}`);
+
+// Dirección pública para canonical y sitemap. Con dominio propio, define
+// SITE_URL (por ejemplo https://mercapty.com) para que Google no la mezcle con vercel.app.
+function siteOrigin(req) {
+  if (process.env.SITE_URL) return process.env.SITE_URL.replace(/\/+$/, '');
+  const host = String(req.headers['x-forwarded-host'] ?? req.headers.host ?? 'localhost').replace(/[^a-z0-9.:-]/gi, '');
+  const proto = String(req.headers['x-forwarded-proto'] ?? (host.startsWith('localhost') ? 'http' : 'https')).split(',')[0];
+  return `${proto}://${host}`;
+}
+
+function robotsTxt(origin) {
+  return ['User-agent: *', 'Allow: /', 'Disallow: /api/', 'Disallow: /go/', 'Disallow: /admin', 'Disallow: /lista', '',
+    `Sitemap: ${origin}/sitemap.xml`, ''].join('\n');
+}
+
+function productJsonLd(product, available, origin) {
+  const prices = available.map((o) => o.price);
+  const image = absoluteUrl(product.image, origin);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    ...(product.brand ? { brand: { '@type': 'Brand', name: product.brand } } : {}),
+    ...(image ? { image: [image] } : {}),
+    ...(product.gtin ? { gtin: product.gtin } : {}),
+    ...(product.category ? { category: product.category } : {}),
+    ...(prices.length ? {
+      offers: {
+        '@type': 'AggregateOffer', priceCurrency: 'USD', offerCount: prices.length,
+        lowPrice: Math.min(...prices).toFixed(2), highPrice: Math.max(...prices).toFixed(2),
+        availability: 'https://schema.org/InStock',
+      },
+    } : {}),
+  };
+}
+
+async function pageMeta(pathname, searchParams, origin) {
+  const clean = pathname.replace(/\/+$/, '') || '/';
+  let m;
+  if ((m = clean.match(/^\/producto\/(\d+)(?:-[a-z0-9-]*)?$/))) {
+    const product = await (await needApi()).getProduct(Number(m[1]));
+    if (!product) return { status: 404, title: 'Producto no encontrado', robots: 'noindex' };
+    const available = product.offers.filter((o) => o.inStock);
+    const best = available[0];
+    const stores = `${available.length} supermercado${available.length === 1 ? '' : 's'}`;
+    return {
+      title: best ? `${product.name}: desde ${money(best.price)} en ${best.storeName}` : product.name,
+      description: best
+        ? `Compara el precio de ${product.name} en ${stores} de Panamá. El más barato hoy: ${best.storeName}, ${money(best.price)}.`
+        : `Precio de ${product.name} en los supermercados de Panamá.`,
+      path: product.path,
+      image: product.image,
+      jsonLd: productJsonLd(product, available, origin),
+    };
+  }
+  if (clean === '/buscar') {
+    const q = searchParams.get('q');
+    const categoria = searchParams.get('categoria');
+    if (q) return { title: `Precios de «${q}» en supermercados de Panamá`, robots: 'noindex, follow' };
+    if (categoria) {
+      return {
+        title: `${categoria}: compara precios en supermercados de Panamá`,
+        description: `Precios de ${categoria.toLowerCase()} en los supermercados de Panamá, producto por producto.`,
+        path: `/buscar?categoria=${encodeURIComponent(categoria)}`,
+      };
+    }
+    return { title: 'Todos los productos', path: '/buscar' };
+  }
+  const known = STATIC_PAGES[clean];
+  if (known) return { title: known[0], description: known[1], robots: known[2], path: clean };
+  return { status: 404, title: 'Página no encontrada', robots: 'noindex' };
+}
+
+let shellHtml;
+async function pageShell() {
+  shellHtml ??= await readFile(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
+  return shellHtml;
+}
+
+function injectHead(shell, meta, origin) {
+  const title = `${meta.title} · Mercapty`;
+  const description = meta.description ?? DEFAULT_DESCRIPTION;
+  const url = meta.path ? `${origin}${meta.path}` : null;
+  const tags = [
+    `<title>${escapeHtml(title)}</title>`,
+    `<meta name="description" content="${escapeHtml(description)}">`,
+    meta.robots && `<meta name="robots" content="${escapeHtml(meta.robots)}">`,
+    url && `<link rel="canonical" href="${escapeHtml(url)}">`,
+    '<meta property="og:site_name" content="Mercapty">',
+    '<meta property="og:type" content="website">',
+    `<meta property="og:title" content="${escapeHtml(title)}">`,
+    `<meta property="og:description" content="${escapeHtml(description)}">`,
+    url && `<meta property="og:url" content="${escapeHtml(url)}">`,
+    `<meta property="og:image" content="${escapeHtml(absoluteUrl(meta.image, origin) ?? `${origin}/icons/icon-512.png`)}">`,
+    '<meta name="twitter:card" content="summary">',
+    meta.jsonLd && `<script type="application/ld+json">${JSON.stringify(meta.jsonLd).replaceAll('<', '\\u003c')}</script>`,
+  ].filter(Boolean).join('\n  ');
+  return shell.replace(/<title>[^<]*<\/title>\s*<meta name="description"[^>]*>/, tags);
+}
+
+async function renderPage(req, res, pathname, searchParams) {
+  const origin = siteOrigin(req);
+  const meta = await pageMeta(pathname, searchParams, origin);
+  const html = injectHead(await pageShell(), meta, origin);
+  // Vercel guarda la página 5 minutos en su red; los precios cambian cada pocas horas.
+  res.writeHead(meta.status ?? 200, {
+    'Content-Type': MIME['.html'],
+    'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=3600',
+  });
+  res.end(html);
+}
+
+async function sendSitemap(req, res, api) {
+  const origin = siteOrigin(req);
+  const [products, categories] = await Promise.all([api.sitemapEntries(), api.listCategories()]);
+  const xml = (s) => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  const url = (loc, lastmod) => `  <url><loc>${xml(origin + loc)}</loc>${lastmod ? `<lastmod>${lastmod.slice(0, 10)}</lastmod>` : ''}</url>`;
+  const body = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    url('/'), url('/tiendas'), url('/app'),
+    ...categories.map((c) => url(`/buscar?categoria=${encodeURIComponent(c.name)}`)),
+    ...products.map((p) => url(productPath(p.id, p.name), p.updatedAt)),
+    '</urlset>',
+    '',
+  ].join('\n');
+  res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=0, s-maxage=3600' });
+  res.end(body);
+}
+
 async function route(req, res) {
   const { pathname, searchParams } = new URL(req.url, 'http://localhost');
   const get = req.method === 'GET' || req.method === 'HEAD';
@@ -174,12 +326,18 @@ async function route(req, res) {
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' });
     return res.end(`google.com, ${ads.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0\n`);
   }
-  if (get && !pathname.startsWith('/api/') && !pathname.startsWith('/go/')) return serveStatic(res, pathname);
+  if (get && pathname === '/robots.txt') {
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' });
+    return res.end(robotsTxt(siteOrigin(req)));
+  }
+  if (get && pathname === '/sitemap.xml') return sendSitemap(req, res, await needApi());
+  // Archivos con extensión (CSS, JS, imágenes, manifiesto...) salen de public/.
+  if (get && path.extname(pathname)) return serveStatic(res, pathname);
+  // Cualquier otra dirección es una página de la app: index.html con el título,
+  // la descripción y los datos de esa página ya puestos, para Google.
+  if (get && !pathname.startsWith('/api/') && !pathname.startsWith('/go/')) return renderPage(req, res, pathname, searchParams);
 
-  const api = await getApi().catch((err) => {
-    console.error(err);
-    throw new HttpError(503, 'La base de datos no está disponible. Si acabas de publicar, conecta Turso al proyecto en Vercel.');
-  });
+  const api = await needApi();
   if (pathname.startsWith('/api/admin/')) return handleAdmin(req, res, pathname, api);
   if (get && pathname === '/api/meta') return sendJson(res, 200, { ...(await api.meta()), ads: adsConfig() });
   if (get && pathname === '/api/stores') return sendJson(res, 200, await api.listStores());

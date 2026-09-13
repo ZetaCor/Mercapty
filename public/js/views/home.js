@@ -2,6 +2,7 @@ import { getJson } from '../api.js';
 import { html, productGrid, categoryIcon, categoryTint } from '../ui.js';
 import { renderHero, bindHero } from './hero.js';
 import { adSlot } from '../ads.js';
+import { navigate } from '../nav.js';
 
 const SORT_OPTIONS = [
   ['nombre', 'Nombre'],
@@ -18,7 +19,7 @@ function searchHref({ q = '', categoria = '', orden = '', pagina = 1 }) {
   if (orden) params.set('orden', orden);
   if (pagina > 1) params.set('pagina', String(pagina));
   const qs = params.toString();
-  return `#/buscar${qs ? `?${qs}` : ''}`;
+  return `/buscar${qs ? `?${qs}` : ''}`;
 }
 
 function categoryTiles(categories) {
@@ -72,7 +73,7 @@ export async function renderHome({ stores }) {
       <section class="section">
         <div class="section-head">
           <h2>Productos</h2>
-          <a class="link" href="#/buscar">Ver todos (${all.total})</a>
+          <a class="link" href="/buscar">Ver todos (${all.total})</a>
         </div>
         ${productGrid(all.items, stores)}
       </section>`,
@@ -80,7 +81,7 @@ export async function renderHome({ stores }) {
   };
 }
 
-export async function renderSearch({ params, stores, refresh }) {
+export async function renderSearch({ params, stores }) {
   const current = {
     q: params.get('q') ?? '',
     categoria: params.get('categoria') ?? '',
@@ -95,6 +96,7 @@ export async function renderSearch({ params, stores, refresh }) {
   const title = current.q ? `Resultados para «${current.q}»` : current.categoria || 'Todos los productos';
 
   return {
+    title,
     html: html`
       <div class="section-head">
         <div>
@@ -111,7 +113,7 @@ export async function renderSearch({ params, stores, refresh }) {
         : html`<div class="empty">
             <div class="big">🔎</div>
             <p>No encontramos productos para esa búsqueda.</p>
-            <p>Prueba con otra palabra (por ejemplo «leche», «arroz» o una marca) o <a href="#/buscar">mira todo el catálogo</a>.</p>
+            <p>Prueba con otra palabra (por ejemplo «leche», «arroz» o una marca) o <a href="/buscar">mira todo el catálogo</a>.</p>
           </div>`}
       ${result.items.length ? adSlot('search') : ''}
       ${result.total > result.items.length
@@ -119,12 +121,11 @@ export async function renderSearch({ params, stores, refresh }) {
         : ''}`,
     bind(root) {
       root.querySelector('#sort').addEventListener('change', (event) => {
-        location.hash = searchHref({ ...current, orden: event.target.value });
+        navigate(searchHref({ ...current, orden: event.target.value }));
       });
-      // "Ver más" cambia la URL sin saltar al inicio de la página.
+      // "Ver más" cambia la dirección sin saltar al inicio de la página.
       root.querySelector('[data-more]')?.addEventListener('click', () => {
-        history.replaceState(null, '', searchHref({ ...current, pagina: page + 1 }));
-        refresh();
+        navigate(searchHref({ ...current, pagina: page + 1 }), { replace: true });
       });
     },
   };

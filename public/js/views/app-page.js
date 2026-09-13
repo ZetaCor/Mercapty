@@ -1,4 +1,4 @@
-// Página «Descarga la app» (#/app). Hoy Mercapty se instala como app web,
+// Página «Descarga la app» (/app). Hoy Mercapty se instala como app web,
 // sin tienda de aplicaciones; las versiones de App Store y Google Play vienen después.
 import { html, icons } from '../ui.js';
 import { phoneVisual } from './hero.js';
@@ -13,6 +13,7 @@ const FEATURES = [
 
 export async function renderAppPage() {
   return {
+    title: 'Descarga la app',
     html: html`
       <div class="app-page">
         <section class="app-hero">

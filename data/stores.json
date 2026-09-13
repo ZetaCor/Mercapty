@@ -40,11 +40,10 @@
     "id": "ribasmith",
     "name": "Riba Smith",
     "homepage": "https://www.ribasmith.com",
-    "searchUrl": null,
+    "searchUrl": "https://www.ribasmith.com/search?q={q}",
     "platform": "Next.js",
     "color": "#2a9d4b",
-    "enabled": false,
-    "note": "cambió su sitio; falta ubicar su API de búsqueda"
+    "connector": { "type": "ribasmith" }
   },
   {
     "id": "rey",

@@ -3,7 +3,8 @@
 // fetchOffers(store, ctx) -> Promise<ofertas crudas>.
 import * as feed from './feed.js';
 import * as instaleap from './instaleap.js';
+import * as ribasmith from './ribasmith.js';
 import * as vtex from './vtex.js';
 import * as woocommerce from './woocommerce.js';
 
-export const connectors = { feed, instaleap, vtex, woocommerce };
+export const connectors = { feed, instaleap, ribasmith, vtex, woocommerce };

@@ -70,7 +70,7 @@ function adminControls(product) {
         <input type="file" accept="image/*" data-upload hidden>
       </label>
       ${product.hasCustomImage ? html`<button class="btn btn-sm btn-danger" type="button" data-remove-image>${icons.trash} Quitar foto</button>` : ''}
-      <a class="btn btn-sm" href="#/admin">Panel de imágenes</a>
+      <a class="btn btn-sm" href="/admin">Panel de imágenes</a>
     </div>`;
 }
 
@@ -80,9 +80,10 @@ export async function renderProduct({ match, refresh }) {
   const available = product.offers.filter((o) => o.inStock).length;
 
   return {
+    title: product.name,
     html: html`
       <div class="product-page">
-        <a class="back" href="#/buscar">${icons.back} Todos los productos</a>
+        <a class="back" href="/buscar">${icons.back} Todos los productos</a>
         <div class="pd">
           <div class="pd-media">
             ${productMedia(product)}
@@ -121,6 +122,8 @@ export async function renderProduct({ match, refresh }) {
         ${priceHistory(product.history, product.bestPrice)}
       </div>`,
     bind(root) {
+      // La barra del navegador muestra la dirección completa con el nombre del producto.
+      if (product.path && location.pathname !== product.path) history.replaceState(null, '', product.path);
       const page = root.querySelector('.product-page');
       page.querySelector('[data-upload]')?.addEventListener('change', async (event) => {
         const file = event.target.files[0];

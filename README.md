@@ -42,7 +42,7 @@ unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`).
 | El Machetazo | VTEX | ✅ Bot activo (API pública de catálogo) |
 | Superunico | WooCommerce | ✅ Bot activo (Store API pública) |
 | Súper 99 | Magento | ⏳ Pendiente: su API de productos responde con error |
-| Riba Smith | Next.js | ⏳ Pendiente: cambió su sitio, falta ubicar su API de búsqueda |
+| Riba Smith | Next.js | ✅ Bot activo (lee los resultados de su página de búsqueda). No publica código de barras: se empareja por nombre |
 | Supermercados Rey | Instaleap | ✅ Bot activo (API de catálogo de Instaleap) |
 | Metro Plus | Tipti | ⏳ Vende en línea por Tipti, cuya API exige iniciar sesión: hace falta un acuerdo o un feed |
 | PriceSmart | Nuxt + Bloomreach | ⛔ Su robots.txt bloquea expresamente a los bots que copian datos: solo con acuerdo o feed |
@@ -65,7 +65,7 @@ Las tiendas se configuran en `data/stores.json`. Una tienda con `"enabled": fals
 6. **Primera carga de precios:** en GitHub → **Actions** → **Actualizar precios** → **Run workflow**.
    Después corre sola cada 6 horas.
 
-Panel de imágenes en producción: `https://tu-sitio.vercel.app/#/admin` (pide la `ADMIN_KEY`).
+Panel de imágenes en producción: `https://tu-sitio.vercel.app/admin` (pide la `ADMIN_KEY`).
 
 ## Trabajar en local
 
@@ -88,6 +88,8 @@ los bots y el servidor usan Turso. Prueba rápida de los bots:
 - **WooCommerce** (`connectors/woocommerce.js`): recorre el catálogo completo por la Store API.
 - **Instaleap** (`connectors/instaleap.js`): Supermercados Rey. Busca los mismos términos en la API
   de catálogo de Instaleap.
+- **Riba Smith** (`connectors/ribasmith.js`): lee los datos que su web incluye en la página de búsqueda
+  (`initialData`): precio, oferta con fechas e inventario.
 - **Feed** (`connectors/feed.js`): para tiendas socias que comparten su inventario en CSV/JSON con
   las columnas `sku,gtin,nombre,marca,categoria,presentacion,precio,precio_regular,disponible,url,imagen`
   (ejemplo en `data/feeds/minisuper-ejemplo.csv`).
@@ -116,7 +118,7 @@ afiliados): da precios más confiables y abre la puerta a cobrar comisión.
 
 La foto que subes tú siempre tiene prioridad sobre la de la tienda.
 
-1. **Panel de imágenes** (`/#/admin`): sube o arrastra una foto a cada producto, filtra los que no
+1. **Panel de imágenes** (`/admin`): sube o arrastra una foto a cada producto, filtra los que no
    tienen foto o quita fotos. En local, `npm start` muestra un enlace con la clave (guardada en
    `data/admin-key.txt`). En Vercel, la clave es `ADMIN_KEY`.
 2. **Tiendas:** los bots traen la foto que publica cada tienda.
@@ -127,7 +129,7 @@ subirla. El servidor acepta JPG, PNG o WebP de hasta 3 MB y la guarda en Vercel 
 
 ## App
 
-La página `#/app` («Descarga la app») permite instalar Mercapty hoy como app web (PWA): en Android
+La página `/app` («Descarga la app») permite instalar Mercapty hoy como app web (PWA): en Android
 aparece el botón «Instalar Mercapty» y en iPhone se explica cómo agregarla desde Compartir. Para eso
 existen `public/manifest.webmanifest`, los íconos de `public/icons/` y un service worker mínimo
 (`public/sw.js`) que siempre busca primero en la red y nunca guarda precios. Las versiones de App Store y
@@ -146,6 +148,18 @@ ven como recuadros punteados; en la web no aparecen hasta que configures AdSense
    `/ads.txt` se genera solo.
 4. Opcional: crea bloques de anuncios en AdSense y agrega sus números en `ADSENSE_SLOT_HOME`,
    `ADSENSE_SLOT_SEARCH` y `ADSENSE_SLOT_PRODUCT`. Sin bloques, puedes usar los anuncios automáticos de AdSense.
+
+## Google (SEO)
+
+- Cada página tiene su dirección normal: `/producto/45-leche-de-oro-250-ml-entera-fresca`, `/buscar?categoria=Despensa`,
+  `/tiendas`, `/app`. Los enlaces viejos con `#` siguen funcionando.
+- El servidor entrega cada página con su título, descripción, dirección canónica, vista previa para redes
+  (Open Graph) y, en los productos, datos estructurados de Google (precio más bajo y más alto).
+- `/sitemap.xml` lista todos los productos con precio y `/robots.txt` apunta a él. Las búsquedas por
+  palabra, «Mi lista» y el panel no se indexan.
+- Con dominio propio, define `SITE_URL` (por ejemplo `https://mercapty.com`) en Vercel para que las
+  direcciones canónicas usen tu dominio, y registra el sitio y el sitemap en
+  [Google Search Console](https://search.google.com/search-console).
 
 ## Antes de crecer
 
@@ -166,7 +180,7 @@ ven como recuadros punteados; en la web no aparecen hasta que configures AdSense
 
 ```
 api/index.js    función de Vercel (usa server/app.js)
-connectors/     bots: vtex.js, woocommerce.js, instaleap.js, feed.js
+connectors/     bots: vtex.js, woocommerce.js, instaleap.js, ribasmith.js, feed.js
 scripts/        ingest.js: corre los bots y guarda en la base
 server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local)
 public/         index.html, styles.css, js/ (app.js, images.js, views/)

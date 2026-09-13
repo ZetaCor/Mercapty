@@ -11,6 +11,15 @@ export function normalizeText(s) {
   return stripAccents(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
+// Texto para direcciones web: "Leche Entera Estrella Azul 946ml" -> "leche-entera-estrella-azul-946ml"
+export function slugify(text, max = 80) {
+  return normalizeText(text).replace(/ /g, '-').slice(0, max).replace(/-+$/, '');
+}
+
+// Dirección pública de un producto. El número basta para encontrarlo; el
+// nombre ayuda a Google y a quien ve el enlace.
+export const productPath = (id, name) => `/producto/${id}${name ? `-${slugify(name)}` : ''}`;
+
 export function gtinCheckDigit(body) {
   let sum = 0;
   for (let i = 0; i < body.length; i++) {

@@ -10,6 +10,7 @@ const SOURCE_LABEL = {
 export async function renderStores() {
   const stores = await getJson('/api/stores'); // datos frescos: incluye visitas enviadas
   return {
+    title: 'Supermercados que comparamos',
     html: html`
       <div class="section-head">
         <div>

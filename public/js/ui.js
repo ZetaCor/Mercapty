@@ -97,7 +97,7 @@ export const productLabel = (p) => [p.name, p.brand, p.size].filter(Boolean).joi
 
 export function productCard(item, stores) {
   const store = stores.get(item.bestStoreId);
-  const href = `#/producto/${item.id}`;
+  const href = item.path ?? `/producto/${item.id}`;
   return html`
     <article class="card">
       <div class="media-wrap">

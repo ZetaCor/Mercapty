@@ -1,0 +1,13 @@
+{
+  "name": "PanaPrecio",
+  "short_name": "PanaPrecio",
+  "description": "Compara precios de supermercados en Panamá",
+  "lang": "es-PA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

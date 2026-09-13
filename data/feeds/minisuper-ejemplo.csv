@@ -1,0 +1,13 @@
+sku,gtin,nombre,marca,categoria,presentacion,precio,precio_regular,disponible,url,imagen
+MS-001,2000000000015,Leche UHT Entera,Estrella Azul,Lácteos y huevos,946 ml,1.59,,si,,
+MS-002,2000000000022,Leche UHT Deslactosada,Bonlac,Lácteos y huevos,946 ml,1.85,,si,,
+MS-004,2000000000046,Leche Evaporada Ideal,Nestlé,Lácteos y huevos,315 g,1.19,1.35,si,,
+MS-008,2000000000084,Arroz Blanco Grado A,Genérico,Despensa,5 lb,3.29,,si,,
+MS-012,2000000000121,Azúcar Blanca,Genérico,Despensa,2 kg,2.45,,si,,
+MS-016,2000000000169,Café Molido,Durán,Despensa,425 g,5.25,,si,,
+MS-022,2000000000220,Coca-Cola Original,Coca-Cola,Bebidas,2 L,2.25,,si,,
+MS-024,2000000000244,Agua Purificada,Genérico,Bebidas,1.5 L,0.79,,si,,
+MS-034,2000000000343,Galletas Oreo,Oreo,Panadería y snacks,6 un,2.39,,no,,
+MS-037,2000000000374,Cloro Regular,Clorox,Limpieza,3.78 L,3.75,,si,,
+MS-100,,Plátano Maduro,Producto fresco,Frutas y verduras,1 un,0.35,,si,,
+MS-101,,Cebolla Blanca,Producto fresco,Frutas y verduras,1 lb,0.89,,si,,

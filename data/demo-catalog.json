@@ -1,0 +1,54 @@
+[
+  { "id": 1,  "name": "Leche UHT Entera", "brand": "Estrella Azul", "category": "Lácteos y huevos", "size": "946 ml", "basePrice": 1.65 },
+  { "id": 2,  "name": "Leche UHT Deslactosada", "brand": "Bonlac", "category": "Lácteos y huevos", "size": "946 ml", "basePrice": 1.79 },
+  { "id": 3,  "name": "Leche UHT Entera", "brand": "Nevada", "category": "Lácteos y huevos", "size": "946 ml", "basePrice": 1.62 },
+  { "id": 4,  "name": "Leche Evaporada Ideal", "brand": "Nestlé", "category": "Lácteos y huevos", "size": "315 g", "basePrice": 1.25 },
+  { "id": 5,  "name": "Queso Americano en Lonchas", "brand": "Kraft", "category": "Lácteos y huevos", "size": "12 un", "basePrice": 3.49 },
+  { "id": 6,  "name": "Mantequilla con Sal", "brand": "Anchor", "category": "Lácteos y huevos", "size": "227 g", "basePrice": 3.95 },
+  { "id": 7,  "name": "Huevos Blancos Grandes", "brand": "Genérico", "category": "Lácteos y huevos", "size": "30 un", "basePrice": 5.25 },
+
+  { "id": 8,  "name": "Arroz Blanco Grado A", "brand": "Genérico", "category": "Despensa", "size": "5 lb", "basePrice": 3.45 },
+  { "id": 9,  "name": "Frijoles Rojos", "brand": "Goya", "category": "Despensa", "size": "500 g", "basePrice": 1.89 },
+  { "id": 10, "name": "Lentejas", "brand": "Goya", "category": "Despensa", "size": "400 g", "basePrice": 1.29 },
+  { "id": 11, "name": "Aceite de Canola", "brand": "Mazola", "category": "Despensa", "size": "1 L", "basePrice": 4.29 },
+  { "id": 12, "name": "Azúcar Blanca", "brand": "Genérico", "category": "Despensa", "size": "2 kg", "basePrice": 2.35 },
+  { "id": 13, "name": "Sal Yodada", "brand": "Genérico", "category": "Despensa", "size": "1 kg", "basePrice": 0.69 },
+  { "id": 14, "name": "Spaghetti", "brand": "Barilla", "category": "Despensa", "size": "500 g", "basePrice": 1.99 },
+  { "id": 15, "name": "Ketchup", "brand": "Heinz", "category": "Despensa", "size": "397 g", "basePrice": 2.39 },
+  { "id": 16, "name": "Café Molido", "brand": "Durán", "category": "Despensa", "size": "425 g", "basePrice": 5.49 },
+  { "id": 17, "name": "Café Molido", "brand": "Sitton", "category": "Despensa", "size": "425 g", "basePrice": 5.29 },
+  { "id": 18, "name": "Avena en Hojuelas", "brand": "Quaker", "category": "Despensa", "size": "500 g", "basePrice": 2.25 },
+  { "id": 19, "name": "Cereal Corn Flakes", "brand": "Kellogg's", "category": "Despensa", "size": "500 g", "basePrice": 4.39 },
+  { "id": 20, "name": "Atún en Agua", "brand": "Van Camp's", "category": "Despensa", "size": "140 g", "basePrice": 1.59 },
+  { "id": 21, "name": "Consomé de Pollo en Cubos", "brand": "Maggi", "category": "Despensa", "size": "12 un", "basePrice": 1.49 },
+
+  { "id": 22, "name": "Coca-Cola Original", "brand": "Coca-Cola", "category": "Bebidas", "size": "2 L", "basePrice": 2.15 },
+  { "id": 23, "name": "Pepsi", "brand": "Pepsi", "category": "Bebidas", "size": "2 L", "basePrice": 1.95 },
+  { "id": 24, "name": "Agua Purificada", "brand": "Genérico", "category": "Bebidas", "size": "1.5 L", "basePrice": 0.85 },
+  { "id": 25, "name": "Cerveza Balboa Lata", "brand": "Balboa", "category": "Bebidas", "size": "6 x 355 ml", "basePrice": 5.75 },
+  { "id": 26, "name": "Cerveza Atlas Lata", "brand": "Atlas", "category": "Bebidas", "size": "6 x 355 ml", "basePrice": 5.49 },
+  { "id": 27, "name": "Jugo de Naranja", "brand": "Del Monte", "category": "Bebidas", "size": "1.89 L", "basePrice": 3.79 },
+  { "id": 28, "name": "Bebida Hidratante Limón", "brand": "Gatorade", "category": "Bebidas", "size": "600 ml", "basePrice": 1.35 },
+  { "id": 29, "name": "Ron Añejo", "brand": "Ron Abuelo", "category": "Bebidas", "size": "750 ml", "basePrice": 13.99 },
+
+  { "id": 30, "name": "Salchichas de Pavo", "brand": "Kiener", "category": "Carnes y embutidos", "size": "454 g", "basePrice": 3.25 },
+  { "id": 31, "name": "Jamón de Pavo", "brand": "Kiener", "category": "Carnes y embutidos", "size": "250 g", "basePrice": 3.49 },
+  { "id": 32, "name": "Pechuga de Pollo sin Hueso", "brand": "Toledano", "category": "Carnes y embutidos", "size": "1 kg", "basePrice": 5.99 },
+
+  { "id": 33, "name": "Pan Blanco de Molde", "brand": "Bimbo", "category": "Panadería y snacks", "size": "680 g", "basePrice": 2.99 },
+  { "id": 34, "name": "Galletas Oreo", "brand": "Oreo", "category": "Panadería y snacks", "size": "6 un", "basePrice": 2.49 },
+  { "id": 35, "name": "Doritos Nacho", "brand": "Doritos", "category": "Panadería y snacks", "size": "150 g", "basePrice": 2.49 },
+
+  { "id": 36, "name": "Detergente en Polvo", "brand": "Fab", "category": "Limpieza", "size": "2 kg", "basePrice": 6.49 },
+  { "id": 37, "name": "Cloro Regular", "brand": "Clorox", "category": "Limpieza", "size": "3.78 L", "basePrice": 3.99 },
+  { "id": 38, "name": "Suavizante de Ropa", "brand": "Downy", "category": "Limpieza", "size": "1.5 L", "basePrice": 5.49 },
+  { "id": 39, "name": "Papel Higiénico Doble Hoja", "brand": "Scott", "category": "Limpieza", "size": "12 rollos", "basePrice": 6.99 },
+  { "id": 40, "name": "Lavaplatos Líquido Limón", "brand": "Axion", "category": "Limpieza", "size": "750 ml", "basePrice": 2.79 },
+
+  { "id": 41, "name": "Pasta Dental Triple Acción", "brand": "Colgate", "category": "Cuidado personal", "size": "100 ml", "basePrice": 2.25 },
+  { "id": 42, "name": "Shampoo Restauración", "brand": "Pantene", "category": "Cuidado personal", "size": "400 ml", "basePrice": 5.99 },
+  { "id": 43, "name": "Jabón de Tocador", "brand": "Palmolive", "category": "Cuidado personal", "size": "3 un", "basePrice": 2.49 },
+
+  { "id": 44, "name": "Pañales Etapa 3", "brand": "Pampers", "category": "Bebé", "size": "40 un", "basePrice": 17.99 },
+  { "id": 45, "name": "Toallitas Húmedas", "brand": "Huggies", "category": "Bebé", "size": "80 un", "basePrice": 3.49 }
+]

@@ -1,6 +1,7 @@
 import { getJson } from '../api.js';
 import { html, productGrid, categoryIcon, categoryTint } from '../ui.js';
 import { renderHero, bindHero } from './hero.js';
+import { storeMarquee } from './store-marquee.js';
 import { adSlot } from '../ads.js';
 import { navigate } from '../nav.js';
 
@@ -55,6 +56,7 @@ export async function renderHome({ stores }) {
   return {
     html: html`
       ${renderHero({ meta, stores, deals })}
+      ${storeMarquee(stores)}
 
       <section class="section">
         <div class="section-head"><h2>Categorías</h2></div>

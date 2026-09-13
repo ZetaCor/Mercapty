@@ -1,5 +1,5 @@
 import { getJson } from '../api.js';
-import { html, storeAvatar, timeAgo, icons } from '../ui.js';
+import { html, storeAvatar, storeLogo, timeAgo, icons } from '../ui.js';
 
 const SOURCE_LABEL = {
   vtex: 'precios de su web',
@@ -22,7 +22,7 @@ export async function renderStores() {
         ${stores.map((s) => html`
           <article class="card store-card">
             <div class="store-head">
-              ${storeAvatar(s.name, s.color, 'lg')}
+              ${s.logo ? storeLogo(s, 'store-logo sm') : storeAvatar(s.name, s.color, 'lg')}
               <div>
                 <b>${s.name}</b>
                 <div class="meta">${s.platform ?? '—'} · ${SOURCE_LABEL[s.source] ?? s.source}</div>

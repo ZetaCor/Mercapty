@@ -1,11 +1,11 @@
-# Bots de precios: recorren los súper cada 6 horas y actualizan la base en Turso.
+# Bots de precios: recorren los súper dos veces al día y actualizan la base en Turso.
 # Necesita los secretos TURSO_DATABASE_URL y TURSO_AUTH_TOKEN en
 # Settings -> Secrets and variables -> Actions del repositorio.
 name: Actualizar precios
 
 on:
   schedule:
-    - cron: '17 */6 * * *'  # cada 6 horas (hora UTC); minuto 17 para evitar la hora pico de GitHub
+    - cron: '17 5,17 * * *'  # 12:17 a. m. y 12:17 p. m. de Panamá (UTC-5): recorridos completos, sin cargar tanto a las tiendas
   workflow_dispatch:         # botón «Run workflow» para correrlo a mano
 
 concurrency:

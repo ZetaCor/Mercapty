@@ -17,7 +17,10 @@ const SCHEMA = [
     search_url TEXT,
     platform   TEXT,
     color      TEXT,
-    source     TEXT  -- conector que la alimenta: vtex | woocommerce | feed
+    source     TEXT, -- conector que la alimenta: vtex | woocommerce | feed
+    logo       TEXT, -- logo horizontal (franja de la portada y página de tiendas)
+    icon       TEXT, -- ícono cuadrado (junto a cada precio)
+    logo_bg    TEXT  -- fondo para logos claros
   )`,
   // Un producto es "lo mismo" en todas las tiendas: se identifica por match_key
   // (código de barras normalizado, o marca+nombre+presentación como respaldo).
@@ -95,19 +98,33 @@ export async function openDb() {
   }
   const db = wrap(client);
   await db.batch(SCHEMA);
+  await addStoreColumns(db);
   return db;
+}
+
+// Columnas de tiendas que llegaron después: las bases ya creadas las reciben aquí.
+const STORE_COLUMNS = ['logo', 'icon', 'logo_bg'];
+async function addStoreColumns(db) {
+  const have = new Set((await db.all('PRAGMA table_info(stores)')).map((c) => c.name));
+  for (const column of STORE_COLUMNS.filter((c) => !have.has(c))) {
+    try {
+      await db.run(`ALTER TABLE stores ADD COLUMN ${column} TEXT`);
+    } catch (err) {
+      if (!/duplicate column/i.test(err.message)) throw err; // otra instancia la agregó a la vez
+    }
+  }
 }
 
 export function upsertStore(db, store) {
   return db.run(`
-    INSERT INTO stores (id, name, homepage, search_url, platform, color, source)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO stores (id, name, homepage, search_url, platform, color, source, logo, icon, logo_bg)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET name = excluded.name, homepage = excluded.homepage,
       search_url = excluded.search_url, platform = excluded.platform, color = excluded.color,
-      source = excluded.source
+      source = excluded.source, logo = excluded.logo, icon = excluded.icon, logo_bg = excluded.logo_bg
   `, [
     store.id, store.name, store.homepage, store.searchUrl ?? null, store.platform ?? null,
-    store.color ?? null, store.connector?.type ?? null,
+    store.color ?? null, store.connector?.type ?? null, store.logo ?? null, store.icon ?? null, store.logoBg ?? null,
   ]);
 }
 
@@ -119,7 +136,11 @@ const PRODUCT_UPSERT = `
     size_label = COALESCE(products.size_label, excluded.size_label),
     size_value = COALESCE(products.size_value, excluded.size_value),
     size_unit  = COALESCE(products.size_unit, excluded.size_unit),
-    image_url  = COALESCE(products.image_url, excluded.image_url)`;
+    image_url  = COALESCE(products.image_url, excluded.image_url),
+    -- Se suma el texto de cada tienda (su nombre para el producto y su categoría),
+    -- para que la búsqueda lo encuentre como lo llame cualquier súper.
+    search_text = CASE WHEN instr(products.search_text, excluded.search_text) > 0 THEN products.search_text
+                       ELSE substr(products.search_text || ' ' || excluded.search_text, 1, 1500) END`;
 
 const OFFER_UPSERT = `
   INSERT INTO offers (product_id, store_id, store_sku, title, price, list_price, in_stock, url, updated_at)
@@ -149,7 +170,7 @@ export async function upsertOffers(db, storeId, offers, seenAt, chunkSize = 150)
           args: [
             key, offer.gtin, offer.name, offer.brand, offer.category, offer.sizeLabel,
             offer.sizeValue, offer.sizeUnit, offer.imageUrl,
-            normalizeText(`${offer.brand ?? ''} ${offer.name} ${offer.sizeLabel ?? ''} ${offer.gtin ?? ''}`),
+            normalizeText(`${offer.brand ?? ''} ${offer.name} ${offer.sizeLabel ?? ''} ${offer.gtin ?? ''} ${offer.categoryLeaf ?? ''}`),
           ],
         },
         {

@@ -89,8 +89,25 @@ function initials(name) {
   const words = String(name ?? '').replace(/\(.*?\)/g, '').split(/\s+/).filter(Boolean);
   return (words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? '?').slice(0, 2)).toUpperCase();
 }
+
+// Logo e ícono de cada tienda, por nombre (llegan con /api/stores al abrir la página).
+const storeInfo = new Map();
+export function setStoreInfo(stores) {
+  for (const s of stores) storeInfo.set(s.name, s);
+}
+
+// Ícono de la tienda sobre sus iniciales: si el ícono no carga, quedan las iniciales.
 export function storeAvatar(name, color, size = '') {
-  return html`<span class="avatar ${size}" style="--c:${safeColor(color)}" aria-hidden="true">${initials(name)}</span>`;
+  const icon = storeInfo.get(name)?.icon;
+  return html`<span class="avatar ${size}" style="--c:${safeColor(color)}" aria-hidden="true">${initials(name)}${
+    icon ? html`<img src="${icon}" alt="" loading="lazy" data-store-img>` : ''}</span>`;
+}
+
+// Logo horizontal de la tienda; sin logo, su ícono y su nombre.
+export function storeLogo(store, className = 'store-logo') {
+  if (!store.logo) return html`<span class="${className} is-text">${storeAvatar(store.name, store.color)}<span>${store.name}</span></span>`;
+  const bg = store.logoBg ? `--logo-bg:${safeColor(store.logoBg)}` : '';
+  return html`<span class="${className}" style="${bg}"><img src="${store.logo}" alt="${store.name}" loading="lazy" data-store-img data-name="${store.name}"></span>`;
 }
 
 export const productLabel = (p) => [p.name, p.brand, p.size].filter(Boolean).join(' · ');

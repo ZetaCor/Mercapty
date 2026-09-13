@@ -1,4 +1,4 @@
-import { canonicalCategory, normalizeText, productPath, unitPrice } from './lib/normalize.js';
+import { canonicalCategory, normalizeText, parsePack, parseSize, productPath, unitPrice } from './lib/normalize.js';
 import { nameSimilarity } from './lib/matching.js';
 
 const round2 = (n) => Math.round(n * 100) / 100;
@@ -34,8 +34,24 @@ function searchStem(t) {
   return t;
 }
 
+// Palabras distintas para lo mismo, como las dice la gente en Panamá.
+const SYNONYMS = {
+  soda: ['refresco', 'gaseosa'], refresco: ['soda', 'gaseosa'], gaseosa: ['soda', 'refresco'],
+  guineo: ['banano'], banano: ['guineo'], papita: ['chip'], cocacola: ['coca'],
+};
+
+// Variantes que, si el cliente no las pidió, van después de la versión normal
+// (al buscar «coca cola», primero la normal y luego la Zero o la Sin azúcar).
+const SEARCH_VARIANTS = new Set(['zero', 'cero', 'sin', 'light', 'lite', 'diet', 'dietetica', 'descafeinado', 'sugar']);
+
+// Palabras genéricas con las que algunos súper empiezan el nombre ("Soda Coca Cola…").
+const GENERIC_LEADS = new Set(['soda', 'refresco', 'gaseosa', 'bebida', 'jugo', 'agua', 'pack', 'paquete', 'caja', 'six']);
+const PACK_WORDS = new Set(['pack', 'paquete', 'caja', 'six']);
+
+// Cada palabra buscada con sus alternativas: [["soda", "refresco", "gaseosa"], ["coca"]].
 function queryTerms(q) {
-  return [...new Set(normalizeText(q).split(' ').filter((t) => t && !SEARCH_STOPWORDS.has(t)).map(searchStem))].slice(0, 8);
+  const words = [...new Set(normalizeText(q).split(' ').filter((t) => t && !SEARCH_STOPWORDS.has(t)).map(searchStem))];
+  return words.slice(0, 8).map((w) => [w, ...(SYNONYMS[w] ?? [])]);
 }
 
 // Qué tan bien responde un producto a la búsqueda. Primero lo que ES el
@@ -44,18 +60,26 @@ function queryTerms(q) {
 function relevance(row, terms, intent) {
   const name = normalizeText(row.name);
   const words = name.split(' ');
+  const inName = (alts) => alts.some((a) => words.some((w) => w.startsWith(a)));
   let matched = 0;
   let score = 0;
-  for (const t of terms) {
-    if (words.some((w) => w.startsWith(t))) { matched++; score += 15; }
-    else if (row.search_text.includes(t)) { matched++; score += 5; } // en la marca o el tamaño
+  for (const alts of terms) {
+    if (inName(alts)) { matched++; score += 15; }
+    // en la marca, la categoría de la tienda o el nombre que le da otro súper
+    else if (alts.some((a) => row.search_text.includes(a))) { matched++; score += 5; }
   }
-  if (words[0]?.startsWith(terms[0])) score += 40;
+  const lead = GENERIC_LEADS.has(words[0]) ? words[1] : words[0];
+  if (terms[0].some((a) => words[0]?.startsWith(a) || lead?.startsWith(a))) score += 40;
   const content = words.filter((w) => !SEARCH_STOPWORDS.has(w)).join(' ');
-  if (terms.length > 1 && content.includes(terms.join(' '))) score += 25; // palabras juntas y en orden
-  if (new RegExp(`(^| )(de|con) ${terms[0]}`).test(name)) score -= 15;
+  if (terms.length > 1 && content.includes(terms.map((alts) => alts[0]).join(' '))) score += 25; // palabras juntas y en orden
+  if (new RegExp(`(^| )(de|con) ${terms[0][0]}`).test(name)) score -= 15;
+  const asked = new Set(terms.flat());
+  score -= Math.min(24, 12 * words.filter((w) => SEARCH_VARIANTS.has(w) && !asked.has(w)).length);
+  // La unidad antes que los paquetes, salvo que el cliente pida un paquete.
+  const pack = Math.max(parsePack(row.name), parseSize(row.name)?.count ?? 1); // «Pack de 12», «6 x 355 ml»
+  if (![...asked].some((a) => PACK_WORDS.has(a)) && pack > 1) score -= 15;
   if (intent !== 'Otros' && row.category === intent) score += 20;
-  score += Math.min(12, 3 * (row.store_count - 1)); // los que se comparan en varias tiendas, antes
+  score += Math.min(18, 6 * (row.store_count - 1)); // los que se comparan en varias tiendas, antes
   return { score, matched };
 }
 
@@ -99,7 +123,7 @@ export function createApi(db) {
   function listStores() {
     return db.all(`
       ${RANKED}
-      SELECT s.id, s.name, s.homepage, s.platform, s.color, s.source,
+      SELECT s.id, s.name, s.homepage, s.platform, s.color, s.source, s.logo, s.icon, s.logo_bg AS logoBg,
         (SELECT COUNT(*) FROM offers o WHERE o.store_id = s.id AND o.in_stock = 1) AS offers,
         (SELECT MAX(updated_at) FROM offers o WHERE o.store_id = s.id) AS updatedAt,
         (SELECT COUNT(*) FROM ranked r WHERE r.store_id = s.id AND r.rn = 1 AND r.store_count > 1) AS bestCount,
@@ -138,8 +162,9 @@ export function createApi(db) {
 
     // Con palabras: se traen los productos que tengan alguna y se ordenan por
     // relevancia. Si ninguno tiene todas, se muestran los más parecidos.
-    const where = [`(${terms.map(() => 'p.search_text LIKE ?').join(' OR ')})`];
-    const params = terms.map((t) => `%${t}%`);
+    const alternatives = terms.flat();
+    const where = [`(${alternatives.map(() => 'p.search_text LIKE ?').join(' OR ')})`];
+    const params = alternatives.map((t) => `%${t}%`);
     if (category) {
       where.push('p.category = ?');
       params.push(category);

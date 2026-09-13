@@ -11,15 +11,31 @@ export const BOT_HEADERS = {
   Accept: 'application/json',
 };
 
-// Términos que usan los bots que buscan por palabra (VTEX, Instaleap): lo más
-// comprado en un súper.
+// Términos que usan los bots que buscan por palabra (Instaleap, y VTEX si no se
+// recorre por categorías): lo más comprado en un súper, con marcas muy buscadas.
 export const GROCERY_QUERIES = [
-  'leche', 'queso', 'yogurt', 'mantequilla', 'huevos', 'arroz', 'frijoles', 'lentejas',
-  'aceite', 'azucar', 'sal', 'cafe', 'pasta', 'harina', 'avena', 'cereal', 'atun',
-  'sardina', 'salsa', 'mayonesa', 'pan', 'galletas', 'pollo', 'carne', 'jamon',
-  'salchichas', 'agua', 'jugo', 'refresco', 'cerveza', 'papel higienico', 'detergente',
-  'cloro', 'suavizante', 'lavaplatos', 'jabon', 'shampoo', 'pasta dental',
-  'desodorante', 'panales', 'toallitas',
+  // Lácteos y huevos
+  'leche', 'queso', 'yogurt', 'mantequilla', 'margarina', 'huevos', 'crema',
+  // Despensa
+  'arroz', 'frijoles', 'lentejas', 'garbanzos', 'aceite', 'azucar', 'sal', 'cafe', 'te', 'pasta', 'spaghetti',
+  'harina', 'avena', 'cereal', 'atun', 'sardina', 'salsa', 'ketchup', 'mayonesa', 'mostaza', 'vinagre', 'sopa',
+  'consome', 'maiz', 'galletas', 'pan', 'tortillas', 'mermelada', 'miel', 'chocolate',
+  // Bebidas
+  'agua', 'jugo', 'soda', 'coca cola', 'pepsi', 'sprite', 'fanta', 'gatorade', 'malta', 'te frio', 'cerveza',
+  'energizante',
+  // Carnes, embutidos y congelados
+  'pollo', 'carne', 'cerdo', 'jamon', 'salchichas', 'chorizo', 'tocino', 'pescado', 'camaron', 'helado',
+  // Frutas y verduras
+  'platano', 'papa', 'cebolla', 'tomate', 'lechuga', 'zanahoria', 'limon', 'manzana', 'guineo',
+  // Snacks
+  'papitas', 'doritos', 'mani',
+  // Limpieza
+  'papel higienico', 'servilletas', 'detergente', 'cloro', 'suavizante', 'lavaplatos', 'desinfectante', 'jabon',
+  'bolsas basura',
+  // Cuidado personal
+  'shampoo', 'acondicionador', 'pasta dental', 'cepillo dental', 'desodorante', 'toallas sanitarias',
+  // Bebé y mascotas
+  'panales', 'toallitas', 'formula infantil', 'compota', 'alimento perro', 'alimento gato',
 ];
 
 // Lista separada por comas en una variable de entorno, útil para pruebas

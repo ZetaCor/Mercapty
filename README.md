@@ -4,14 +4,17 @@ Comparador de precios de supermercados en línea de Panamá. El cliente busca un
 precio en cada tienda, cuál lo tiene más barato, y con un clic va a esa tienda a comprarlo.
 También arma una lista de compras y calcula si conviene comprar todo en un solo súper o repartir.
 
-Los precios los recogen **bots propios** que recorren las webs de los súper cada 6 horas.
+Los precios los recogen **bots propios** que recorren las webs de los súper dos veces al día.
 
 ## Qué hace
 
 - **Búsqueda** por nombre, marca o código de barras (sin importar tildes) y por categoría, ordenada por
   relevancia: al buscar «leche» salen primero las leches y después lo que solo la contiene («arroz con
-  leche»). Entiende singular y plural y, si ninguna coincidencia tiene todas las palabras, muestra las
-  más parecidas con un aviso.
+  leche»). Entiende singular y plural y sinónimos («soda», «refresco» y «gaseosa») y, si ninguna
+  coincidencia tiene todas las palabras, muestra las más parecidas con un aviso. Lo normal va antes que
+  las variantes y la unidad antes que los paquetes: «coca cola» muestra primero la Coca-Cola regular
+  suelta; la Zero, la Light o el «Pack de 12» suben si se escriben. También suben los productos que se
+  pueden comparar en más tiendas.
 - **Parecidos en otras tiendas:** en cada ficha, productos de otras tiendas que se parecen pero no se
   unieron (otro nombre u otra presentación), para comparar a mano.
 - **Ficha de producto:** precio en cada tienda ordenado de menor a mayor, mejor precio destacado,
@@ -21,11 +24,14 @@ Los precios los recogen **bots propios** que recorren las webs de los súper cad
 - **Mi lista:** compara «todo en una tienda» contra «repartir cada producto donde está más barato».
 - **Tiendas:** cuántos productos tiene cada una, en cuántos gana y cuántas visitas le enviamos.
 - **Fotos:** las que publica cada tienda, o las que subes tú desde el panel de imágenes.
+- **Logos de las tiendas:** junto a cada precio aparece el ícono del súper (antes, sus iniciales), y la
+  portada tiene una franja con los logos de los supermercados que se comparan hoy. La franja se desliza
+  sola, se detiene al pasar el mouse y queda quieta para quien pidió menos movimiento en su equipo.
 
 ## Cómo funciona
 
 ```
- GitHub Actions (cada 6 h)                     Vercel
+ GitHub Actions (2 al día)                     Vercel
  ┌───────────────────────┐                    ┌───────────────────────────────┐
  │ bots: vtex, woocommerce│ ── escriben ──►   │ public/  (páginas)            │
  │ scripts/ingest.js      │     Turso  ◄──────│ api/index.js → server/app.js  │
@@ -42,11 +48,12 @@ unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`).
 **Paquetes:** «946 ml (Pack de 12)», «6 pack», «Caja de 24» o «6 x 355 ml» se reconocen como
 paquetes. Un paquete nunca se une con la unidad, aunque la tienda use el mismo código de barras, y
 su precio por litro o por kilo se calcula sobre el total. Los códigos internos de productos pesados
-(prefijos 2, 02 y 04) se descartan porque cada tienda inventa los suyos.
+(prefijos 2, 02 y 04) se descartan porque cada tienda inventa los suyos. También se descartan los códigos
+cuyo dígito verificador no cuadra (SKU internos que parecen códigos de barras).
 
-**Emparejamiento por nombre** (`server/lib/matching.js`): los productos sin código de barras (Riba
-Smith), o con uno que ninguna otra tienda usa, se unen con el mismo producto de otra tienda solo si
-se cumplen todas estas reglas:
+**Emparejamiento por nombre** (`server/lib/matching.js`): los productos sin código de barras (los
+internos de Riba Smith, por ejemplo), o con uno que ninguna otra tienda usa, se unen con el mismo
+producto de otra tienda solo si se cumplen todas estas reglas:
 - el tamaño por unidad y la cantidad de unidades coinciden (con 3 % de margen, así 2 lb ≈ 908 g) y la
   marca coincide;
 - la categoría es la misma;
@@ -68,7 +75,7 @@ Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 | El Machetazo | VTEX | ✅ Bot activo (API pública de catálogo) |
 | Superunico | WooCommerce | ✅ Bot activo (Store API pública) |
 | Súper 99 | Magento | ⏳ Pendiente: su API de productos responde con error |
-| Riba Smith | Next.js | ✅ Bot activo (lee los resultados de su página de búsqueda). No publica código de barras: se une por nombre, tamaño y marca |
+| Riba Smith | Next.js | ✅ Bot activo (busca los términos de canasta básica en su web). Publica el código de barras sin el dígito verificador: se completa; lo que no tiene código se une por nombre, tamaño y marca |
 | Supermercados Rey | Instaleap | ✅ Bot activo (API de catálogo de Instaleap) |
 | Metro Plus | Tipti | ⏳ Vende en línea por Tipti, cuya API exige iniciar sesión: hace falta un acuerdo o un feed |
 | PriceSmart | Nuxt + Bloomreach | ⛔ Su robots.txt bloquea expresamente a los bots que copian datos: solo con acuerdo o feed |
@@ -77,6 +84,12 @@ Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 La portada y el pie de página muestran automáticamente cuántos y cuáles supermercados tienen precios hoy.
 
 Las tiendas se configuran en `data/stores.json`. Una tienda con `"enabled": false` se omite.
+
+Cada tienda puede tener `logo` (horizontal, para la franja de la portada y la página de tiendas), `icon`
+(cuadrado, junto a cada precio) y `logoBg` (fondo para logos blancos, como el de Superunico). Hoy apuntan a
+las imágenes que cada súper publica en su propia web; si alguna deja de cargar, se muestran su nombre o
+sus iniciales. Para usar archivos propios, guárdalos en `public/logos/` y pon la ruta (`"/logos/rey.png"`).
+Los cambios llegan a la web la próxima vez que corren los bots.
 
 ## Publicar en Vercel (una sola vez)
 
@@ -90,7 +103,7 @@ Las tiendas se configuran en `data/stores.json`. Una tienda con `"enabled": fals
    crea `TURSO_DATABASE_URL` y `TURSO_AUTH_TOKEN` con los mismos valores del paso 1.
 5. **Redeploy** en Vercel para que tome las variables.
 6. **Primera carga de precios:** en GitHub → **Actions** → **Actualizar precios** → **Run workflow**.
-   Después corre sola cada 6 horas.
+   Después corre sola dos veces al día (12:17 a. m. y 12:17 p. m. de Panamá).
 
 Panel de imágenes en producción: `https://tu-sitio.vercel.app/admin` (pide la `ADMIN_KEY`).
 
@@ -110,13 +123,22 @@ los bots y el servidor usan Turso. Prueba rápida de los bots:
 
 ## Los bots
 
-- **VTEX** (`connectors/vtex.js`): busca ~40 términos de canasta básica en la API pública de catálogo.
-  Trae código de barras, precio, precio regular, disponibilidad, foto y enlace al producto.
+- **VTEX** (`connectors/vtex.js`): busca ~95 términos en la API pública de catálogo: canasta básica,
+  sodas y marcas conocidas (Coca-Cola, Pepsi…), snacks, limpieza, cuidado personal, bebé y mascotas
+  (`GROCERY_QUERIES` en `connectors/util.js`). Trae código de barras, precio, precio regular,
+  disponibilidad, foto y enlace al producto. Si la tienda responde 429 (demasiadas peticiones), espera y
+  reintenta. Con `"mode": "categories"` recorrería el árbol de categorías completo, pero hoy Super Xtra y
+  El Machetazo responden 429 a ese recorrido, así que se usa la búsqueda.
 - **WooCommerce** (`connectors/woocommerce.js`): recorre el catálogo completo por la Store API.
 - **Instaleap** (`connectors/instaleap.js`): Supermercados Rey. Busca los mismos términos en la API
   de catálogo de Instaleap.
-- **Riba Smith** (`connectors/ribasmith.js`): lee los datos que su web incluye en la página de búsqueda
-  (`initialData`): precio, oferta con fechas e inventario.
+- **Riba Smith** (`connectors/ribasmith.js`): busca en su web los mismos términos que VTEX y lee los datos
+  que la página incluye: precio con ITBMS, oferta con fechas e inventario. Su campo `sku` es el código de
+  barras sin el dígito verificador (`744100350023` = Coca-Cola lata `7441003500235`); el bot lo completa
+  para que se una con las demás tiendas. Con `"mode": "departments"` recorre el catálogo completo por
+  departamento (`/dep_product/<nombre>-<id>?page=N`; `skipDepartments` omite los que no son de súper), pero
+  son cientos de páginas de 20 productos (solo Bebé tiene 38): demasiados minutos de GitHub Actions para un
+  repositorio privado. Si una página falla, el bot reintenta y, si sigue fallando, la salta.
 - **Feed** (`connectors/feed.js`): para tiendas socias que comparten su inventario en CSV/JSON con
   las columnas `sku,gtin,nombre,marca,categoria,presentacion,precio,precio_regular,disponible,url,imagen`
   (ejemplo en `data/feeds/minisuper-ejemplo.csv`).
@@ -198,7 +220,7 @@ ven como recuadros punteados; en la web no aparecen hasta que configures AdSense
 
 ## Próximos pasos
 
-1. Bots para Súper 99 y Riba Smith.
+1. Bot para Súper 99.
 2. Revisión de coincidencias entre tiendas para productos sin código de barras.
 3. Alertas de baja de precio y escaneo de código de barras con la cámara.
 4. Acuerdos con tiendas (feed o afiliados).
@@ -212,5 +234,5 @@ scripts/        ingest.js: corre los bots y guarda en la base
 server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local)
 public/         index.html, styles.css, js/ (app.js, images.js, views/)
 data/           stores.json, feeds/   · generados (fuera de git): mercapty.db, images/, admin-key.txt
-.github/        workflows/precios.yml: bots cada 6 horas
+.github/        workflows/precios.yml: bots dos veces al día
 ```

@@ -1,5 +1,5 @@
 import { getJson } from './api.js';
-import { html, mount, toast } from './ui.js';
+import { html, mount, toast, setStoreInfo } from './ui.js';
 import { addToList, listCount } from './list-store.js';
 import { setAdminKey } from './admin-auth.js';
 import { navigate } from './nav.js';
@@ -51,7 +51,10 @@ upgradeLegacyHash();
 
 let storesPromise;
 function loadStores() {
-  storesPromise ??= getJson('/api/stores').then((list) => new Map(list.map((s) => [s.id, s])));
+  storesPromise ??= getJson('/api/stores').then((list) => {
+    setStoreInfo(list);
+    return new Map(list.map((s) => [s.id, s]));
+  });
   return storesPromise;
 }
 
@@ -130,9 +133,16 @@ document.addEventListener('click', (event) => {
 });
 
 // Si la foto de una tienda deja de existir, se muestra el ícono de la categoría.
+// Si falla el logo o el ícono de una tienda, quedan su nombre o sus iniciales.
 document.addEventListener('error', (event) => {
   const img = event.target;
-  if (!(img instanceof HTMLImageElement) || !img.dataset.fallback) return;
+  if (!(img instanceof HTMLImageElement)) return;
+  if (img.hasAttribute('data-store-img')) {
+    if (img.dataset.name) img.replaceWith(Object.assign(document.createElement('b'), { textContent: img.dataset.name }));
+    else img.remove();
+    return;
+  }
+  if (!img.dataset.fallback) return;
   const placeholder = document.createElement('span');
   placeholder.className = 'ph-emoji';
   placeholder.textContent = img.dataset.fallback;

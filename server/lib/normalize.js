@@ -41,9 +41,10 @@ export function normalizeGtin(raw) {
   const digits = String(raw ?? '').replace(/\D/g, '');
   if (digits.length < 8 || digits.length > 14) return null;
   const gtin = digits.padStart(14, '0');
-  // Códigos de circulación interna (prefijos 2, 02 y 04): cada tienda los
-  // inventa para productos pesados o propios, así que no sirven para comparar.
-  return /^(02|002|004)/.test(gtin) ? null : gtin;
+  // Códigos de circulación interna (prefijos 2, 02 y 04), que cada tienda
+  // inventa para productos pesados o propios, y números cuyo dígito
+  // verificador no cuadra (SKU internos): no sirven para comparar entre tiendas.
+  return /^(02|002|004)/.test(gtin) || !isValidGtin(gtin) ? null : gtin;
 }
 
 const UNITS = {
@@ -69,9 +70,9 @@ export function parseSize(text) {
 }
 
 // Paquetes de varias unidades: "Pack de 12", "6 pack", "3pack", "Paquete de 3", "Caja de 24".
-const PACK_RE = /(?:pack|paquete|caja)\s*(?:de\s*)?(\d{1,3})\b|\b(\d{1,3})\s*pack\b/;
+const PACK_RE = /(?:pack|paquete|caja)\s*(?:de\s*)?(\d{1,3})\b|\b(\d{1,3})\s*(?:pack|pk)\b/;
 export function parsePack(text) {
-  const m = PACK_RE.exec(normalizeText(text).replace(/(\d)pack\b/g, '$1 pack'));
+  const m = PACK_RE.exec(normalizeText(text).replace(/(\d)(pack|pk)\b/g, '$1 $2'));
   const n = m ? Number(m[1] ?? m[2]) : 1;
   return n > 1 && n <= 100 ? n : 1;
 }
@@ -96,20 +97,20 @@ const CATEGORY_RULES = [
   ['Lácteos y huevos', /\b(lacteo|lacteos|leche|leches|queso|quesos|yogur|yogurt|mantequilla|huevo|huevos|refrigerados)\b/],
   ['Congelados', /\b(congelado|congelados|helado|helados)\b/],
   ['Panadería y snacks', /\b(pan|panes|panaderia|reposteria|galleta|galletas|snack|snacks|golosina|golosinas|dulces|chocolate|chocolates|cereal|cereales)\b/],
-  ['Bebidas', /\b(bebida|bebidas|agua|jugo|jugos|refresco|refrescos|soda|sodas|cerveza|cervezas|vino|vinos|licor|licores|ron|whisky)\b/],
+  ['Bebidas', /\b(bebida|bebidas|agua|jugo|jugos|refresco|refrescos|soda|sodas|gaseosa|gaseosas|cola|malta|energizante|energizantes|energetica|energeticas|hidratante|isotonica|cerveza|cervezas|vino|vinos|licor|licores|ron|whisky)\b/],
   ['Limpieza', /\b(limpieza|detergente|detergentes|cloro|desinfectante|lavaplatos|suavizante|lavanderia|hogar)\b/],
   ['Cuidado personal', /\b(cuidado personal|higiene|shampoo|champu|jabon|desodorante|dental|belleza|farmacia|papel higienico)\b/],
   ['Despensa', /\b(despensa|abarrotes|arroz|frijol|frijoles|aceite|aceites|azucar|pasta|pastas|enlatado|enlatados|condimento|condimentos|salsa|salsas|harina|granos|cafe|sopa|sopas|atun)\b/],
 ];
 
-export function canonicalCategory(...texts) {
-  for (const text of texts) {
-    const normalized = normalizeText(text);
-    if (!normalized) continue;
-    const match = CATEGORY_RULES.find(([, re]) => re.test(normalized));
-    if (match) return match[0];
-  }
-  return 'Otros';
+export function canonicalCategory(categoryText = '', name = '') {
+  const category = normalizeText(categoryText);
+  const title = normalizeText(name);
+  const byCategory = category ? CATEGORY_RULES.filter(([, re]) => re.test(category)) : [];
+  // Categorías mezcladas de la tienda ("Snacks y Bebidas"): decide el nombre del producto.
+  if (byCategory.length > 1) return (byCategory.find(([, re]) => re.test(title)) ?? byCategory[0])[0];
+  if (byCategory.length === 1) return byCategory[0][0];
+  return CATEGORY_RULES.find(([, re]) => re.test(title))?.[0] ?? 'Otros';
 }
 
 // Llave para decidir si dos ofertas de tiendas distintas son el mismo producto.

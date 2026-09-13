@@ -2,7 +2,7 @@
 //   npm run ingest                  -> todas las tiendas activas
 //   npm run ingest -- superxtra     -> solo esa tienda
 // Prueba rápida: INGEST_QUERIES="leche,arroz" INGEST_MAX_PAGES=1 npm run ingest
-// En producción lo corre GitHub Actions cada 6 horas (.github/workflows/precios.yml).
+// En producción lo corre GitHub Actions dos veces al día (.github/workflows/precios.yml).
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { openDb, upsertStore, upsertOffers, countInStock, markUnseenOffersOutOfStock, ROOT } from '../server/db.js';
@@ -34,6 +34,8 @@ function normalizeOffer(store, raw) {
     name,
     brand: String(raw.brand ?? '').trim() || null,
     category: canonicalCategory(raw.category, name),
+    // Categoría más específica de la tienda ("Sodas"): sirve para buscar.
+    categoryLeaf: String(raw.category ?? '').split(/[/>|]/).map((s) => s.trim()).filter(Boolean).pop() ?? '',
     sizeLabel,
     sizeValue,
     sizeUnit: size?.unit ?? null,

@@ -6,6 +6,8 @@
     "searchUrl": "https://www.superxtra.com/{q}?_q={q}&map=ft",
     "platform": "VTEX",
     "color": "#1d4ed8",
+    "logo": "https://superxtrapanama.vtexassets.com/assets/vtex.file-manager-graphql/images/aa95bb72-8c79-4a08-aecd-0956ca426e5c___8a19dc3d87a83037c0308b89cb7c8845.png",
+    "icon": "https://www.superxtra.com/pwa/icons/logo-app-192x192.png",
     "connector": { "type": "vtex" }
   },
   {
@@ -15,6 +17,8 @@
     "searchUrl": "https://www.elmachetazo.com/{q}?_q={q}&map=ft",
     "platform": "VTEX",
     "color": "#f08c00",
+    "logo": "https://elmachetazo.vtexassets.com/assets/vtex/assets-builder/elmachetazo.elmachetazo-theme/3.0.7/images/logos/home/logo-machetazo-pp-nuevo___b42a50793ab01479ae5e98b375cf7ec9.svg",
+    "icon": "https://www.elmachetazo.com/pwa/icons/ElMachetazoPWA-192x192.png",
     "connector": { "type": "vtex" }
   },
   {
@@ -24,6 +28,9 @@
     "searchUrl": "https://superunico.com/?s={q}&post_type=product",
     "platform": "WooCommerce",
     "color": "#7c3aed",
+    "logo": "https://superunico.com/wp-content/uploads/superunicologo.png",
+    "logoBg": "#0f172a",
+    "icon": "https://superunico.com/wp-content/uploads/cropped-favicon-2-192x192.png",
     "connector": { "type": "woocommerce" }
   },
   {
@@ -43,6 +50,8 @@
     "searchUrl": "https://www.ribasmith.com/search?q={q}",
     "platform": "Next.js",
     "color": "#2a9d4b",
+    "logo": "https://www.ribasmith.com/imgs/logors1.png",
+    "icon": "https://www.ribasmith.com/favicon.ico",
     "connector": { "type": "ribasmith" }
   },
   {
@@ -52,6 +61,8 @@
     "searchUrl": "https://www.smrey.com/search?name={q}",
     "platform": "Instaleap",
     "color": "#c8102e",
+    "logo": "https://instaleap-data-client.s3.amazonaws.com/GRUPO_REY/REY_LOGO_NUEVO.png",
+    "icon": "https://www.smrey.com/favicon.ico",
     "connector": { "type": "instaleap", "clientId": "GRUPO_REY", "storeReference": "1038" }
   },
   {

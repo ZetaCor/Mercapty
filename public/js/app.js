@@ -7,6 +7,9 @@ import { renderProduct } from './views/product.js';
 import { renderList } from './views/list.js';
 import { renderStores } from './views/stores.js';
 import { renderAdmin } from './views/admin.js';
+import { renderAppPage } from './views/app-page.js';
+import { setAdsConfig, activateAds } from './ads.js';
+import './install.js'; // escucha el aviso de instalación desde que carga la página
 
 const view = document.getElementById('view');
 const searchInput = document.getElementById('search-input');
@@ -19,6 +22,7 @@ const ROUTES = [
   [/^\/lista$/, renderList, 'lista'],
   [/^\/tiendas$/, renderStores, 'tiendas'],
   [/^\/admin$/, renderAdmin, null],
+  [/^\/app$/, renderAppPage, 'app'],
 ];
 
 let storesPromise;
@@ -53,6 +57,7 @@ async function router({ keepScroll = false } = {}) {
     if (seq !== renderSeq) return;
     mount(view, out.html);
     out.bind?.(view);
+    activateAds(view);
   } catch (err) {
     if (seq !== renderSeq) return;
     mount(view, html`<div class="empty"><div class="big">😕</div><p>No pudimos cargar esta página.</p><p>${err.message}</p></div>`);
@@ -100,8 +105,15 @@ window.addEventListener('list-changed', updateCount);
 window.addEventListener('storage', updateCount); // cambios desde otra pestaña
 
 getJson('/api/meta')
-  .then((meta) => { document.getElementById('demo-banner').hidden = !meta.demo; })
+  .then((meta) => {
+    document.getElementById('demo-banner').hidden = !meta.demo;
+    setAdsConfig(meta.ads);
+    activateAds(view);
+  })
   .catch(() => {});
+
+// Necesario para instalar Mercapty como app y abrir la portada sin conexión.
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
 
 // Pie de página: solo los supermercados que hoy tienen precios.
 loadStores()

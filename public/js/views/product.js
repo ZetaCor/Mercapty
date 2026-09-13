@@ -2,6 +2,7 @@ import { getJson } from '../api.js';
 import { html, money, storeAvatar, unitPriceText, timeAgo, productLabel, productMedia, icons, toast } from '../ui.js';
 import { isAdmin } from '../admin-auth.js';
 import { uploadProductImage, removeProductImage } from '../images.js';
+import { adSlot } from '../ads.js';
 
 const formatDay = (day) => new Date(`${day}T12:00:00`).toLocaleDateString('es-PA', { day: 'numeric', month: 'short' });
 
@@ -116,6 +117,7 @@ export async function renderProduct({ match, refresh }) {
           <div class="section-head"><h2>Compara en ${available} tienda${available === 1 ? '' : 's'}</h2></div>
           <div class="offers">${product.offers.map(offerRow)}</div>
         </section>
+        ${adSlot('product')}
         ${priceHistory(product.history, product.bestPrice)}
       </div>`,
     bind(root) {

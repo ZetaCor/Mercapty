@@ -45,6 +45,7 @@ unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`).
 | Riba Smith | Next.js | ⏳ Pendiente: cambió su sitio, falta ubicar su API de búsqueda |
 | Supermercados Rey | Instaleap | ✅ Bot activo (API de catálogo de Instaleap) |
 | Metro Plus | Tipti | ⏳ Vende en línea por Tipti, cuya API exige iniciar sesión: hace falta un acuerdo o un feed |
+| PriceSmart | Nuxt + Bloomreach | ⛔ Su robots.txt bloquea expresamente a los bots que copian datos: solo con acuerdo o feed |
 
 La portada y el pie de página muestran automáticamente cuántos y cuáles supermercados tienen precios hoy.
 
@@ -123,6 +124,28 @@ La foto que subes tú siempre tiene prioridad sobre la de la tienda.
 El navegador reduce la foto a 1000 px y le quita metadatos, como la ubicación GPS, antes de
 subirla. El servidor acepta JPG, PNG o WebP de hasta 3 MB y la guarda en Vercel Blob; en local, en
 `data/images/`.
+
+## App
+
+La página `#/app` («Descarga la app») permite instalar Mercapty hoy como app web (PWA): en Android
+aparece el botón «Instalar Mercapty» y en iPhone se explica cómo agregarla desde Compartir. Para eso
+existen `public/manifest.webmanifest`, los íconos de `public/icons/` y un service worker mínimo
+(`public/sw.js`) que siempre busca primero en la red y nunca guarda precios. Las versiones de App Store y
+Google Play aparecen como «Próximamente».
+
+## Anuncios (Google AdSense)
+
+Los espacios ya están colocados en la portada, la búsqueda y la ficha de producto. En tu computadora se
+ven como recuadros punteados; en la web no aparecen hasta que configures AdSense.
+
+1. Compra el dominio y conéctalo en Vercel (**Settings** → **Domains**).
+2. En la política de privacidad (`public/privacidad.html`), cambia `[correo de contacto pendiente]` por tu
+   correo. AdSense exige esa página.
+3. Solicita AdSense con tu dominio. Cuando te aprueben, en Vercel → **Environment Variables** agrega
+   `ADSENSE_CLIENT` con tu ID (`ca-pub-…`) y haz **Redeploy**. Con eso se carga el script de AdSense y
+   `/ads.txt` se genera solo.
+4. Opcional: crea bloques de anuncios en AdSense y agrega sus números en `ADSENSE_SLOT_HOME`,
+   `ADSENSE_SLOT_SEARCH` y `ADSENSE_SLOT_PRODUCT`. Sin bloques, puedes usar los anuncios automáticos de AdSense.
 
 ## Antes de crecer
 

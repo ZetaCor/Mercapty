@@ -47,7 +47,7 @@ function basketVisual() {
     </div>`;
 }
 
-function phoneVisual() {
+export function phoneVisual() {
   return html`
     <div class="phone" aria-hidden="true">
       <div class="phone-notch"></div>
@@ -109,7 +109,8 @@ export function renderHero({ meta, stores, deals }) {
         <div class="store-badges">
           <span class="store-badge">${icons.phone}<span><small>Próximamente en</small>App Store</span></span>
           <span class="store-badge">${icons.phone}<span><small>Próximamente en</small>Google Play</span></span>
-        </div>`,
+        </div>
+        <div class="hero-actions"><a class="btn btn-lg" href="#/app">Conoce la app</a></div>`,
     },
   ];
 

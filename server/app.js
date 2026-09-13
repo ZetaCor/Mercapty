@@ -47,6 +47,19 @@ function loadAdminKey() {
 }
 export const admin = loadAdminKey();
 
+// Google AdSense: se activa definiendo ADSENSE_CLIENT (ca-pub-…) en Vercel.
+// Los bloques ADSENSE_SLOT_* son opcionales; sin ellos, AdSense puede colocar
+// anuncios automáticos si se activan en su panel.
+function adsConfig() {
+  const client = (process.env.ADSENSE_CLIENT ?? '').trim();
+  if (!/^ca-pub-\d{10,20}$/.test(client)) return null;
+  const slot = (name) => (/^\d{6,15}$/.test(process.env[name] ?? '') ? process.env[name] : null);
+  return {
+    client,
+    slots: { home: slot('ADSENSE_SLOT_HOME'), search: slot('ADSENSE_SLOT_SEARCH'), product: slot('ADSENSE_SLOT_PRODUCT') },
+  };
+}
+
 class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }
@@ -154,6 +167,13 @@ async function route(req, res) {
     // El nombre cambia en cada subida, así que se puede guardar en caché para siempre.
     return sendFile(res, path.join(IMAGES_DIR, m[1]), 'public, max-age=31536000, immutable');
   }
+  if (get && pathname === '/ads.txt') {
+    // Autoriza a Google a vender los anuncios de este sitio (se genera desde ADSENSE_CLIENT).
+    const ads = adsConfig();
+    if (!ads) throw new HttpError(404, 'No encontrado');
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' });
+    return res.end(`google.com, ${ads.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0\n`);
+  }
   if (get && !pathname.startsWith('/api/') && !pathname.startsWith('/go/')) return serveStatic(res, pathname);
 
   const api = await getApi().catch((err) => {
@@ -161,7 +181,7 @@ async function route(req, res) {
     throw new HttpError(503, 'La base de datos no está disponible. Si acabas de publicar, conecta Turso al proyecto en Vercel.');
   });
   if (pathname.startsWith('/api/admin/')) return handleAdmin(req, res, pathname, api);
-  if (get && pathname === '/api/meta') return sendJson(res, 200, await api.meta());
+  if (get && pathname === '/api/meta') return sendJson(res, 200, { ...(await api.meta()), ads: adsConfig() });
   if (get && pathname === '/api/stores') return sendJson(res, 200, await api.listStores());
   if (get && pathname === '/api/categories') return sendJson(res, 200, await api.listCategories());
   if (get && pathname === '/api/deals') return sendJson(res, 200, await api.deals(intParam(searchParams.get('limit'), 1, 24, 8)));

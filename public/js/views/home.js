@@ -1,6 +1,7 @@
 import { getJson } from '../api.js';
 import { html, productGrid, categoryIcon, categoryTint } from '../ui.js';
 import { renderHero, bindHero } from './hero.js';
+import { adSlot } from '../ads.js';
 
 const SORT_OPTIONS = [
   ['nombre', 'Nombre'],
@@ -66,6 +67,8 @@ export async function renderHome({ stores }) {
         ${productGrid(deals, stores)}
       </section>
 
+      ${adSlot('home')}
+
       <section class="section">
         <div class="section-head">
           <h2>Productos</h2>
@@ -110,6 +113,7 @@ export async function renderSearch({ params, stores, refresh }) {
             <p>No encontramos productos para esa búsqueda.</p>
             <p>Prueba con otra palabra (por ejemplo «leche», «arroz» o una marca) o <a href="#/buscar">mira todo el catálogo</a>.</p>
           </div>`}
+      ${result.items.length ? adSlot('search') : ''}
       ${result.total > result.items.length
         ? html`<div class="more"><button class="btn" type="button" data-more>Ver más productos (${result.total - result.items.length})</button></div>`
         : ''}`,

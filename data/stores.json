@@ -64,5 +64,15 @@
     "color": "#0f766e",
     "enabled": false,
     "note": "vende en línea por Tipti, cuya API exige iniciar sesión; hace falta un acuerdo o un feed"
+  },
+  {
+    "id": "pricesmart",
+    "name": "PriceSmart",
+    "homepage": "https://www.pricesmart.com/es-pa",
+    "searchUrl": null,
+    "platform": "Nuxt + Bloomreach",
+    "color": "#0054a6",
+    "enabled": false,
+    "note": "su robots.txt bloquea expresamente a los bots que copian datos; solo con un acuerdo o un feed"
   }
 ]

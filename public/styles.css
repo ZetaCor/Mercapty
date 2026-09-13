@@ -93,7 +93,7 @@ select, .input {
 /* Barra inferior (solo móvil) */
 .tabbar {
   display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   padding: .35rem .5rem calc(.35rem + env(safe-area-inset-bottom));
   background: rgb(255 255 255 / 94%); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   border-top: 1px solid var(--border);
@@ -419,6 +419,47 @@ details summary { cursor: pointer; font-weight: 600; }
 .footer-col p { margin: 0 0 .5rem; color: var(--muted); }
 .footer-bottom { margin-top: 2.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border); color: var(--muted); font-size: .8rem; }
 .footer-bottom p { margin: 0; max-width: 110ch; }
+a.footer-badge:hover { background: var(--brand); }
+.footer-links { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: .75rem; }
+.footer-links a { color: var(--muted); }
+.footer-links a:hover { color: var(--brand); }
+
+/* ---------- Página de la app ---------- */
+.app-hero {
+  display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); gap: 2rem; align-items: center;
+  padding: clamp(1.5rem, 1rem + 3vw, 3.25rem); border: 1px solid var(--border); border-radius: var(--r-xl);
+  background:
+    radial-gradient(800px 380px at 100% 0%, #e8efff 0%, transparent 60%),
+    radial-gradient(600px 300px at 0% 100%, #fdeef4 0%, transparent 55%), #fff;
+}
+.app-hero h1 { max-width: 16ch; font-size: clamp(1.8rem, 1.2rem + 2.2vw, 2.9rem); letter-spacing: -.03em; }
+.app-hero-copy p { max-width: 52ch; margin: 0; color: var(--text-2); font-size: 1.05rem; }
+.app-hero-visual { display: grid; place-items: center; }
+@media (max-width: 820px) {
+  .app-hero { grid-template-columns: 1fr; }
+  .app-hero-visual { order: -1; }
+  .app-hero-visual .phone { transform: scale(.8); margin: -40px 0; }
+}
+.installed-note { margin: 1rem 0 0; color: var(--good); font-weight: 600; }
+.store-badges.on-light .store-badge { background: var(--text); border-color: var(--text); }
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1rem; }
+.feature { display: flex; flex-direction: column; align-items: flex-start; gap: .5rem; padding: 1.25rem; background: #fff; border: 1px solid var(--border); border-radius: var(--r-lg); }
+.feature h3 { margin: .25rem 0 0; font-size: 1.02rem; }
+.feature p { flex: 1; margin: 0; color: var(--muted); }
+.feature-icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; background: var(--brand-soft); font-size: 1.5rem; }
+.install-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+.install-steps h3 { margin: 0 0 .5rem; font-size: 1.02rem; }
+.install-steps ol { margin: 0; padding-left: 1.2rem; color: var(--text-2); line-height: 1.8; }
+
+/* ---------- Anuncios ---------- */
+.ad-slot { margin: 2rem 0; text-align: center; }
+.ad-label { display: block; margin-bottom: .35rem; color: var(--muted); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; }
+.ad-preview { display: grid; place-items: center; min-height: 110px; border: 2px dashed var(--border-2); border-radius: var(--r-lg); color: var(--muted); font-size: .85rem; }
+
+/* ---------- Páginas legales ---------- */
+.legal { max-width: 760px; }
+.legal h2 { margin-top: 2rem; }
+.legal p, .legal li { color: var(--text-2); line-height: 1.7; }
 
 .toast {
   position: fixed; left: 50%; bottom: 1.5rem; z-index: 40; transform: translateX(-50%);

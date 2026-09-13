@@ -11,6 +11,17 @@ export const BOT_HEADERS = {
   Accept: 'application/json',
 };
 
+// Términos que usan los bots que buscan por palabra (VTEX, Instaleap): lo más
+// comprado en un súper.
+export const GROCERY_QUERIES = [
+  'leche', 'queso', 'yogurt', 'mantequilla', 'huevos', 'arroz', 'frijoles', 'lentejas',
+  'aceite', 'azucar', 'sal', 'cafe', 'pasta', 'harina', 'avena', 'cereal', 'atun',
+  'sardina', 'salsa', 'mayonesa', 'pan', 'galletas', 'pollo', 'carne', 'jamon',
+  'salchichas', 'agua', 'jugo', 'refresco', 'cerveza', 'papel higienico', 'detergente',
+  'cloro', 'suavizante', 'lavaplatos', 'jabon', 'shampoo', 'pasta dental',
+  'desodorante', 'panales', 'toallitas',
+];
+
 // Lista separada por comas en una variable de entorno, útil para pruebas
 // rápidas: INGEST_QUERIES="leche,arroz" npm run ingest
 export function envList(name) {

@@ -2,23 +2,14 @@
 // API pública de catálogo que la propia tienda expone a su sitio web.
 // Devuelve código de barras, precio, precio regular, disponibilidad, foto y
 // el enlace directo al producto.
-import { BOT_HEADERS, envList, sleep } from './util.js';
+import { BOT_HEADERS, GROCERY_QUERIES, envList, sleep } from './util.js';
 
-// Términos de búsqueda por defecto: lo más comprado en un súper.
-const DEFAULT_QUERIES = [
-  'leche', 'queso', 'yogurt', 'mantequilla', 'huevos', 'arroz', 'frijoles', 'lentejas',
-  'aceite', 'azucar', 'sal', 'cafe', 'pasta', 'harina', 'avena', 'cereal', 'atun',
-  'sardina', 'salsa', 'mayonesa', 'pan', 'galletas', 'pollo', 'carne', 'jamon',
-  'salchichas', 'agua', 'jugo', 'refresco', 'cerveza', 'papel higienico', 'detergente',
-  'cloro', 'suavizante', 'lavaplatos', 'jabon', 'shampoo', 'pasta dental',
-  'desodorante', 'panales', 'toallitas',
-];
 const PAGE_SIZE = 50; // máximo que acepta VTEX por página
 
 export async function fetchOffers(store, { log = console.log } = {}) {
   const cfg = store.connector;
   const base = cfg.baseUrl ?? new URL(store.homepage).origin;
-  const queries = envList('INGEST_QUERIES') ?? cfg.queries ?? DEFAULT_QUERIES;
+  const queries = envList('INGEST_QUERIES') ?? cfg.queries ?? GROCERY_QUERIES;
   const maxPages = Number(process.env.INGEST_MAX_PAGES) || cfg.maxPages || 2;
   const delayMs = cfg.delayMs ?? 1500; // no saturar el sitio de la tienda
   const seen = new Map();

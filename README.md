@@ -43,8 +43,8 @@ unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`).
 | Superunico | WooCommerce | ✅ Bot activo (Store API pública) |
 | Súper 99 | Magento | ⏳ Pendiente: su API de productos responde con error |
 | Riba Smith | Next.js | ⏳ Pendiente: cambió su sitio, falta ubicar su API de búsqueda |
-| Supermercados Rey | Instaleap (Next.js) | 🔧 En progreso: su API responde; falta el ID interno de la tienda (ver notas abajo) |
-| Metro Plus | Grupo Rey | ⏳ Sin tienda en línea propia; smrey.com tiene una sección «Metro Farmacia» |
+| Supermercados Rey | Instaleap | ✅ Bot activo (API de catálogo de Instaleap) |
+| Metro Plus | Tipti | ⏳ Vende en línea por Tipti, cuya API exige iniciar sesión: hace falta un acuerdo o un feed |
 
 La portada y el pie de página muestran automáticamente cuántos y cuáles supermercados tienen precios hoy.
 
@@ -85,6 +85,8 @@ los bots y el servidor usan Turso. Prueba rápida de los bots:
 - **VTEX** (`connectors/vtex.js`): busca ~40 términos de canasta básica en la API pública de catálogo.
   Trae código de barras, precio, precio regular, disponibilidad, foto y enlace al producto.
 - **WooCommerce** (`connectors/woocommerce.js`): recorre el catálogo completo por la Store API.
+- **Instaleap** (`connectors/instaleap.js`): Supermercados Rey. Busca los mismos términos en la API
+  de catálogo de Instaleap.
 - **Feed** (`connectors/feed.js`): para tiendas socias que comparten su inventario en CSV/JSON con
   las columnas `sku,gtin,nombre,marca,categoria,presentacion,precio,precio_regular,disponible,url,imagen`
   (ejemplo en `data/feeds/minisuper-ejemplo.csv`).
@@ -98,18 +100,13 @@ Para sumar una tienda, crea `connectors/<nombre>.js` con
 `fetchOffers(store) -> [{ sku, gtin, name, brand, category, size, price, listPrice, inStock, url, image }]`
 y regístralo en `connectors/index.js`.
 
-### Notas para el bot de Rey (Instaleap)
+### Cómo funciona el bot de Rey (Instaleap)
 
-- smrey.com es Next.js sobre Instaleap (`clientId: GRUPO_REY`, `storeReference: 1038`) y está
-  protegida con Imperva. La búsqueda del sitio (`/search?name=`) carga los productos en el navegador.
-- API GraphQL: `POST https://deadpool.instaleap.io/api/v2`. No pide clave y tiene la introspección
-  desactivada.
-- Forma válida de la consulta:
-  `getProducts(storeId: ID!, search: { text, language: ES }, pagination: { pageSize, currentPage })`
-  devolviendo `products { name sku ean price isAvailable photosUrls slug brand unit }` y
-  `paginator { pages page }`.
-- Con `storeId: "1038"` responde `products: null`. Falta obtener el ID interno de la tienda,
-  probablemente con una consulta de tiendas del mismo API usando `clientId: "GRUPO_REY"`.
+- smrey.com es Next.js sobre Instaleap (`clientId: GRUPO_REY`, tienda `1038`, «Calle 50»).
+- El catálogo se consulta en `POST https://nextgentheadless.instaleap.io/api/v3` con
+  `searchProducts(searchProductsInput: { clientId, storeReference, search: [{ query }], currentPage, pageSize })`.
+- Cada producto trae nombre, precio, código de barras (`ean`), disponibilidad, foto y `slug`. La
+  página del producto es `https://www.smrey.com/p/<slug>`.
 
 **Importante:** revisa los términos de uso de cada súper. Lo ideal es un acuerdo (feed o
 afiliados): da precios más confiables y abre la puerta a cobrar comisión.
@@ -146,7 +143,7 @@ subirla. El servidor acepta JPG, PNG o WebP de hasta 3 MB y la guarda en Vercel 
 
 ```
 api/index.js    función de Vercel (usa server/app.js)
-connectors/     bots: vtex.js, woocommerce.js, feed.js
+connectors/     bots: vtex.js, woocommerce.js, instaleap.js, feed.js
 scripts/        ingest.js: corre los bots y guarda en la base
 server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local)
 public/         index.html, styles.css, js/ (app.js, images.js, views/)

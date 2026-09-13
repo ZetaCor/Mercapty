@@ -50,20 +50,19 @@
     "id": "rey",
     "name": "Supermercados Rey",
     "homepage": "https://www.smrey.com",
-    "searchUrl": null,
+    "searchUrl": "https://www.smrey.com/search?name={q}",
     "platform": "Instaleap",
-    "color": "#0e7490",
-    "enabled": false,
-    "note": "bot en progreso: falta el ID interno de la tienda en la API de Instaleap"
+    "color": "#c8102e",
+    "connector": { "type": "instaleap", "clientId": "GRUPO_REY", "storeReference": "1038" }
   },
   {
     "id": "metroplus",
     "name": "Metro Plus",
     "homepage": "https://metroplus.com.pa",
     "searchUrl": null,
-    "platform": "Grupo Rey",
+    "platform": "Tipti",
     "color": "#0f766e",
     "enabled": false,
-    "note": "no tiene tienda en línea propia; smrey.com tiene una sección «Metro Farmacia»"
+    "note": "vende en línea por Tipti, cuya API exige iniciar sesión; hace falta un acuerdo o un feed"
   }
 ]

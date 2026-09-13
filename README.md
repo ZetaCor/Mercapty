@@ -34,6 +34,18 @@ La clave es **reconocer que dos tiendas venden el mismo producto**. Se usa el c�
 de barras, se usa marca + nombre + presentación como respaldo. Las categorías de cada súper se
 unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`).
 
+**Emparejamiento por nombre** (`server/lib/matching.js`): los productos sin código de barras (Riba
+Smith) se unen con el mismo producto de otra tienda solo si se cumplen todas estas reglas:
+- el tamaño coincide (con 3 % de margen, así 2 lb ≈ 908 g) y la marca coincide;
+- la categoría es la misma;
+- los nombres se parecen al menos 75 %, entendiendo abreviaturas («desl», «intg», «c/») y nombres
+  cortados;
+- ninguna palabra de variante («entera», «descremada», «light», «pavo»…) aparece en un solo nombre.
+
+Sin marca o sin tamaño no se une: compararlo con un producto concreto engañaría al cliente. Cada
+producto de otra tienda se une con uno solo. Para revisar las uniones:
+`INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
+
 ## Supermercados (septiembre 2026)
 
 | Súper | Plataforma | Estado |
@@ -42,10 +54,11 @@ unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`).
 | El Machetazo | VTEX | ✅ Bot activo (API pública de catálogo) |
 | Superunico | WooCommerce | ✅ Bot activo (Store API pública) |
 | Súper 99 | Magento | ⏳ Pendiente: su API de productos responde con error |
-| Riba Smith | Next.js | ✅ Bot activo (lee los resultados de su página de búsqueda). No publica código de barras: se empareja por nombre |
+| Riba Smith | Next.js | ✅ Bot activo (lee los resultados de su página de búsqueda). No publica código de barras: se une por nombre, tamaño y marca |
 | Supermercados Rey | Instaleap | ✅ Bot activo (API de catálogo de Instaleap) |
 | Metro Plus | Tipti | ⏳ Vende en línea por Tipti, cuya API exige iniciar sesión: hace falta un acuerdo o un feed |
 | PriceSmart | Nuxt + Bloomreach | ⛔ Su robots.txt bloquea expresamente a los bots que copian datos: solo con acuerdo o feed |
+| Super Kosher | Self-Point | ⛔ Su robots.txt lo permite, pero Cloudflare bloquea a los bots en su API de productos: solo con acuerdo o feed |
 
 La portada y el pie de página muestran automáticamente cuántos y cuáles supermercados tienen precios hoy.
 

@@ -73,5 +73,15 @@
     "color": "#0054a6",
     "enabled": false,
     "note": "su robots.txt bloquea expresamente a los bots que copian datos; solo con un acuerdo o un feed"
+  },
+  {
+    "id": "superkosher",
+    "name": "Super Kosher",
+    "homepage": "https://www.skosher.com",
+    "searchUrl": null,
+    "platform": "Self-Point",
+    "color": "#1e3a8a",
+    "enabled": false,
+    "note": "Cloudflare bloquea a los bots en su API de productos; solo con un acuerdo o un feed"
   }
 ]

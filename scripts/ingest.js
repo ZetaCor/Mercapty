@@ -9,6 +9,7 @@ import { openDb, upsertStore, upsertOffers, countInStock, markUnseenOffersOutOfS
 import { connectors } from '../connectors/index.js';
 import { storeSearchUrl } from '../connectors/util.js';
 import { canonicalCategory, normalizeGtin, parseSize } from '../server/lib/normalize.js';
+import { createMatcher } from '../server/lib/matching.js';
 
 const only = process.argv.slice(2);
 const stores = JSON.parse(readFileSync(path.join(ROOT, 'data', 'stores.json'), 'utf8'));
@@ -39,6 +40,32 @@ function normalizeOffer(store, raw) {
     url: raw.url || storeSearchUrl(store, raw.title ?? name),
     imageUrl: /^https?:\/\//i.test(String(raw.image ?? '')) ? String(raw.image) : null,
   };
+}
+
+// Productos sin código de barras: se intenta unir cada uno con el mismo
+// producto de otra tienda (ver server/lib/matching.js). Cada producto de otra
+// tienda se une como máximo con uno de esta; gana el parecido más alto.
+async function attachByName(storeId, offers) {
+  const pending = offers.filter((o) => !o.gtin);
+  if (!pending.length) return 0;
+  const candidates = await db.all(`
+    SELECT p.match_key AS matchKey, p.name, p.brand, p.category, p.size_value AS sizeValue, p.size_unit AS sizeUnit
+    FROM products p
+    WHERE EXISTS (SELECT 1 FROM offers o WHERE o.product_id = p.id AND o.store_id <> ? AND o.in_stock = 1)
+  `, [storeId]);
+  const findMatch = createMatcher(candidates);
+  const proposals = pending
+    .map((offer) => ({ offer, match: findMatch(offer) }))
+    .filter((p) => p.match)
+    .sort((a, b) => b.match.score - a.match.score);
+  const taken = new Set();
+  for (const { offer, match } of proposals) {
+    if (taken.has(match.matchKey)) continue;
+    taken.add(match.matchKey);
+    offer.matchKey = match.matchKey;
+    if (process.env.INGEST_SHOW_MATCHES) console.log(`  ${offer.name} [${offer.brand}]  ⇄  ${match.name}  (${match.score.toFixed(2)})`);
+  }
+  return taken.size;
 }
 
 let failures = 0;
@@ -72,6 +99,7 @@ for (const store of stores) {
     continue;
   }
 
+  const joined = await attachByName(store.id, offers);
   await upsertStore(db, store);
   const before = await countInStock(db, store.id);
   await upsertOffers(db, store.id, offers, runStartedAt);
@@ -82,7 +110,8 @@ for (const store of stores) {
     console.warn(`  ${store.name}: llegaron muchos menos productos que antes (${offers.length} de ${before}); no se marcan agotados`);
   }
   const seconds = Math.round((Date.now() - started) / 1000);
-  console.log(`✓ ${store.name} (${store.connector.type}): ${offers.length} ofertas en ${seconds}s${stale ? `, ${stale} ya no publicadas` : ''}`);
+  const notes = [joined && `${joined} unidas por nombre`, stale && `${stale} ya no publicadas`].filter(Boolean);
+  console.log(`✓ ${store.name} (${store.connector.type}): ${offers.length} ofertas en ${seconds}s${notes.length ? `, ${notes.join(', ')}` : ''}`);
 }
 
 const totals = await db.get(`

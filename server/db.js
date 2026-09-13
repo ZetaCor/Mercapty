@@ -142,7 +142,7 @@ const HISTORY_INSERT = `
 export async function upsertOffers(db, storeId, offers, seenAt, chunkSize = 150) {
   for (let i = 0; i < offers.length; i += chunkSize) {
     const statements = offers.slice(i, i + chunkSize).flatMap((offer) => {
-      const key = matchKey(offer);
+      const key = offer.matchKey ?? matchKey(offer); // matchKey: unión por nombre hecha en la ingesta
       return [
         {
           sql: PRODUCT_UPSERT,

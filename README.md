@@ -44,6 +44,9 @@ unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`).
 | Súper 99 | Magento | ⏳ Pendiente: su API de productos responde con error |
 | Riba Smith | Next.js | ⏳ Pendiente: cambió su sitio, falta ubicar su API de búsqueda |
 | Supermercados Rey | Instaleap (Next.js) | 🔧 En progreso: su API responde; falta el ID interno de la tienda (ver notas abajo) |
+| Metro Plus | Grupo Rey | ⏳ Sin tienda en línea propia; smrey.com tiene una sección «Metro Farmacia» |
+
+La portada y el pie de página muestran automáticamente cuántos y cuáles supermercados tienen precios hoy.
 
 Las tiendas se configuran en `data/stores.json`. Una tienda con `"enabled": false` se omite.
 
@@ -69,11 +72,11 @@ Requisitos: Node.js 22.
 
 ```bash
 npm install
-npm run ingest   # corre los bots y guarda en data/precios.db
+npm run ingest   # corre los bots y guarda en data/mercapty.db
 npm start        # http://localhost:3000 (npm start -- 3001 para otro puerto)
 ```
 
-Sin `TURSO_DATABASE_URL`, todo usa el archivo local `data/precios.db`. Si defines esa variable,
+Sin `TURSO_DATABASE_URL`, todo usa el archivo local `data/mercapty.db`. Si defines esa variable,
 los bots y el servidor usan Turso. Prueba rápida de los bots:
 `INGEST_QUERIES="leche,arroz" INGEST_MAX_PAGES=1 npm run ingest`.
 
@@ -147,6 +150,6 @@ connectors/     bots: vtex.js, woocommerce.js, feed.js
 scripts/        ingest.js: corre los bots y guarda en la base
 server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local)
 public/         index.html, styles.css, js/ (app.js, images.js, views/)
-data/           stores.json, feeds/   · generados (fuera de git): precios.db, images/, admin-key.txt
+data/           stores.json, feeds/   · generados (fuera de git): mercapty.db, images/, admin-key.txt
 .github/        workflows/precios.yml: bots cada 6 horas
 ```

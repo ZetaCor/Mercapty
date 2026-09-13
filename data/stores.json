@@ -55,5 +55,15 @@
     "color": "#0e7490",
     "enabled": false,
     "note": "bot en progreso: falta el ID interno de la tienda en la API de Instaleap"
+  },
+  {
+    "id": "metroplus",
+    "name": "Metro Plus",
+    "homepage": "https://metroplus.com.pa",
+    "searchUrl": null,
+    "platform": "Grupo Rey",
+    "color": "#0f766e",
+    "enabled": false,
+    "note": "no tiene tienda en línea propia; smrey.com tiene una sección «Metro Farmacia»"
   }
 ]

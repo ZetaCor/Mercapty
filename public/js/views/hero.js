@@ -5,6 +5,17 @@ import { html, money, storeAvatar, productMedia, timeAgo, icons } from '../ui.js
 
 const SLIDE_MS = 7000;
 const BASKET = [['🍚', 'Arroz'], ['🍗', 'Pollo'], ['🥚', 'Huevos'], ['🥛', 'Leche']];
+const listFormat = new Intl.ListFormat('es', { style: 'long', type: 'conjunction' });
+
+// El número y los nombres salen de las tiendas que hoy tienen precios, para
+// que el texto nunca prometa más supermercados de los que se comparan.
+function activeStores(stores) {
+  const names = [...stores.values()].filter((s) => s.offers > 0).map((s) => s.name);
+  return {
+    where: names.length === 1 ? 'en 1 supermercado' : names.length ? `en ${names.length} supermercados a la vez` : 'en los supermercados de Panamá',
+    list: names.length ? listFormat.format(names) : 'los principales supermercados en línea de Panamá',
+  };
+}
 
 // Tres productos reales con su mejor precio, flotando junto al texto.
 function priceStack(deals, stores) {
@@ -51,6 +62,7 @@ function phoneVisual() {
 }
 
 export function renderHero({ meta, stores, deals }) {
+  const { where, list } = activeStores(stores);
   const slides = [
     {
       className: 'slide-main',
@@ -58,9 +70,9 @@ export function renderHero({ meta, stores, deals }) {
       visual: priceStack(deals, stores),
       body: html`
         <span class="eyebrow">Canasta básica · Panamá</span>
-        <h1>El <span>precio más bajo</span> de tu canasta básica, en 7 supermercados a la vez.</h1>
-        <p>Mercapty compara arroz, pollo, huevos, leche y decenas de productos en Super 99, Rey, Riba Smith, Xtra,
-          PriceSmart, El Machetazo y Metro. Arma tu canasta y te decimos exactamente dónde te costará menos.</p>
+        <h1>El <span>precio más bajo</span> de tu canasta básica, ${where}.</h1>
+        <p>Mercapty compara arroz, pollo, huevos, leche y decenas de productos en ${list}. Arma tu canasta y te
+          decimos exactamente dónde te costará menos.</p>
         <div class="hero-actions">
           <a class="btn btn-primary btn-lg" href="#/buscar">Arma tu canasta</a>
           <a class="btn btn-lg" href="#/buscar?orden=ahorro">Ver dónde se ahorra más</a>

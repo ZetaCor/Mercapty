@@ -15,8 +15,10 @@ function loginView(refresh, error = '') {
     html: html`
       <div class="login panel">
         <h1>Panel de imágenes</h1>
-        <p class="muted">Ingresa la clave de administrador. La muestra el servidor al iniciar (<code>npm start</code>)
-          y también está en <code>data/admin-key.txt</code>.</p>
+        <p class="muted">${['localhost', '127.0.0.1'].includes(location.hostname)
+          ? html`Ingresa la clave de administrador. En tu computadora la muestra <code>npm start</code> y está en
+              <code>data/admin-key.txt</code>.`
+          : html`Ingresa la clave de administrador: la variable <code>ADMIN_KEY</code> de tu proyecto en Vercel.`}</p>
         ${error ? html`<p><span class="tag promo">${error}</span></p>` : ''}
         <form id="login-form">
           <input class="input" name="key" type="password" placeholder="Clave" autocomplete="current-password" required>

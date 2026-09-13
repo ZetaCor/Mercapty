@@ -401,8 +401,24 @@ details summary { cursor: pointer; font-weight: 600; }
 .uploading { position: absolute; inset: 0; display: grid; place-items: center; background: rgb(255 255 255 / 80%); font-weight: 600; }
 .drop-hint { color: var(--muted); font-size: .85rem; }
 
-.footer { margin-top: 2rem; padding: 1.5rem 0; border-top: 1px solid var(--border); color: var(--muted); font-size: .85rem; }
-.footer p { margin: 0; max-width: 80ch; }
+/* ---------- Pie de página ---------- */
+.footer { margin-top: 3rem; padding: 3rem 0 1.5rem; background: var(--soft); border-top: 1px solid var(--border); color: var(--text-2); font-size: .9rem; }
+.footer-grid { display: grid; grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr)); gap: 2rem; }
+@media (max-width: 860px) {
+  .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .footer-brand { grid-column: 1 / -1; }
+}
+@media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } }
+.footer-brand p { max-width: 34ch; margin: .75rem 0 1rem; color: var(--muted); }
+.footer-badges { display: flex; flex-wrap: wrap; gap: .5rem; }
+.footer-badge { padding: .45rem .8rem; border-radius: 12px; background: var(--text); color: #fff; font-size: .82rem; font-weight: 700; line-height: 1.15; }
+.footer-badge small { display: block; color: #cbd5e1; font-size: .64rem; font-weight: 500; }
+.footer-col h3 { margin: 0 0 .75rem; color: var(--text); font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.footer-col a { display: block; padding: .22rem 0; color: var(--text-2); }
+.footer-col a:hover { color: var(--brand); }
+.footer-col p { margin: 0 0 .5rem; color: var(--muted); }
+.footer-bottom { margin-top: 2.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border); color: var(--muted); font-size: .8rem; }
+.footer-bottom p { margin: 0; max-width: 110ch; }
 
 .toast {
   position: fixed; left: 50%; bottom: 1.5rem; z-index: 40; transform: translateX(-50%);

@@ -102,5 +102,22 @@ window.addEventListener('storage', updateCount); // cambios desde otra pestaña
 getJson('/api/meta')
   .then((meta) => { document.getElementById('demo-banner').hidden = !meta.demo; })
   .catch(() => {});
+
+// Pie de página: solo los supermercados que hoy tienen precios.
+loadStores()
+  .then((stores) => {
+    const active = [...stores.values()].filter((s) => s.offers > 0);
+    if (!active.length) return;
+    document.getElementById('footer-stores').replaceChildren(...active.map((s) => {
+      const link = document.createElement('a');
+      link.href = s.homepage;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = s.name;
+      return link;
+    }));
+  })
+  .catch(() => {});
+document.getElementById('footer-year').textContent = String(new Date().getFullYear());
 updateCount();
 router();

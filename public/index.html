@@ -50,9 +50,39 @@
   </main>
 
   <footer class="footer">
-    <div class="container">
-      <p><b>Mercapty</b> compara precios publicados por supermercados en línea de Panamá. No vendemos productos:
-        la compra, el pago y la entrega se hacen en la tienda. Confirma el precio final antes de pagar.</p>
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="#/" aria-label="Mercapty, inicio">
+          <img src="/icon.svg" alt="" width="34" height="34">
+          <span>Merca<b>pty</b></span>
+        </a>
+        <p>Compara los precios del súper en Panamá y ahorra en cada compra.</p>
+        <div class="footer-badges" aria-label="La app llega pronto">
+          <span class="footer-badge"><small>Próximamente en</small>App Store</span>
+          <span class="footer-badge"><small>Próximamente en</small>Google Play</span>
+        </div>
+      </div>
+      <nav class="footer-col" aria-label="Explorar">
+        <h3>Explorar</h3>
+        <a href="#/">Inicio</a>
+        <a href="#/buscar">Buscar productos</a>
+        <a href="#/buscar?orden=ahorro">Mayores ahorros</a>
+        <a href="#/lista">Mi lista</a>
+      </nav>
+      <nav class="footer-col" aria-label="Supermercados">
+        <h3>Supermercados</h3>
+        <div id="footer-stores"><a href="#/tiendas">Ver tiendas</a></div>
+      </nav>
+      <div class="footer-col">
+        <h3>Para comercios</h3>
+        <p>¿Tienes un súper o minisúper? Comparte tu inventario y llega a más clientes.</p>
+        <a href="#/tiendas">Cómo sumarte</a>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>© <span id="footer-year">2026</span> Mercapty. Los precios se toman de las webs de cada supermercado y pueden
+        cambiar: confirma el precio final en la tienda antes de pagar. Mercapty no vende productos; la compra, el pago y
+        la entrega se hacen en la tienda.</p>
     </div>
   </footer>
 

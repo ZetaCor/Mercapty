@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { normalizeText, matchKey } from './lib/normalize.js';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const LOCAL_DB = path.join(ROOT, 'data', 'precios.db');
+const LOCAL_DB = path.join(ROOT, 'data', 'mercapty.db');
 
 const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS stores (

@@ -4,9 +4,6 @@
   "private": true,
   "description": "Comparador de precios de supermercados en Panamá",
   "type": "module",
-  "engines": {
-    "node": "22.x"
-  },
   "scripts": {
     "ingest": "node scripts/ingest.js",
     "start": "node server/index.js",

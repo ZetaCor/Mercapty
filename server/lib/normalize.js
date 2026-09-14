@@ -115,12 +115,21 @@ for (const [category, list] of Object.entries(NAME_HEADS)) {
 }
 for (const list of NAME_PHRASES.values()) list.sort((a, b) => b[0].length - a[0].length);
 
-// Categoría según cómo empieza el nombre, o null si su primera palabra no lo dice.
-export function categoryFromName(name = '') {
+// Palabras del nombre desde la que dice qué es el producto ("3pack Leche…" -> ["leche", …]).
+function headWords(name) {
   const words = normalizeText(name).split(' ').filter(Boolean);
   let start = 0;
   while (start < words.length - 1 && HEAD_FILLER.test(words[start])) start++;
-  const match = NAME_PHRASES.get(words[start])?.find(([phrase]) => phrase.every((w, i) => words[start + i] === w));
+  return words.slice(start);
+}
+
+// Qué es el producto según su primera palabra: "Arroz Arrosisimo 2000 gr" -> "arroz".
+export const nameHead = (name = '') => headWords(name)[0] ?? '';
+
+// Categoría según cómo empieza el nombre, o null si su primera palabra no lo dice.
+export function categoryFromName(name = '') {
+  const words = headWords(name);
+  const match = NAME_PHRASES.get(words[0])?.find(([phrase]) => phrase.every((w, i) => words[i] === w));
   return match?.[1] ?? null;
 }
 

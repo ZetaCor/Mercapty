@@ -1,4 +1,4 @@
-import { canonicalCategory, normalizeText, parsePack, parseSize, productPath, unitPrice } from './lib/normalize.js';
+import { canonicalCategory, categoryFromName, nameHead, normalizeText, parsePack, parseSize, productPath, unitPrice } from './lib/normalize.js';
 import { nameSimilarity } from './lib/matching.js';
 
 const round2 = (n) => Math.round(n * 100) / 100;
@@ -232,24 +232,56 @@ export function createApi(db) {
 
   // Productos de otras tiendas que se parecen pero no se unieron (otro nombre u
   // otra presentación): se muestran aparte para que el cliente compare.
-  async function similarProducts(p, storeIds) {
-    const words = normalizeText(p.name).split(' ').filter((w) => w.length >= 4 && !/^\d/.test(w));
-    const keys = [...new Set(words)].sort((a, b) => b.length - a.length).slice(0, 2);
-    if (!keys.length) return [];
-    const rows = await db.all(`
+  // Productos parecidos, en dos grupos: primero los de la misma marca (otros
+  // tamaños o variantes: «Arroz Arrosisimo 4500 gr» junto al de 2000 gr) y luego
+  // los de otras marcas que son lo mismo (otros «Arroz…»). En cada grupo, antes
+  // el nombre más parecido, el tamaño más cercano y lo que se compara en más tiendas.
+  async function similarProducts(p) {
+    const candidates = (where, args) => db.all(`
       ${RANKED} SELECT ${BEST_OFFER_COLUMNS}
       FROM products p JOIN ranked r ON r.product_id = p.id AND r.rn = 1
-      WHERE p.id <> ? AND ${keys.map(() => 'p.search_text LIKE ?').join(' AND ')}
-      LIMIT 300
-    `, [p.id, ...keys.map((k) => `%${k}%`)]);
-    const sameCategory = (row) => !p.category || p.category === 'Otros' || row.category === p.category;
-    return rows
-      .filter((row) => row.store_count > 1 || !storeIds.has(row.store_id)) // que aporte otra tienda
-      .map((row) => ({ row, ...nameSimilarity(`${p.brand ?? ''} ${p.name}`, `${row.brand ?? ''} ${row.name}`) }))
-      .filter((s) => s.score >= 0.6 && !s.variantConflict && sameCategory(s.row))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 6)
-      .map((s) => productSummary(s.row));
+      WHERE p.id <> ? AND p.category = ? AND (${where})
+      ORDER BY r.store_count DESC LIMIT 400
+    `, [p.id, p.category, ...args]);
+    let brandLabel = p.brand;
+    let brand = normalizeText(p.brand ?? '');
+    const head = nameHead(p.name);
+    const isSameBrand = (row) => (Boolean(brand)
+      && (normalizeText(row.brand ?? '') === brand || ` ${normalizeText(row.name)} `.includes(` ${brand} `)))
+      || (headIsBrand && nameHead(row.name) === head);
+    const closeSize = (row) => p.size_value && row.size_unit === p.size_unit
+      && row.size_value / p.size_value > 0.75 && row.size_value / p.size_value < 1.33;
+    const rank = (row) => nameSimilarity(p.name, row.name).score + (closeSize(row) ? 0.15 : 0) + Math.min(0.15, 0.03 * (row.store_count - 1));
+    const top = (rows) => rows.map((row) => ({ row, score: rank(row) }))
+      .sort((a, b) => b.score - a.score).slice(0, 8).map((s) => productSummary(s.row));
+
+    const keys = [brand, head].filter((k) => k.length >= 3);
+    const rows = keys.length ? await candidates(keys.map(() => 'p.search_text LIKE ?').join(' OR '), keys.map((k) => `%${k}%`)) : [];
+    // Sin marca guardada: la de un producto parecido cuya marca aparece en el nombre («Carta Vieja Añejo»).
+    if (!brand) {
+      const nameText = ` ${normalizeText(p.name)} `;
+      const found = rows.find((row) => {
+        const b = normalizeText(row.brand ?? '');
+        return b.length >= 3 && nameText.includes(` ${b} `);
+      });
+      if (found) [brandLabel, brand] = [found.brand, normalizeText(found.brand)];
+    }
+    const brandWords = new Set(brand.split(' ').filter(Boolean));
+    // Si el nombre empieza por una marca que otras tiendas usan como tal («Doritos Spicy»,
+    // guardado con la marca Frito Lay), los que empiezan igual también son de esa marca.
+    const headIsBrand = Boolean(head) && !categoryFromName(p.name) && rows.some((row) => normalizeText(row.brand ?? '') === head);
+    // Otras marcas: el mismo tipo de producto (el nombre empieza igual: «Arroz…»).
+    let others = head && !brandWords.has(head) ? rows.filter((row) => !isSameBrand(row) && nameHead(row.name) === head) : [];
+    // Si el nombre empieza por la marca («Carta Vieja Añejo»), se buscan las demás palabras.
+    if (!others.length) {
+      const words = normalizeText(p.name).split(' ').filter((w) => w.length >= 4 && !/^\d/.test(w) && !brandWords.has(w));
+      const extra = [...new Set(words)].sort((a, b) => b.length - a.length).slice(0, 2);
+      if (extra.length) {
+        others = (await candidates(extra.map(() => 'p.search_text LIKE ?').join(' AND '), extra.map((k) => `%${k}%`)))
+          .filter((row) => !isSameBrand(row) && nameSimilarity(p.name, row.name).score >= 0.4);
+      }
+    }
+    return { brand: brandLabel, sameBrand: top(rows.filter(isSameBrand)), others: top(others) };
   }
 
   async function getProduct(id) {
@@ -271,7 +303,7 @@ export function createApi(db) {
     ]);
     if (!p) return null;
 
-    const similar = await similarProducts(p, new Set(offers.map((o) => o.store_id)));
+    const similar = await similarProducts(p);
     const available = offers.filter((o) => o.in_stock);
     const best = available[0];
     const worst = available.at(-1);

@@ -16,8 +16,9 @@ cada noche).
   las variantes y la unidad antes que los paquetes: «coca cola» muestra primero la Coca-Cola regular
   suelta; la Zero, la Light o el «Pack de 12» suben si se escriben. También suben los productos que se
   pueden comparar en más tiendas.
-- **Parecidos en otras tiendas:** en cada ficha, productos de otras tiendas que se parecen pero no se
-  unieron (otro nombre u otra presentación), para comparar a mano.
+- **Productos parecidos:** en cada ficha, primero otros tamaños o variantes de la misma marca («Más de
+  Arrosisimo») y después el mismo producto de otras marcas («Otras marcas»: otros arroces), con el tamaño
+  más parecido y lo que se compara en más tiendas primero.
 - **Ficha de producto:** precio en cada tienda ordenado de menor a mayor, mejor precio destacado,
   ofertas, disponibilidad, precio por kg/L, historial y botón **«Comprar en…»**.
 - **Redirección medible:** `/go/:id` registra el clic y envía al cliente a la tienda con
@@ -73,7 +74,7 @@ producto de otra tienda solo si se cumplen todas estas reglas:
   se permiten palabras de más en uno de ellos («Aceite Pabo» ≈ «Aceite Pabo Vegetal»).
 
 Sin marca o sin tamaño no se une: compararlo con un producto concreto engañaría al cliente. Esos
-productos aparecen en «Parecidos en otras tiendas». Cada producto de otra tienda se une con uno solo.
+productos aparecen en «Productos parecidos». Cada producto de otra tienda se une con uno solo.
 Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 
 ## Supermercados (septiembre 2026)

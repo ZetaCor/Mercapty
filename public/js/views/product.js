@@ -9,6 +9,20 @@ const formatDay = (day) => new Date(`${day}T12:00:00`).toLocaleDateString('es-PA
 // GTIN-14 guardado -> EAN-13 como aparece impreso en el empaque.
 const displayGtin = (gtin) => gtin.replace(/^0(?=\d{13}$)/, '');
 
+const titleCase = (s) => (s === s.toUpperCase() ? s.toLowerCase().replace(/(^|\s)(\p{L})/gu, (m, sp, ch) => sp + ch.toUpperCase()) : s);
+
+// Parecidos: primero la misma marca (otros tamaños o variantes) y luego otras marcas.
+function similarSection(similar, stores) {
+  const { brand, sameBrand = [], others = [] } = similar ?? {};
+  if (!sameBrand.length && !others.length) return '';
+  return html`
+    <section class="section">
+      <div class="section-head"><h2>Productos parecidos</h2></div>
+      ${sameBrand.length ? html`<h3 class="subhead">Más de ${titleCase(brand)}</h3>${productGrid(sameBrand, stores)}` : ''}
+      ${others.length ? html`${sameBrand.length ? html`<h3 class="subhead">Otras marcas</h3>` : ''}${productGrid(others, stores)}` : ''}
+    </section>`;
+}
+
 function offerRow(offer) {
   return html`
     <div class="offer ${offer.isBest ? 'best' : ''} ${offer.inStock ? '' : 'out'}">
@@ -118,14 +132,7 @@ export async function renderProduct({ match, stores, refresh }) {
           <div class="section-head"><h2>Compara en ${available} tienda${available === 1 ? '' : 's'}</h2></div>
           <div class="offers">${product.offers.map(offerRow)}</div>
         </section>
-        ${product.similar?.length
-          ? html`
-            <section class="section">
-              <div class="section-head"><h2>Parecidos en otras tiendas</h2></div>
-              <p class="notice-soft">Pueden ser el mismo producto con otro nombre o presentación. Revisa la marca y el tamaño antes de comparar.</p>
-              ${productGrid(product.similar, stores)}
-            </section>`
-          : ''}
+        ${similarSection(product.similar, stores)}
         ${adSlot('product')}
         ${priceHistory(product.history, product.bestPrice)}
       </div>`,

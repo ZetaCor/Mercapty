@@ -414,6 +414,8 @@ code { padding: .1rem .35rem; border-radius: 6px; background: var(--soft); font-
 .cell-store { display: flex; align-items: center; gap: .45rem; }
 details summary { cursor: pointer; font-weight: 600; }
 .empty { padding: 3rem 1rem; text-align: center; color: var(--muted); }
+.subhead { margin: .25rem 0 .75rem; color: var(--text-2); font-size: 1rem; font-weight: 700; }
+.grid + .subhead { margin-top: 1.75rem; }
 .loader { display: grid; justify-items: center; gap: .25rem; padding: 3rem 1rem; color: var(--muted); font-weight: 500; text-align: center; }
 .loader img { width: min(240px, 70vw); height: auto; }
 .empty .big { font-size: 3rem; line-height: 1; margin-bottom: .75rem; }

@@ -132,6 +132,11 @@ document.addEventListener('click', (event) => {
   navigate(url.pathname + url.search);
 });
 
+// El ícono de una tienda aparece cuando termina de cargar; mientras, sus iniciales.
+document.addEventListener('load', (event) => {
+  if (event.target instanceof HTMLImageElement && event.target.hasAttribute('data-store-img')) event.target.classList.add('loaded');
+}, true);
+
 // Si la foto de una tienda deja de existir, se muestra el ícono de la categoría.
 // Si falla el logo o el ícono de una tienda, quedan su nombre o sus iniciales.
 document.addEventListener('error', (event) => {

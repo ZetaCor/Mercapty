@@ -91,6 +91,7 @@ Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 | PriceSmart | Nuxt + Bloomreach | ⛔ Su robots.txt bloquea expresamente a los bots que copian datos: solo con acuerdo o feed |
 | Super Kosher | Self-Point | ⛔ Su robots.txt lo permite, pero Cloudflare bloquea a los bots en su API de productos: solo con acuerdo o feed |
 | Super Carnes | Magento | ✅ Bot activo: lee sus 529 subcategorías de súper (hasta 160 productos por página, con código de barras): unos 3 800 productos en ~24 min |
+| Alimentos Melo | Shopify | ✅ Bot activo: su catálogo público de Shopify (unos 80 productos de pollo, cerdo, embutidos, jugos…) en una consulta. Sin código de barras: se une por nombre, marca y tamaño |
 | Mr Precio | WordPress | ⛔ No vende en línea: su web solo tiene sucursales y un PDF de ofertas (es del Grupo Rey) |
 
 La portada y el pie de página muestran automáticamente cuántos y cuáles supermercados tienen precios hoy.
@@ -176,6 +177,11 @@ los bots y el servidor usan Turso. Prueba rápida de los bots:
   la dirección del producto). Sus categorías cargan más productos al bajar (no hay páginas `?p=2`), así que se
   leen las subcategorías finales de sus departamentos de súper (`departments`), que su mapa del sitio lista y
   que caben en una página. Su API interna (GraphQL) responde 403 a los bots, así que no se usa.
+- **Shopify** (`connectors/shopify.js`): Alimentos Melo. Toda tienda Shopify publica su catálogo en
+  `/products.json` (hasta 250 productos por página): nombre, marca, tipo, presentación, precio, precio anterior,
+  existencias y foto. No trae el código de barras, así que estos productos se unen por nombre, marca y tamaño;
+  los que no dicen su tamaño aparecen solo con el precio de esa tienda. `vendorAliases` unifica marcas
+  («MELO Alimentos» → «Melo»).
 - **Feed** (`connectors/feed.js`): para tiendas socias que comparten su inventario en CSV/JSON con
   las columnas `sku,gtin,nombre,marca,categoria,presentacion,precio,precio_regular,disponible,url,imagen`
   (ejemplo en `data/feeds/minisuper-ejemplo.csv`).
@@ -276,7 +282,7 @@ ven como recuadros punteados; en la web no aparecen hasta que configures AdSense
 
 ```
 api/index.js    función de Vercel (usa server/app.js)
-connectors/     bots: vtex.js, woocommerce.js, instaleap.js, ribasmith.js, super99.js, feed.js
+connectors/     bots: vtex.js, woocommerce.js, instaleap.js, ribasmith.js, magento.js, shopify.js, super99.js, feed.js
 scripts/        ingest.js: corre los bots y guarda en la base · super99.js: bot de Súper 99 · lib/pipeline.js
 server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local)
 public/         index.html, styles.css, js/ (app.js, images.js, views/)

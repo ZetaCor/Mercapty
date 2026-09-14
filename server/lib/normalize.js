@@ -49,18 +49,28 @@ export function normalizeGtin(raw) {
 
 const UNITS = {
   kg: ['g', 1000], g: ['g', 1], gr: ['g', 1], grs: ['g', 1], mg: ['g', 0.001],
-  lb: ['g', 453.592], lbs: ['g', 453.592], oz: ['g', 28.3495],
+  lb: ['g', 453.592], lbs: ['g', 453.592], libra: ['g', 453.592], libras: ['g', 453.592], oz: ['g', 28.3495],
   l: ['ml', 1000], lt: ['ml', 1000], lts: ['ml', 1000], litro: ['ml', 1000], litros: ['ml', 1000],
   ml: ['ml', 1], gal: ['ml', 3785.41],
   un: ['un', 1], und: ['un', 1], unid: ['un', 1], unidades: ['un', 1],
   rollos: ['un', 1], sobres: ['un', 1], pack: ['un', 1],
 };
-const SIZE_RE = /(?:(\d+)\s*[x×]\s*)?(\d+(?:[.,]\d+)?)\s*(kg|mg|grs|gr|g|lbs|lb|oz|ml|litros|litro|lts|lt|l|gal|unidades|unid|und|un|rollos|sobres|pack)(?![a-z])/;
+const SIZE_RE = /(?:(\d+)\s*[x×]\s*)?(\d+(?:[.,]\d+)?)\s*(kg|mg|grs|gr|g|lbs|lb|libras|libra|oz|ml|litros|litro|lts|lt|l|gal|unidades|unid|und|un|rollos|sobres|pack)(?![a-z])/;
+// "3 bolsas de 2 lb c/u", "Bolsa de 6 tubitos 1 lb c/u": varias unidades de un tamaño cada una (c/u).
+const EACH_RE = /(\d{1,3})\s+(?:bolsas|bolsitas|paquetes|tubitos|tubos|unidades|piezas|bandejas|sobres|latas|botellas)\b[^|/]*?(\d+(?:[.,]\d+)?)\s*(kg|grs|gr|g|lbs|lb|libras|libra|oz|ml|litros|litro|lts|lt|l)\s*c\s*\/\s*u\b/;
 
 // Devuelve { value, unit, count } en unidades base (g, ml, un) o null. En
-// "6 x 355 ml", value es el total (2130 ml) y count las unidades (6).
+// "6 x 355 ml" o "6 tubitos de 1 lb c/u", value es el total y count las unidades (6).
 export function parseSize(text) {
-  const m = SIZE_RE.exec(stripAccents(text).toLowerCase());
+  const clean = stripAccents(text).toLowerCase();
+  const each = EACH_RE.exec(clean);
+  if (each) {
+    const [, units, amount, unitRaw] = each;
+    const [unit, factor] = UNITS[unitRaw];
+    const count = Number(units);
+    return { value: Math.round(Number(amount.replace(',', '.')) * factor * count * 100) / 100, unit, count };
+  }
+  const m = SIZE_RE.exec(clean);
   if (!m) return null;
   const [, multiplier, amount, unitRaw] = m;
   const [unit, factor] = UNITS[unitRaw];
@@ -72,7 +82,10 @@ export function parseSize(text) {
 // Paquetes de varias unidades: "Pack de 12", "6 pack", "3pack", "Paquete de 3", "Caja de 24".
 const PACK_RE = /(?:pack|paquete|caja)\s*(?:de\s*)?(\d{1,3})\b|\b(\d{1,3})\s*(?:pack|pk)\b/;
 export function parsePack(text) {
-  const m = PACK_RE.exec(normalizeText(text).replace(/(\d)(pack|pk)\b/g, '$1 $2'));
+  // Un número con decimales es un peso, no unidades ("Caja de 6.2 lb"): se protege
+  // antes de limpiar el texto, que separaría "6.2" en "6 2".
+  const clean = normalizeText(String(text ?? '').replace(/(\d)[.,](\d)/g, '$1d$2'));
+  const m = PACK_RE.exec(clean.replace(/(\d)(pack|pk)\b/g, '$1 $2'));
   const n = m ? Number(m[1] ?? m[2]) : 1;
   return n > 1 && n <= 100 ? n : 1;
 }
@@ -96,7 +109,7 @@ const NAME_HEADS = {
   'Mascotas': 'alimento para perro|alimento para perros|alimento para gato|alimento para gatos|comida para perro|comida para gato|arena para gato|arena sanitaria|snack para perro|snacks para perro',
   'Lácteos y huevos': 'arroz con leche|crema de leche|bebida de soya|bebida de almendra|bebida de avena|bebida lactea|leche|leches|lechera|queso|quesos|yogurt|yogur|kumis|mantequilla|margarina|natilla|requeson|huevo|huevos|cheese|milk',
   Despensa: 'mantequilla de mani|leche de coco|leche coco|crema para cafe|nescafe|maizena|fecula|chicheme|aceite|aceites|arroz|frijol|frijoles|lenteja|lentejas|garbanzo|garbanzos|poroto|porotos|arveja|arvejas|azucar|sal|harina|pasta|pastas|spaghetti|espagueti|fideo|fideos|macarrones|coditos|tallarines|salsa|salsas|ketchup|mayonesa|mostaza|vinagre|aderezo|dip|sopa|sopas|consome|caldo|atun|sardina|sardinas|ajo|ajos|adobo|condimento|sazonador|sazon|pimienta|oregano|comino|canela|achiote|curry|cafe|avena|maicena|gelatina|flan|pudin|mermelada|jalea|miel|maiz|pure|levadura|polvo de hornear',
-  'Carnes y embutidos': 'carne|carnes|res|cerdo|pollo|pechuga|pechugas|muslo|muslos|chuleta|chuletas|costilla|costillas|bistec|lomo|molida|filete|jamon|salchicha|salchichas|chorizo|chorizos|tocino|mortadela|salami|pavo|pescado|camaron|camarones|langostino|langostinos|pulpo|calamar|corvina|salmon|tilapia|hamburguesa|hamburguesas',
+  'Carnes y embutidos': 'carne|carnes|res|cerdo|pollo|alas|alitas|tasajo|bologna|aros de pollo|barritas de pollo|pechuga|pechugas|muslo|muslos|chuleta|chuletas|costilla|costillas|bistec|lomo|molida|filete|jamon|salchicha|salchichas|chorizo|chorizos|tocino|mortadela|salami|pavo|pescado|camaron|camarones|langostino|langostinos|pulpo|calamar|corvina|salmon|tilapia|hamburguesa|hamburguesas',
   'Panadería y snacks': 'pan|panes|arepa|arepas|arepitas|tortilla|tortillas|bollo|bollos|galleta|galletas|cereal|cereales|papitas|papas fritas|papas rizadas|papas onduladas|papas tostadas|chips|chocolate|chocolates|bombones|caramelos|gomitas|chicles|mani|bizcocho|pastel|rosquitas|tostadas|palomitas|granola|dulce|dulces',
   Bebidas: 'agua de coco|agua|jugo|jugos|nectar|soda|sodas|refresco|refrescos|gaseosa|bebida|bebidas|te|malta|cerveza|cervezas|vino|vinos|ron|seco|whisky|vodka|ginebra|tequila|licor|sangria|energizante|hidratante',
   Limpieza: 'detergente|cloro|suavizante|lavaplatos|desinfectante|limpiador|limpiavidrios|desengrasante|blanqueador|jabon para ropa|jabon en polvo|servilletas|toallas de papel|papel toalla|bolsas de basura|bolsas para basura|esponja|esponjas|escoba|trapeador|insecticida|ambientador|aromatizante|papel aluminio|guantes',
@@ -141,7 +154,7 @@ const CATEGORY_RULES = [
   ['Bebé', /\b(bebe|bebes|panal|panales|toallitas|infantil|formula infantil)\b/],
   ['Mascotas', /\b(mascota|mascotas|perro|perros|gato|gatos)\b/],
   ['Frutas y verduras', /\b(fruta|frutas|verdura|verduras|vegetales|hortalizas)\b/],
-  ['Carnes y embutidos', /\b(carne|carnes|pollo|res|cerdo|embutido|embutidos|jamon|salchicha|salchichas|mariscos|pescado|pescados|deli)\b/],
+  ['Carnes y embutidos', /\b(carne|carnes|pollo|res|cerdo|embutido|embutidos|jamon|salchicha|salchichas|mariscos|pescado|pescados|deli|filete|filetes|alas|alitas|muslo|muslos|pechuga|pechugas|chuleta|chuletas|chorizo|chorizos|bologna|mortadela|tocino|costilla|costillas|hamburguesa|hamburguesas|tasajo|lomo|pavo)\b/],
   ['Lácteos y huevos', /\b(lacteo|lacteos|leche|leches|queso|quesos|yogur|yogurt|mantequilla|huevo|huevos)\b/],
   ['Congelados', /\b(congelado|congelados|helado|helados)\b/],
   ['Panadería y snacks', /\b(pan|panes|panaderia|reposteria|galleta|galletas|snack|snacks|golosina|golosinas|dulces|chocolate|chocolates|cereal|cereales|arepa|arepas|tortilla|tortillas|bollo|bollos)\b/],

@@ -114,6 +114,17 @@
     }
   },
   {
+    "id": "melo",
+    "name": "Alimentos Melo",
+    "homepage": "https://alimentosmelo.com",
+    "searchUrl": "https://alimentosmelo.com/search?q={q}",
+    "platform": "Shopify",
+    "color": "#d7262e",
+    "logo": "https://alimentosmelo.com/cdn/shop/files/melo-logo.svg",
+    "icon": "https://alimentosmelo.com/cdn/shop/files/melo-alimentos_favicon.png?crop=center&height=192&width=192",
+    "connector": { "type": "shopify", "vendorAliases": { "MELO Alimentos": "Melo" } }
+  },
+  {
     "id": "metroplus",
     "name": "Metro Plus",
     "homepage": "https://metroplus.com.pa",

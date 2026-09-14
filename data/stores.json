@@ -70,7 +70,7 @@
     "color": "#2a9d4b",
     "logo": "https://www.ribasmith.com/imgs/logors1.png",
     "icon": "https://www.ribasmith.com/favicon.ico",
-    "connector": { "type": "ribasmith" }
+    "connector": { "type": "ribasmith", "maxPages": 4 }
   },
   {
     "id": "rey",
@@ -81,7 +81,7 @@
     "color": "#c8102e",
     "logo": "https://instaleap-data-client.s3.amazonaws.com/GRUPO_REY/REY_LOGO_NUEVO.png",
     "icon": "https://www.smrey.com/favicon.ico",
-    "connector": { "type": "instaleap", "clientId": "GRUPO_REY", "storeReference": "1038" }
+    "connector": { "type": "instaleap", "clientId": "GRUPO_REY", "storeReference": "1038", "maxPages": 4 }
   },
   {
     "id": "metroplus",

@@ -138,7 +138,9 @@ los bots y el servidor usan Turso. Prueba rápida de los bots:
 - **Instaleap** (`connectors/instaleap.js`): Supermercados Rey. Busca los términos de `GROCERY_QUERIES`
   (`connectors/util.js`: unos 100, entre canasta básica, sodas y marcas, licores, limpieza, bebé y
   mascotas) en la API de catálogo de Instaleap, que no permite listar el catálogo completo. Si falta un
-  producto de Rey o de Riba Smith, se agrega la palabra a esa lista.
+  producto de Rey o de Riba Smith, se agrega la palabra a esa lista. Rey y Riba Smith leen hasta 4 páginas
+  por palabra (`"maxPages": 4` en `data/stores.json`): así entran los ~200 rones de Rey y los ~160 de Riba
+  Smith, que con 2 páginas quedaban a la mitad.
 - **Riba Smith** (`connectors/ribasmith.js`): busca en su web los mismos términos que VTEX y lee los datos
   que la página incluye: precio con ITBMS, oferta con fechas e inventario. Su campo `sku` es el código de
   barras sin el dígito verificador (`744100350023` = Coca-Cola lata `7441003500235`); el bot lo completa

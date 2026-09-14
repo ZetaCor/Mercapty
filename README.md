@@ -4,7 +4,8 @@ Comparador de precios de supermercados en línea de Panamá. El cliente busca un
 precio en cada tienda, cuál lo tiene más barato, y con un clic va a esa tienda a comprarlo.
 También arma una lista de compras y calcula si conviene comprar todo en un solo súper o repartir.
 
-Los precios los recogen **bots propios** que recorren las webs de los súper una vez al día.
+Los precios los recogen **bots propios** que recorren las webs de los súper dos veces al día (Súper 99,
+cada noche).
 
 ## Qué hace
 
@@ -31,7 +32,7 @@ Los precios los recogen **bots propios** que recorren las webs de los súper una
 ## Cómo funciona
 
 ```
- GitHub Actions (1 al día)                     Vercel
+ GitHub Actions (2 al día)                     Vercel
  ┌───────────────────────┐                    ┌───────────────────────────────┐
  │ bots: vtex, woocommerce│ ── escriben ──►   │ public/  (páginas)            │
  │ scripts/ingest.js      │     Turso  ◄──────│ api/index.js → server/app.js  │
@@ -76,7 +77,7 @@ Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 | Super Xtra | VTEX | ✅ Bot activo: recorre completos sus departamentos de súper (API pública de catálogo) |
 | El Machetazo | VTEX | ✅ Bot activo: recorre completos Supermercado y Bebés (API pública de catálogo) |
 | Superunico | WooCommerce | ✅ Bot activo (Store API pública) |
-| Súper 99 | Magento | ⏳ Pendiente: sus listados los arma un buscador externo (Adobe Live Search) que exige su clave, y la búsqueda de su API interna devuelve 0 productos. Leer producto por producto (unos 42 000) tomaría horas: hace falta un acuerdo o un feed |
+| Súper 99 | Magento | ✅ Bot propio: lee sus páginas de producto una por una (traen código de barras), unas 5 000 cada noche |
 | Riba Smith | Next.js | ✅ Bot activo (busca los términos de canasta básica en su web). Publica el código de barras sin el dígito verificador: se completa; lo que no tiene código se une por nombre, tamaño y marca |
 | Supermercados Rey | Instaleap | ✅ Bot activo (API de catálogo de Instaleap) |
 | Metro Plus | Tipti | ⏳ Vende en línea por Tipti, cuya API exige iniciar sesión: hace falta un acuerdo o un feed |
@@ -105,7 +106,8 @@ Los cambios llegan a la web la próxima vez que corren los bots.
    crea `TURSO_DATABASE_URL` y `TURSO_AUTH_TOKEN` con los mismos valores del paso 1.
 5. **Redeploy** en Vercel para que tome las variables.
 6. **Primera carga de precios:** en GitHub → **Actions** → **Actualizar precios** → **Run workflow**.
-   Después corre sola una vez al día (5:17 a. m. de Panamá).
+   Después corre sola dos veces al día (5:17 a. m. y 5:17 p. m. de Panamá). Súper 99 tiene su propio
+   trabajo, **Súper 99**, que corre cada noche a las 10:07 p. m.
 
 Panel de imágenes en producción: `https://tu-sitio.vercel.app/admin` (pide la `ADMIN_KEY`).
 
@@ -150,6 +152,16 @@ los bots y el servidor usan Turso. Prueba rápida de los bots:
   departamento (`/dep_product/<nombre>-<id>?page=N`; `skipDepartments` omite los que no son de súper), pero
   son cientos de páginas de 20 productos (solo Bebé tiene 38): demasiados minutos de GitHub Actions para un
   repositorio privado. Si una página falla, el bot reintenta y, si sigue fallando, la salta.
+- **Súper 99** (`connectors/super99.js` y `scripts/super99.js`, `npm run super99`): sus listados los arma un
+  buscador externo que exige su clave, pero la página de cada producto trae nombre, marca, precio, precio
+  anterior, código de barras (UPC), existencias y categorías, y su robots.txt permite leerla. Son unas 42 500
+  páginas (unas 40 horas a un ritmo que no sature su web), así que tiene su propio trabajo nocturno
+  (`.github/workflows/super99.yml`, 10:07 p. m.) que lee lo que alcanza en ~5 h 20 min (unas 5 000 páginas);
+  la noche siguiente sigue donde quedó. La primera vuelta al catálogo toma unas 8 noches. Orden: primero relee a diario los productos que también venden otras tiendas (los que
+  sirven para comparar), luego los que aún no conoce y después el resto, del que lleva más tiempo sin leerse.
+  La tabla `store_pages` guarda cuándo se leyó cada página y qué se encontró. Solo guarda productos de sus
+  departamentos de súper (`departments` en `data/stores.json`); farmacia, ferretería o juguetería se saltan.
+  Un precio que no se relee en 14 días deja de mostrarse. Prueba corta: `SUPER99_MINUTES=2 npm run super99`.
 - **Feed** (`connectors/feed.js`): para tiendas socias que comparten su inventario en CSV/JSON con
   las columnas `sku,gtin,nombre,marca,categoria,presentacion,precio,precio_regular,disponible,url,imagen`
   (ejemplo en `data/feeds/minisuper-ejemplo.csv`).
@@ -158,10 +170,10 @@ Cuidados que tienen los bots:
 - Se identifican como `MercaptyBot` y esperan 1.5 s entre peticiones.
 - Si una tienda no responde o devuelve 0 productos, no se toca lo guardado.
 - Si llegan muchos menos productos que la vez anterior, no se marca nada como agotado.
-- Un recorrido completo tarda cerca de media hora (Super Xtra unos 8 minutos y El Machetazo 6, porque se
-  leen completos). En un repositorio privado, GitHub Actions da 2 000 minutos gratis al mes: alcanzan para
-  una corrida al día. Con el repositorio público los minutos no tienen límite y se puede volver a dos
-  corridas diarias (`cron: '17 5,17 * * *'` en `.github/workflows/precios.yml`).
+- Un recorrido completo tarda unos 35 minutos (Super Xtra unos 8 y El Machetazo 6, porque se leen
+  completos) y corre dos veces al día. El repositorio es público, así que los minutos de GitHub Actions no
+  tienen límite. Si vuelve a ser privado (2 000 minutos gratis al mes), hay que dejar una sola corrida
+  (`cron: '17 10 * * *'`) y apagar la de Súper 99, que por sí sola usa unas 5 horas cada noche.
 
 Para sumar una tienda, crea `connectors/<nombre>.js` con
 `fetchOffers(store) -> [{ sku, gtin, name, brand, category, size, price, listPrice, inStock, url, image }]`
@@ -235,7 +247,7 @@ ven como recuadros punteados; en la web no aparecen hasta que configures AdSense
 
 ## Próximos pasos
 
-1. Súper 99: pedir un feed o un acuerdo (su web no deja leer el catálogo sin su clave).
+1. Súper 99: un acuerdo o un feed daría los precios de todo su catálogo cada día, sin leer página por página.
 2. Revisión de coincidencias entre tiendas para productos sin código de barras.
 3. Alertas de baja de precio y escaneo de código de barras con la cámara.
 4. Acuerdos con tiendas (feed o afiliados).
@@ -244,10 +256,10 @@ ven como recuadros punteados; en la web no aparecen hasta que configures AdSense
 
 ```
 api/index.js    función de Vercel (usa server/app.js)
-connectors/     bots: vtex.js, woocommerce.js, instaleap.js, ribasmith.js, feed.js
-scripts/        ingest.js: corre los bots y guarda en la base
+connectors/     bots: vtex.js, woocommerce.js, instaleap.js, ribasmith.js, super99.js, feed.js
+scripts/        ingest.js: corre los bots y guarda en la base · super99.js: bot de Súper 99 · lib/pipeline.js
 server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local)
 public/         index.html, styles.css, js/ (app.js, images.js, views/)
 data/           stores.json, feeds/   · generados (fuera de git): mercapty.db, images/, admin-key.txt
-.github/        workflows/precios.yml: bots una vez al día
+.github/        workflows/precios.yml: bots dos veces al día · super99.yml: Súper 99 cada noche
 ```

@@ -1,0 +1,34 @@
+# Bot de Súper 99: su web solo deja leer los productos uno por uno (unas 42 500
+# páginas), así que cada corrida lee lo que alcanza en ~5 h 20 min (unas 5 000)
+# y la siguiente sigue donde quedó (ver scripts/super99.js). Corre de noche para no
+# cargar su web en horas de compra. El repositorio es público: los minutos de
+# GitHub Actions no tienen límite (cada trabajo, hasta 6 horas).
+name: Súper 99
+
+on:
+  schedule:
+    - cron: '7 3 * * *'  # 10:07 p. m. de Panamá (UTC-5)
+  workflow_dispatch:     # botón «Run workflow» para correrlo a mano
+
+concurrency:
+  group: super99
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run super99
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}

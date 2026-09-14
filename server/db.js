@@ -66,6 +66,15 @@ const SCHEMA = [
     offer_id   INTEGER NOT NULL REFERENCES offers(id),
     clicked_at TEXT NOT NULL
   )`,
+  // Páginas de producto de las tiendas que se leen una por una (Súper 99):
+  // cuándo se leyó cada una y qué pasó, para repartir la lectura entre corridas.
+  `CREATE TABLE IF NOT EXISTS store_pages (
+    store_id   TEXT NOT NULL,
+    url        TEXT NOT NULL,
+    fetched_at TEXT NOT NULL,
+    status     TEXT NOT NULL, -- ok | skip (no es de súper) | gone (ya no existe) | error
+    PRIMARY KEY (store_id, url)
+  )`,
 ];
 
 function toObjects({ columns, rows }) {

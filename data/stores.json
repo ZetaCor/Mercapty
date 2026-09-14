@@ -58,8 +58,19 @@
     "searchUrl": "https://www.super99.com/catalogsearch/result/?q={q}",
     "platform": "Magento",
     "color": "#d62828",
-    "enabled": false,
-    "note": "sus listados los arma un buscador externo (Adobe Live Search) que exige su clave, y leer producto por producto tomaría horas: hace falta un acuerdo o un feed"
+    "logo": "https://www.super99.com/static/frontend/Omnipro/Super99_Theme_Luma/es_PA/images/logo.svg",
+    "logoBg": "#ff1335",
+    "icon": "https://www.super99.com/media/favicon/stores/5/favicon_1.png",
+    "connector": {
+      "type": "pages",
+      "sitemap": "https://www.super99.com/media/sitemap/sitemap.xml",
+      "minutes": 320,
+      "departments": [
+        "Despensa", "Lácteos y huevos", "Bebidas no alcohólicas", "Cervezas, vinos y licores",
+        "Congelados y refrigerados", "Productos frescos", "Panes y dulces", "Comidas preparadas",
+        "Aseo del hogar", "Higiene y belleza", "Cuidado de bebés", "Mascotas"
+      ]
+    }
   },
   {
     "id": "ribasmith",

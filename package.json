@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "ingest": "node scripts/ingest.js",
+    "super99": "node scripts/super99.js",
     "start": "node server/index.js",
     "dev": "node --watch server/index.js"
   },

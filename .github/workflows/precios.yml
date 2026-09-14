@@ -1,13 +1,15 @@
-# Bots de precios: recorren los súper una vez al día y actualizan la base en Turso.
+# Bots de precios: recorren los súper dos veces al día y actualizan la base en Turso.
+# (Súper 99 tiene su propio trabajo: .github/workflows/super99.yml.)
 # Necesita los secretos TURSO_DATABASE_URL y TURSO_AUTH_TOKEN en
 # Settings -> Secrets and variables -> Actions del repositorio.
 name: Actualizar precios
 
 on:
   schedule:
-    # 5:17 a. m. de Panamá (UTC-5). Una corrida tarda unos 30 min: en un repositorio privado,
-    # los 2 000 min gratis al mes alcanzan para una al día. Con el repo público: '17 5,17 * * *'.
-    - cron: '17 10 * * *'
+    # 5:17 a. m. y 5:17 p. m. de Panamá (UTC-5). Una corrida tarda unos 35 min; con el
+    # repositorio público los minutos no tienen límite. Si vuelve a ser privado (2 000 min
+    # gratis al mes), dejar una sola: '17 10 * * *'.
+    - cron: '17 10,22 * * *'
   workflow_dispatch:         # botón «Run workflow» para correrlo a mano
 
 concurrency:

@@ -48,6 +48,12 @@ unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`).
 más completo: si una tienda guardó «Ron Claro» y otra trae «Ron Carta Vieja 750 Ml Claro» (con tamaño o
 marca), se cambia por ese.
 
+**Categorías:** primero decide cómo empieza el nombre del producto («Aceite Pam» → Despensa, «Arepa de maíz»
+→ Panadería y snacks, «Pasta dental» → Cuidado personal; `categoryFromName`), porque cada súper mete cosas
+distintas en secciones como «Refrigerados». Si el nombre no lo dice («Doritos Queso»), decide la categoría de
+la tienda. Al final de cada corrida de los bots, cada producto se reubica según su nombre (`recategorize` en
+`scripts/lib/pipeline.js`). Al ver una categoría, primero salen los productos que se comparan en más tiendas.
+
 **Paquetes:** «946 ml (Pack de 12)», «6 pack», «Caja de 24» o «6 x 355 ml» se reconocen como
 paquetes. Un paquete nunca se une con la unidad, aunque la tienda use el mismo código de barras, y
 su precio por litro o por kilo se calcula sobre el total. Los códigos internos de productos pesados

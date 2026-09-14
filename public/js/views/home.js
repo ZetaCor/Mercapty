@@ -88,7 +88,7 @@ export async function renderSearch({ params, stores }) {
   const current = {
     q: params.get('q') ?? '',
     categoria: params.get('categoria') ?? '',
-    orden: params.get('orden') ?? (params.get('q') ? 'relevancia' : 'nombre'),
+    orden: params.get('orden') ?? 'relevancia',
   };
   const page = Math.max(1, Number.parseInt(params.get('pagina'), 10) || 1);
   const qs = new URLSearchParams({ ...current, limit: String(PAGE_SIZE * page) });

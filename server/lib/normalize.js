@@ -85,18 +85,57 @@ export function unitPrice(price, sizeValue, sizeUnit) {
   return { amount: price / sizeValue, per: 'unidad' };
 }
 
-// Cada súper nombra sus categorías a su manera ("Lácteos, Quesos y
-// refrigerados", "Supermercado/Despensa/Leches"...). Se llevan a una lista
-// común buscando palabras clave en la categoría y, si no hay, en el nombre.
-// El orden importa: la primera regla que coincide gana.
+// Qué es el producto según cómo empieza su nombre: en español casi siempre lo
+// dice la primera palabra («Aceite Pam», «Arepa de maíz», «Pasta dental
+// Colgate»), venga de la tienda que venga. Gana la frase más larga. Las
+// palabras que pueden ser muchas cosas («crema», «jabón», «gel») no están:
+// ahí decide la categoría de la tienda.
+const NAME_HEADS = {
+  'Cuidado personal': 'pasta dental|crema dental|cepillo dental|hilo dental|enjuague bucal|papel higienico|toallas sanitarias|toalla sanitaria|protectores diarios|agua oxigenada|alcohol|shampoo|champu|acondicionador|desodorante|antitranspirante|afeitadora|rastrillo|protector solar|bloqueador solar|talco',
+  'Bebé': 'panales|panal|toallitas humedas|toallitas|formula infantil|formula|compota|compotas|cereal infantil|aceite de bebe|colonia de bebe|biberon|pacha',
+  'Mascotas': 'alimento para perro|alimento para perros|alimento para gato|alimento para gatos|comida para perro|comida para gato|arena para gato|arena sanitaria|snack para perro|snacks para perro',
+  'Lácteos y huevos': 'arroz con leche|crema de leche|bebida de soya|bebida de almendra|bebida de avena|bebida lactea|leche|leches|lechera|queso|quesos|yogurt|yogur|kumis|mantequilla|margarina|natilla|requeson|huevo|huevos|cheese|milk',
+  Despensa: 'mantequilla de mani|leche de coco|leche coco|crema para cafe|nescafe|maizena|fecula|chicheme|aceite|aceites|arroz|frijol|frijoles|lenteja|lentejas|garbanzo|garbanzos|poroto|porotos|arveja|arvejas|azucar|sal|harina|pasta|pastas|spaghetti|espagueti|fideo|fideos|macarrones|coditos|tallarines|salsa|salsas|ketchup|mayonesa|mostaza|vinagre|aderezo|dip|sopa|sopas|consome|caldo|atun|sardina|sardinas|ajo|ajos|adobo|condimento|sazonador|sazon|pimienta|oregano|comino|canela|achiote|curry|cafe|avena|maicena|gelatina|flan|pudin|mermelada|jalea|miel|maiz|pure|levadura|polvo de hornear',
+  'Carnes y embutidos': 'carne|carnes|res|cerdo|pollo|pechuga|pechugas|muslo|muslos|chuleta|chuletas|costilla|costillas|bistec|lomo|molida|filete|jamon|salchicha|salchichas|chorizo|chorizos|tocino|mortadela|salami|pavo|pescado|camaron|camarones|langostino|langostinos|pulpo|calamar|corvina|salmon|tilapia|hamburguesa|hamburguesas',
+  'Panadería y snacks': 'pan|panes|arepa|arepas|arepitas|tortilla|tortillas|bollo|bollos|galleta|galletas|cereal|cereales|papitas|papas fritas|papas rizadas|papas onduladas|papas tostadas|chips|chocolate|chocolates|bombones|caramelos|gomitas|chicles|mani|bizcocho|pastel|rosquitas|tostadas|palomitas|granola|dulce|dulces',
+  Bebidas: 'agua de coco|agua|jugo|jugos|nectar|soda|sodas|refresco|refrescos|gaseosa|bebida|bebidas|te|malta|cerveza|cervezas|vino|vinos|ron|seco|whisky|vodka|ginebra|tequila|licor|sangria|energizante|hidratante',
+  Limpieza: 'detergente|cloro|suavizante|lavaplatos|desinfectante|limpiador|limpiavidrios|desengrasante|blanqueador|jabon para ropa|jabon en polvo|servilletas|toallas de papel|papel toalla|bolsas de basura|bolsas para basura|esponja|esponjas|escoba|trapeador|insecticida|ambientador|aromatizante|papel aluminio|guantes',
+  Congelados: 'helado|helados|papas congeladas|nuggets|hielo',
+  'Frutas y verduras': 'manzana|manzanas|banano|guineo|platano|platanos|papa|cebolla|cebollas|tomate|tomates|lechuga|zanahoria|zanahorias|limon|limones|naranja|naranjas|pina|papaya|sandia|melon|uva|uvas|fresa|fresas|aguacate|yuca|name|otoe|culantro|pimenton|pepino|repollo|brocoli|apio|mango|mandarina|pera|peras',
+};
+// Palabras con que empiezan algunos nombres y no dicen qué es: «3pack», «Promo», «Caja de».
+const HEAD_FILLER = /^(\d+([.,]\d+)?(pack|pk|u|un|und|x)?|x\d+|pack|paquete|caja|six|promo|oferta|combo|kit|set|display|nuevo|nueva|mini|maxi|de|la|el|los|las|del)$/;
+const NAME_PHRASES = new Map(); // primera palabra -> [[palabras, categoría]], de la frase más larga a la más corta
+for (const [category, list] of Object.entries(NAME_HEADS)) {
+  for (const phrase of list.split('|')) {
+    const words = phrase.split(' ');
+    if (!NAME_PHRASES.has(words[0])) NAME_PHRASES.set(words[0], []);
+    NAME_PHRASES.get(words[0]).push([words, category]);
+  }
+}
+for (const list of NAME_PHRASES.values()) list.sort((a, b) => b[0].length - a[0].length);
+
+// Categoría según cómo empieza el nombre, o null si su primera palabra no lo dice.
+export function categoryFromName(name = '') {
+  const words = normalizeText(name).split(' ').filter(Boolean);
+  let start = 0;
+  while (start < words.length - 1 && HEAD_FILLER.test(words[start])) start++;
+  const match = NAME_PHRASES.get(words[start])?.find(([phrase]) => phrase.every((w, i) => words[start + i] === w));
+  return match?.[1] ?? null;
+}
+
+// Si el nombre no lo dice, se usa la categoría de la tienda ("Lácteos, Quesos
+// y refrigerados", "Supermercado/Despensa/Leches"...) buscando palabras clave
+// y, si no hay, el resto del nombre. El orden importa: la primera regla que
+// coincide gana. «Refrigerados» no cuenta: ahí las tiendas meten de todo.
 const CATEGORY_RULES = [
   ['Bebé', /\b(bebe|bebes|panal|panales|toallitas|infantil|formula infantil)\b/],
   ['Mascotas', /\b(mascota|mascotas|perro|perros|gato|gatos)\b/],
   ['Frutas y verduras', /\b(fruta|frutas|verdura|verduras|vegetales|hortalizas)\b/],
   ['Carnes y embutidos', /\b(carne|carnes|pollo|res|cerdo|embutido|embutidos|jamon|salchicha|salchichas|mariscos|pescado|pescados|deli)\b/],
-  ['Lácteos y huevos', /\b(lacteo|lacteos|leche|leches|queso|quesos|yogur|yogurt|mantequilla|huevo|huevos|refrigerados)\b/],
+  ['Lácteos y huevos', /\b(lacteo|lacteos|leche|leches|queso|quesos|yogur|yogurt|mantequilla|huevo|huevos)\b/],
   ['Congelados', /\b(congelado|congelados|helado|helados)\b/],
-  ['Panadería y snacks', /\b(pan|panes|panaderia|reposteria|galleta|galletas|snack|snacks|golosina|golosinas|dulces|chocolate|chocolates|cereal|cereales)\b/],
+  ['Panadería y snacks', /\b(pan|panes|panaderia|reposteria|galleta|galletas|snack|snacks|golosina|golosinas|dulces|chocolate|chocolates|cereal|cereales|arepa|arepas|tortilla|tortillas|bollo|bollos)\b/],
   ['Bebidas', /\b(bebida|bebidas|agua|jugo|jugos|refresco|refrescos|soda|sodas|gaseosa|gaseosas|cola|malta|energizante|energizantes|energetica|energeticas|hidratante|isotonica|cerveza|cervezas|vino|vinos|licor|licores|ron|whisky)\b/],
   ['Limpieza', /\b(limpieza|detergente|detergentes|cloro|desinfectante|lavaplatos|suavizante|lavanderia|hogar)\b/],
   ['Cuidado personal', /\b(cuidado personal|higiene|shampoo|champu|jabon|desodorante|dental|belleza|farmacia|papel higienico)\b/],
@@ -104,6 +143,8 @@ const CATEGORY_RULES = [
 ];
 
 export function canonicalCategory(categoryText = '', name = '') {
+  const fromName = categoryFromName(name);
+  if (fromName) return fromName;
   const category = normalizeText(categoryText);
   const title = normalizeText(name);
   const byCategory = category ? CATEGORY_RULES.filter(([, re]) => re.test(category)) : [];

@@ -2,7 +2,7 @@
 // que trae cada tienda al formato de la base y unir por nombre lo que no se une
 // por código de barras.
 import { storeSearchUrl } from '../../connectors/util.js';
-import { canonicalCategory, matchKey, normalizeGtin, parsePack, parseSize } from '../../server/lib/normalize.js';
+import { canonicalCategory, categoryFromName, matchKey, normalizeGtin, parsePack, parseSize } from '../../server/lib/normalize.js';
 import { createMatcher } from '../../server/lib/matching.js';
 
 // Convierte la oferta cruda de cualquier conector al formato que guarda la base.
@@ -36,6 +36,20 @@ export function normalizeOffer(store, raw) {
     url: raw.url || storeSearchUrl(store, raw.title ?? name),
     imageUrl: /^https?:\/\//i.test(String(raw.image ?? '')) ? String(raw.image) : null,
   };
+}
+
+// Al final de cada corrida, cada producto queda en la categoría que dice su
+// nombre («Arepa de maíz» -> Panadería y snacks), la misma venga de la tienda
+// que venga: así se corrigen los que una tienda había puesto donde no iban
+// (su sección «Refrigerados» no dice qué es el producto). Devuelve cuántos cambiaron.
+export async function recategorize(db) {
+  const changes = (await db.all('SELECT id, name, category FROM products'))
+    .map((p) => ({ id: p.id, from: p.category, to: categoryFromName(p.name) }))
+    .filter((c) => c.to && c.to !== c.from);
+  for (let i = 0; i < changes.length; i += 200) {
+    await db.batch(changes.slice(i, i + 200).map((c) => ({ sql: 'UPDATE products SET category = ? WHERE id = ?', args: [c.to, c.id] })));
+  }
+  return changes.length;
 }
 
 // Productos que las demás tiendas tienen disponibles: contra ellos se une por

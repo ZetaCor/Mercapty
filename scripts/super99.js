@@ -14,7 +14,7 @@ import { openDb, upsertStore, upsertOffers, ROOT } from '../server/db.js';
 import { categoryPaths, fetchProduct, productUrls } from '../connectors/super99.js';
 import { sleep } from '../connectors/util.js';
 import { normalizeText } from '../server/lib/normalize.js';
-import { attachByName, loadMatcher, normalizeOffer } from './lib/pipeline.js';
+import { attachByName, loadMatcher, normalizeOffer, recategorize } from './lib/pipeline.js';
 
 const HOUR = 3600000;
 const DAY = 24 * HOUR;
@@ -109,9 +109,12 @@ await save();
 const staleBefore = new Date(Date.now() - STALE_DAYS * DAY).toISOString();
 const stale = (await db.run('UPDATE offers SET in_stock = 0 WHERE store_id = ? AND in_stock = 1 AND updated_at < ?', [store.id, staleBefore])).rowsAffected;
 
+const moved = await recategorize(db);
+
 const notes = [
   `${stats.ok} productos`, `${stats.skip} fuera de súper`, `${stats.gone} ya no existen`, `${stats.error} con error`,
   stats.joined && `${stats.joined} unidos por nombre`, stale && `${stale} sin releer en ${STALE_DAYS} días`,
+  moved && `${moved} cambiaron de categoría`,
 ].filter(Boolean);
 log(`✓ ${store.name}: ${done} páginas en ${Math.round((Date.now() - started) / 60000)} min (${notes.join(', ')}). Quedan ${queue.length - done} para la próxima corrida.`);
 db.close();

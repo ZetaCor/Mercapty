@@ -20,6 +20,7 @@ const BEST_OFFER_COLUMNS = `
   p.*, r.id AS offer_id, r.price, r.list_price, r.store_id, r.store_count, r.max_price, r.store_ids`;
 
 const SORTS = {
+  relevancia: 'r.store_count DESC, p.name', // lo que se compara en más tiendas, primero
   nombre: 'p.name, p.brand',
   precio: 'r.price ASC',
   ahorro: '(r.max_price - r.price) DESC, r.price ASC',
@@ -187,7 +188,7 @@ export function createApi(db) {
         db.get(`${RANKED} SELECT COUNT(*) AS total ${join} ${whereSql}`, params),
         db.all(`
           ${RANKED} SELECT ${BEST_OFFER_COLUMNS} ${join} ${whereSql}
-          ORDER BY ${SORTS[sort] ?? SORTS.nombre} LIMIT ? OFFSET ?
+          ORDER BY ${SORTS[sort] ?? SORTS.relevancia} LIMIT ? OFFSET ?
         `, [...params, limit, offset]),
       ]);
       return { total: count.total, approximate: false, items: rows.map(productSummary) };

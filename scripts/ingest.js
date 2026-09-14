@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { openDb, upsertStore, upsertOffers, countInStock, markUnseenOffersOutOfStock, ROOT } from '../server/db.js';
 import { connectors } from '../connectors/index.js';
-import { normalizeOffer, loadMatcher, attachByName } from './lib/pipeline.js';
+import { normalizeOffer, loadMatcher, attachByName, recategorize } from './lib/pipeline.js';
 
 const only = process.argv.slice(2);
 const stores = JSON.parse(readFileSync(path.join(ROOT, 'data', 'stores.json'), 'utf8'));
@@ -63,6 +63,9 @@ for (const store of stores) {
   const notes = [joined && `${joined} unidas por nombre`, stale && `${stale} ya no publicadas`].filter(Boolean);
   console.log(`✓ ${store.name} (${store.connector.type}): ${offers.length} ofertas en ${seconds}s${notes.length ? `, ${notes.join(', ')}` : ''}`);
 }
+
+const moved = await recategorize(db);
+if (moved) console.log(`\n${moved} productos pasaron a la categoría que dice su nombre.`);
 
 const totals = await db.get(`
   SELECT (SELECT COUNT(*) FROM products) AS products,

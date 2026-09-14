@@ -112,6 +112,15 @@ export function storeLogo(store, className = 'store-logo') {
 
 export const productLabel = (p) => [p.name, p.brand, p.size].filter(Boolean).join(' · ');
 
+// Íconos de todas las tiendas que venden el producto, de la más barata a la más cara.
+function storeStack(item, stores) {
+  const list = (item.storeIds ?? [item.bestStoreId]).map((id) => stores.get(id)).filter(Boolean);
+  const names = list.map((s) => s.name).join(', ');
+  return html`<span class="tag store-stack" title="${names}">
+    <span class="stack" aria-hidden="true">${list.map((s) => storeAvatar(s.name, s.color))}</span>
+    ${item.storeCount > 1 ? `${item.storeCount} tiendas` : '1 tienda'}<span class="sr-only">: ${names}</span></span>`;
+}
+
 export function productCard(item, stores) {
   const store = stores.get(item.bestStoreId);
   const href = item.path ?? `/producto/${item.id}`;
@@ -133,7 +142,7 @@ export function productCard(item, stores) {
         <div class="best-at">${storeAvatar(store?.name, store?.color)}<span>en <b>${store?.name ?? item.bestStoreId}</b></span></div>
         <div class="tags">
           ${item.savings > 0 ? html`<span class="tag good">Ahorra ${money(item.savings)}</span>` : ''}
-          <span class="tag">${item.storeCount > 1 ? `${item.storeCount} tiendas` : '1 tienda'}</span>
+          ${storeStack(item, stores)}
         </div>
       </a>
     </article>`;

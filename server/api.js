@@ -9,12 +9,15 @@ const RANKED = `
     SELECT o.*,
       ROW_NUMBER() OVER (PARTITION BY o.product_id ORDER BY o.price, o.store_id) AS rn,
       COUNT(*)     OVER (PARTITION BY o.product_id) AS store_count,
-      MAX(o.price) OVER (PARTITION BY o.product_id) AS max_price
+      MAX(o.price) OVER (PARTITION BY o.product_id) AS max_price,
+      -- todas las tiendas que lo tienen, de la más barata a la más cara
+      group_concat(o.store_id, ',') OVER (PARTITION BY o.product_id ORDER BY o.price, o.store_id
+        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS store_ids
     FROM offers o
     WHERE o.in_stock = 1
   )`;
 const BEST_OFFER_COLUMNS = `
-  p.*, r.id AS offer_id, r.price, r.list_price, r.store_id, r.store_count, r.max_price`;
+  p.*, r.id AS offer_id, r.price, r.list_price, r.store_id, r.store_count, r.max_price, r.store_ids`;
 
 const SORTS = {
   nombre: 'p.name, p.brand',
@@ -53,6 +56,20 @@ const GENERIC_LEADS = new Set([
 ]);
 const PACK_WORDS = new Set(['pack', 'paquete', 'caja', 'six']);
 
+// Productos que casi siempre se buscan en su versión básica: al buscar «leche»,
+// primero la entera, descremada o deslactosada, y después la de chocolate, la
+// evaporada o la de coco (salvo que el cliente escriba esa palabra).
+const PLAIN_FIRST = {
+  leche: {
+    prefer: new Set(['entera', 'descremada', 'semidescremada', 'deslactosada', 'fresca', 'pura', 'uht']),
+    avoid: new Set([
+      'chocolate', 'chocolatada', 'chocolatado', 'chocorico', 'cocoa', 'vainilla', 'fresa', 'banano', 'mani', 'cafe',
+      'capuchino', 'saborizada', 'saborizado', 'sabor', 'malteada', 'malteado', 'avena', 'coco', 'almendra',
+      'almendras', 'soya', 'soja', 'arroz', 'evaporada', 'condensada', 'polvo', 'cabra', 'dulce', 'fermentada',
+    ]),
+  },
+};
+
 // Cada palabra buscada con sus alternativas: [["soda", "refresco", "gaseosa"], ["coca"]].
 function queryTerms(q) {
   const words = [...new Set(normalizeText(q).split(' ').filter((t) => t && !SEARCH_STOPWORDS.has(t)).map(searchStem))];
@@ -84,6 +101,12 @@ function relevance(row, terms, intent) {
   if (new RegExp(`(^| )(de|con) ${terms[0][0]}`).test(name)) score -= 15;
   const asked = new Set(terms.flat());
   score -= Math.min(24, 12 * words.filter((w) => SEARCH_VARIANTS.has(w) && !asked.has(w)).length);
+  for (const alts of terms) {
+    const rule = PLAIN_FIRST[alts[0]];
+    if (!rule) continue;
+    if (words.some((w) => rule.avoid.has(w) && !asked.has(w))) score -= 25;
+    else if (words.some((w) => rule.prefer.has(w))) score += 10;
+  }
   // La unidad antes que los paquetes, salvo que el cliente pida un paquete.
   const pack = Math.max(parsePack(row.name), parseSize(row.name)?.count ?? 1); // «Pack de 12», «6 x 355 ml»
   if (![...asked].some((a) => PACK_WORDS.has(a)) && pack > 1) score -= 15;
@@ -113,6 +136,7 @@ function productSummary(row) {
     bestStoreId: row.store_id,
     bestOfferId: row.offer_id,
     storeCount: row.store_count,
+    storeIds: row.store_ids ? String(row.store_ids).split(',') : [row.store_id],
     maxPrice: row.max_price,
     savings: round2(row.max_price - row.price),
     unitPrice: unitPrice(row.price, row.size_value, row.size_unit),

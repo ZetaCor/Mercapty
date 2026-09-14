@@ -289,6 +289,13 @@ select, .input {
 .avatar img.loaded { opacity: 1; }
 .avatar:has(img.loaded) { box-shadow: 0 0 0 1px var(--border); }
 
+/* Tiendas que venden el producto, en fila y superpuestas, dentro de la etiqueta «5 tiendas». */
+.store-stack { display: inline-flex; align-items: center; gap: .35rem; padding-left: .25rem; }
+.stack { display: inline-flex; }
+.stack .avatar, .stack .avatar:has(img.loaded) { width: 18px; height: 18px; font-size: .5rem; box-shadow: 0 0 0 2px var(--soft); }
+.stack .avatar + .avatar { margin-left: -6px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
 /* ---------- Logos de tiendas y franja de la portada ---------- */
 .store-logo {
   flex: none; display: grid; place-items: center; width: 168px; height: 76px; padding: .9rem 1.2rem;

@@ -1,11 +1,13 @@
-# Bots de precios: recorren los súper dos veces al día y actualizan la base en Turso.
+# Bots de precios: recorren los súper una vez al día y actualizan la base en Turso.
 # Necesita los secretos TURSO_DATABASE_URL y TURSO_AUTH_TOKEN en
 # Settings -> Secrets and variables -> Actions del repositorio.
 name: Actualizar precios
 
 on:
   schedule:
-    - cron: '17 5,17 * * *'  # 12:17 a. m. y 12:17 p. m. de Panamá (UTC-5): recorridos completos, sin cargar tanto a las tiendas
+    # 5:17 a. m. de Panamá (UTC-5). Una corrida tarda unos 30 min: en un repositorio privado,
+    # los 2 000 min gratis al mes alcanzan para una al día. Con el repo público: '17 5,17 * * *'.
+    - cron: '17 10 * * *'
   workflow_dispatch:         # botón «Run workflow» para correrlo a mano
 
 concurrency:
@@ -18,7 +20,7 @@ permissions:
 jobs:
   bots:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

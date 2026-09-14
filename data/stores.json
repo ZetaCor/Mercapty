@@ -8,7 +8,18 @@
     "color": "#1d4ed8",
     "logo": "https://superxtrapanama.vtexassets.com/assets/vtex.file-manager-graphql/images/aa95bb72-8c79-4a08-aecd-0956ca426e5c___8a19dc3d87a83037c0308b89cb7c8845.png",
     "icon": "https://www.superxtra.com/pwa/icons/logo-app-192x192.png",
-    "connector": { "type": "vtex" }
+    "connector": {
+      "type": "vtex",
+      "mode": "categories",
+      "departments": [
+        { "id": 1, "name": "Supermercado" },
+        { "id": 2, "name": "Licor, Cerveza y Vino" },
+        { "id": 4, "name": "Limpieza del Hogar y Ropa" },
+        { "id": 3, "name": "Cuidado Personal y Belleza" },
+        { "id": 7, "name": "Bebes" },
+        { "id": 6, "name": "Mascotas" }
+      ]
+    }
   },
   {
     "id": "elmachetazo",
@@ -19,7 +30,14 @@
     "color": "#f08c00",
     "logo": "https://elmachetazo.vtexassets.com/assets/vtex/assets-builder/elmachetazo.elmachetazo-theme/3.0.7/images/logos/home/logo-machetazo-pp-nuevo___b42a50793ab01479ae5e98b375cf7ec9.svg",
     "icon": "https://www.elmachetazo.com/pwa/icons/ElMachetazoPWA-192x192.png",
-    "connector": { "type": "vtex" }
+    "connector": {
+      "type": "vtex",
+      "mode": "categories",
+      "departments": [
+        { "id": 7, "name": "Supermercado" },
+        { "id": 28, "name": "Bebes" }
+      ]
+    }
   },
   {
     "id": "superunico",
@@ -41,7 +59,7 @@
     "platform": "Magento",
     "color": "#d62828",
     "enabled": false,
-    "note": "su API de productos responde con error; falta otro método"
+    "note": "sus listados los arma un buscador externo (Adobe Live Search) que exige su clave, y leer producto por producto tomaría horas: hace falta un acuerdo o un feed"
   },
   {
     "id": "ribasmith",

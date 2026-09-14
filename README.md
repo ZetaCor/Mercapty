@@ -4,7 +4,7 @@ Comparador de precios de supermercados en línea de Panamá. El cliente busca un
 precio en cada tienda, cuál lo tiene más barato, y con un clic va a esa tienda a comprarlo.
 También arma una lista de compras y calcula si conviene comprar todo en un solo súper o repartir.
 
-Los precios los recogen **bots propios** que recorren las webs de los súper dos veces al día.
+Los precios los recogen **bots propios** que recorren las webs de los súper una vez al día.
 
 ## Qué hace
 
@@ -31,7 +31,7 @@ Los precios los recogen **bots propios** que recorren las webs de los súper dos
 ## Cómo funciona
 
 ```
- GitHub Actions (2 al día)                     Vercel
+ GitHub Actions (1 al día)                     Vercel
  ┌───────────────────────┐                    ┌───────────────────────────────┐
  │ bots: vtex, woocommerce│ ── escriben ──►   │ public/  (páginas)            │
  │ scripts/ingest.js      │     Turso  ◄──────│ api/index.js → server/app.js  │
@@ -71,10 +71,10 @@ Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 
 | Súper | Plataforma | Estado |
 |---|---|---|
-| Super Xtra | VTEX | ✅ Bot activo (API pública de catálogo) |
-| El Machetazo | VTEX | ✅ Bot activo (API pública de catálogo) |
+| Super Xtra | VTEX | ✅ Bot activo: recorre completos sus departamentos de súper (API pública de catálogo) |
+| El Machetazo | VTEX | ✅ Bot activo: recorre completos Supermercado y Bebés (API pública de catálogo) |
 | Superunico | WooCommerce | ✅ Bot activo (Store API pública) |
-| Súper 99 | Magento | ⏳ Pendiente: su API de productos responde con error |
+| Súper 99 | Magento | ⏳ Pendiente: sus listados los arma un buscador externo (Adobe Live Search) que exige su clave, y la búsqueda de su API interna devuelve 0 productos. Leer producto por producto (unos 42 000) tomaría horas: hace falta un acuerdo o un feed |
 | Riba Smith | Next.js | ✅ Bot activo (busca los términos de canasta básica en su web). Publica el código de barras sin el dígito verificador: se completa; lo que no tiene código se une por nombre, tamaño y marca |
 | Supermercados Rey | Instaleap | ✅ Bot activo (API de catálogo de Instaleap) |
 | Metro Plus | Tipti | ⏳ Vende en línea por Tipti, cuya API exige iniciar sesión: hace falta un acuerdo o un feed |
@@ -103,7 +103,7 @@ Los cambios llegan a la web la próxima vez que corren los bots.
    crea `TURSO_DATABASE_URL` y `TURSO_AUTH_TOKEN` con los mismos valores del paso 1.
 5. **Redeploy** en Vercel para que tome las variables.
 6. **Primera carga de precios:** en GitHub → **Actions** → **Actualizar precios** → **Run workflow**.
-   Después corre sola dos veces al día (12:17 a. m. y 12:17 p. m. de Panamá).
+   Después corre sola una vez al día (5:17 a. m. de Panamá).
 
 Panel de imágenes en producción: `https://tu-sitio.vercel.app/admin` (pide la `ADMIN_KEY`).
 
@@ -123,15 +123,22 @@ los bots y el servidor usan Turso. Prueba rápida de los bots:
 
 ## Los bots
 
-- **VTEX** (`connectors/vtex.js`): busca ~95 términos en la API pública de catálogo: canasta básica,
-  sodas y marcas conocidas (Coca-Cola, Pepsi…), snacks, limpieza, cuidado personal, bebé y mascotas
-  (`GROCERY_QUERIES` en `connectors/util.js`). Trae código de barras, precio, precio regular,
-  disponibilidad, foto y enlace al producto. Si la tienda responde 429 (demasiadas peticiones), espera y
-  reintenta. Con `"mode": "categories"` recorrería el árbol de categorías completo, pero hoy Super Xtra y
-  El Machetazo responden 429 a ese recorrido, así que se usa la búsqueda.
+- **VTEX** (`connectors/vtex.js`): con `"mode": "categories"` recorre completos, con la API pública de
+  catálogo, los departamentos de `departments` (`{ "id", "name" }`). Así no se escapa ningún producto
+  (antes faltaban el ron Flor de Caña o la Coca-Cola normal porque ninguna palabra los buscaba). VTEX no
+  pagina más allá de 2 500 productos por consulta: si un departamento tiene más, se parte por rangos de
+  precio. Solo se leen productos con precio desde $0.01: VTEX pone precio 0 a lo agotado (en el súper de
+  Super Xtra son casi 2 900). Super Xtra: Supermercado, Licores, Limpieza, Cuidado personal, Bebés y Mascotas (quedan fuera
+  farmacia, ferretería y electrodomésticos). El Machetazo: Supermercado y Bebés (queda fuera su almacén).
+  Trae código de barras, precio, precio regular, disponibilidad, foto y enlace. Si la tienda responde 429
+  o 5xx, o se corta la red, espera y reintenta. Sin ese modo, busca los términos de `GROCERY_QUERIES`.
+  El id de cada departamento aparece en el campo `categoriesIds` de cualquier producto
+  (`/api/catalog_system/pub/products/search?ft=leche`).
 - **WooCommerce** (`connectors/woocommerce.js`): recorre el catálogo completo por la Store API.
-- **Instaleap** (`connectors/instaleap.js`): Supermercados Rey. Busca los mismos términos en la API
-  de catálogo de Instaleap.
+- **Instaleap** (`connectors/instaleap.js`): Supermercados Rey. Busca los términos de `GROCERY_QUERIES`
+  (`connectors/util.js`: unos 100, entre canasta básica, sodas y marcas, licores, limpieza, bebé y
+  mascotas) en la API de catálogo de Instaleap, que no permite listar el catálogo completo. Si falta un
+  producto de Rey o de Riba Smith, se agrega la palabra a esa lista.
 - **Riba Smith** (`connectors/ribasmith.js`): busca en su web los mismos términos que VTEX y lee los datos
   que la página incluye: precio con ITBMS, oferta con fechas e inventario. Su campo `sku` es el código de
   barras sin el dígito verificador (`744100350023` = Coca-Cola lata `7441003500235`); el bot lo completa
@@ -147,6 +154,10 @@ Cuidados que tienen los bots:
 - Se identifican como `MercaptyBot` y esperan 1.5 s entre peticiones.
 - Si una tienda no responde o devuelve 0 productos, no se toca lo guardado.
 - Si llegan muchos menos productos que la vez anterior, no se marca nada como agotado.
+- Un recorrido completo tarda cerca de media hora (Super Xtra unos 8 minutos y El Machetazo 6, porque se
+  leen completos). En un repositorio privado, GitHub Actions da 2 000 minutos gratis al mes: alcanzan para
+  una corrida al día. Con el repositorio público los minutos no tienen límite y se puede volver a dos
+  corridas diarias (`cron: '17 5,17 * * *'` en `.github/workflows/precios.yml`).
 
 Para sumar una tienda, crea `connectors/<nombre>.js` con
 `fetchOffers(store) -> [{ sku, gtin, name, brand, category, size, price, listPrice, inStock, url, image }]`
@@ -220,7 +231,7 @@ ven como recuadros punteados; en la web no aparecen hasta que configures AdSense
 
 ## Próximos pasos
 
-1. Bot para Súper 99.
+1. Súper 99: pedir un feed o un acuerdo (su web no deja leer el catálogo sin su clave).
 2. Revisión de coincidencias entre tiendas para productos sin código de barras.
 3. Alertas de baja de precio y escaneo de código de barras con la cámara.
 4. Acuerdos con tiendas (feed o afiliados).
@@ -234,5 +245,5 @@ scripts/        ingest.js: corre los bots y guarda en la base
 server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local)
 public/         index.html, styles.css, js/ (app.js, images.js, views/)
 data/           stores.json, feeds/   · generados (fuera de git): mercapty.db, images/, admin-key.txt
-.github/        workflows/precios.yml: bots dos veces al día
+.github/        workflows/precios.yml: bots una vez al día
 ```

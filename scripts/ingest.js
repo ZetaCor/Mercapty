@@ -2,7 +2,7 @@
 //   npm run ingest                  -> todas las tiendas activas
 //   npm run ingest -- superxtra     -> solo esa tienda
 // Prueba rápida: INGEST_QUERIES="leche,arroz" INGEST_MAX_PAGES=1 npm run ingest
-// En producción lo corre GitHub Actions dos veces al día (.github/workflows/precios.yml).
+// En producción lo corre GitHub Actions una vez al día (.github/workflows/precios.yml).
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { openDb, upsertStore, upsertOffers, countInStock, markUnseenOffersOutOfStock, ROOT } from '../server/db.js';

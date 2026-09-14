@@ -23,6 +23,8 @@ export const GROCERY_QUERIES = [
   // Bebidas
   'agua', 'jugo', 'soda', 'coca cola', 'pepsi', 'sprite', 'fanta', 'gatorade', 'malta', 'te frio', 'cerveza',
   'energizante',
+  // Licores (con las marcas de ron más buscadas: «ron» solo trae las primeras páginas)
+  'ron', 'flor de caña', 'abuelo', 'seco', 'vino', 'whisky', 'vodka', 'ginebra', 'tequila',
   // Carnes, embutidos y congelados
   'pollo', 'carne', 'cerdo', 'jamon', 'salchichas', 'chorizo', 'tocino', 'pescado', 'camaron', 'helado',
   // Frutas y verduras

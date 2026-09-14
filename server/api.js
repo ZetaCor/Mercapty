@@ -68,10 +68,14 @@ function relevance(row, terms, intent) {
     // en la marca, la categoría de la tienda o el nombre que le da otro súper
     else if (alts.some((a) => row.search_text.includes(a))) { matched++; score += 5; }
   }
+  // El nombre empieza por algo de lo buscado («Leche…» al buscar «leche»,
+  // «Flor de Caña…» al buscar «ron flor de caña»).
   const lead = GENERIC_LEADS.has(words[0]) ? words[1] : words[0];
-  if (terms[0].some((a) => words[0]?.startsWith(a) || lead?.startsWith(a))) score += 40;
-  const content = words.filter((w) => !SEARCH_STOPWORDS.has(w)).join(' ');
-  if (terms.length > 1 && content.includes(terms.map((alts) => alts[0]).join(' '))) score += 25; // palabras juntas y en orden
+  if (terms.some((alts) => alts.some((a) => words[0]?.startsWith(a) || lead?.startsWith(a)))) score += 40;
+  // Palabras juntas y en orden, en este nombre o en el que le da otra tienda.
+  const phrase = terms.map((alts) => alts[0]).join(' ');
+  const content = (text) => text.split(' ').filter((w) => !SEARCH_STOPWORDS.has(w)).join(' ');
+  if (terms.length > 1 && (content(name).includes(phrase) || content(row.search_text).includes(phrase))) score += 25;
   if (new RegExp(`(^| )(de|con) ${terms[0][0]}`).test(name)) score -= 15;
   const asked = new Set(terms.flat());
   score -= Math.min(24, 12 * words.filter((w) => SEARCH_VARIANTS.has(w) && !asked.has(w)).length);
@@ -160,21 +164,27 @@ export function createApi(db) {
       return { total: count.total, approximate: false, items: rows.map(productSummary) };
     }
 
-    // Con palabras: se traen los productos que tengan alguna y se ordenan por
-    // relevancia. Si ninguno tiene todas, se muestran los más parecidos.
-    const alternatives = terms.flat();
-    const where = [`(${alternatives.map(() => 'p.search_text LIKE ?').join(' OR ')})`];
-    const params = alternatives.map((t) => `%${t}%`);
-    if (category) {
-      where.push('p.category = ?');
-      params.push(category);
+    // Con palabras: primero los productos que tienen todas (cada palabra o un
+    // sinónimo), ordenados por relevancia; así un catálogo grande no deja
+    // fuera lo buscado. Si ninguno las tiene todas, los que tienen alguna.
+    const byWords = (groups, joiner) => {
+      const where = [groups.map((alts) => `(${alts.map(() => 'p.search_text LIKE ?').join(' OR ')})`).join(joiner)];
+      const params = groups.flat().map((t) => `%${t}%`);
+      if (category) {
+        where.push('p.category = ?');
+        params.push(category);
+      }
+      return db.all(`${RANKED} SELECT ${BEST_OFFER_COLUMNS} ${join} WHERE (${where.join(') AND (')}) LIMIT 5000`, params);
+    };
+    let rows = await byWords(terms, ' AND ');
+    let approximate = false;
+    if (!rows.length && terms.length > 1) {
+      rows = await byWords([terms.flat()], ' OR ');
+      approximate = rows.length > 0;
     }
-    const rows = await db.all(`${RANKED} SELECT ${BEST_OFFER_COLUMNS} ${join} WHERE ${where.join(' AND ')} LIMIT 5000`, params);
     const intent = canonicalCategory(q);
     const scored = rows.map((row) => ({ row, ...relevance(row, terms, intent) }));
-    const complete = scored.filter((s) => s.matched === terms.length);
-    const approximate = complete.length === 0 && scored.length > 0;
-    const pool = approximate ? scored : complete;
+    const pool = approximate ? scored : scored.filter((s) => s.matched === terms.length);
     pool.sort(RELEVANCE_SORTS[sort] ?? RELEVANCE_SORTS.relevancia);
     return { total: pool.length, approximate, items: pool.slice(offset, offset + limit).map((s) => productSummary(s.row)) };
   }

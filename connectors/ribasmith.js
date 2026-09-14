@@ -7,7 +7,7 @@
 //
 // Con "mode": "departments" recorre todos los departamentos (catálogo completo);
 // si no, usa la búsqueda del sitio con los términos de canasta básica.
-import { BOT_HEADERS, GROCERY_QUERIES, envList, sleep } from './util.js';
+import { BOT_HEADERS, GROCERY_QUERIES, envList, sleep, tidyName } from './util.js';
 import { gtinCheckDigit, slugify } from '../server/lib/normalize.js';
 
 const BASE = 'https://www.ribasmith.com';
@@ -82,9 +82,6 @@ export function barcode(sku) {
   if (digits.length >= 10 && digits.length <= 12) return digits + gtinCheckDigit(digits);
   return digits.length > 12 ? digits : null;
 }
-
-// "LECHE DE CABRA 1/4GL" -> "Leche De Cabra 1/4gl"
-const tidyName = (s) => (s === s.toUpperCase() ? s.toLowerCase().replace(/(^|\s)(\p{L})/gu, (m, sp, ch) => sp + ch.toUpperCase()) : s);
 
 // Precio vigente: la oferta si está dentro de sus fechas; si no, el regular.
 // Riba Smith da «precio» y «preciooferta» sin ITBMS; «preciofinal» es lo que

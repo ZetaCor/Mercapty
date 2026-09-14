@@ -95,6 +95,25 @@
     "connector": { "type": "instaleap", "clientId": "GRUPO_REY", "storeReference": "1038", "maxPages": 4 }
   },
   {
+    "id": "supercarnes",
+    "name": "Super Carnes",
+    "homepage": "https://supercarnes.com",
+    "searchUrl": "https://supercarnes.com/albrook/catalogsearch/result/?q={q}",
+    "platform": "Magento",
+    "color": "#1d3a8a",
+    "logo": "https://supercarnes.com/media/logo/default/images.png",
+    "icon": "https://supercarnes.com/media/favicon/default/images.png",
+    "connector": {
+      "type": "magento",
+      "baseUrl": "https://supercarnes.com/albrook",
+      "sitemap": "https://supercarnes.com/sitemap.xml",
+      "departments": [
+        "despensa", "lacteos-y-congelados", "alimentos-frescos", "bebidas",
+        "cuidado-del-hogar", "cuidado-personal", "bebe", "mascotas"
+      ]
+    }
+  },
+  {
     "id": "metroplus",
     "name": "Metro Plus",
     "homepage": "https://metroplus.com.pa",
@@ -123,5 +142,15 @@
     "color": "#1e3a8a",
     "enabled": false,
     "note": "Cloudflare bloquea a los bots en su API de productos; solo con un acuerdo o un feed"
+  },
+  {
+    "id": "mrprecio",
+    "name": "Mr Precio",
+    "homepage": "https://mrpreciopanama.com",
+    "searchUrl": null,
+    "platform": "WordPress",
+    "color": "#f59e0b",
+    "enabled": false,
+    "note": "no vende en línea: su web solo tiene sucursales y un PDF de ofertas (es del Grupo Rey)"
   }
 ]

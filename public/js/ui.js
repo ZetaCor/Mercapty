@@ -112,6 +112,10 @@ export function storeLogo(store, className = 'store-logo') {
 
 export const productLabel = (p) => [p.name, p.brand, p.size].filter(Boolean).join(' · ');
 
+// El cerdito corriendo tras un billete (public/loader.svg) mientras carga una página.
+export const loader = (text = 'Buscando los mejores precios…') =>
+  html`<div class="loader" role="status"><img src="/loader.svg" alt="" width="240" height="120"><p>${text}</p></div>`;
+
 // Íconos de todas las tiendas que venden el producto, de la más barata a la más cara.
 function storeStack(item, stores) {
   const list = (item.storeIds ?? [item.bestStoreId]).map((id) => stores.get(id)).filter(Boolean);

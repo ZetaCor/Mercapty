@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" role="img" aria-label="El cerdito de Mercapty corre tras un billete que se va volando">
+  <!--
+    Animación de carga de Mercapty: el cerdito (el del logo) corre tras un
+    billete con alas. Cada parte es un grupo con su clase (cerdito, patas,
+    cola, billete, alas, piso) y sus movimientos están en el <style>, para
+    rehacerla igual en la app (Lottie o react-native-svg + Reanimated).
+  -->
+  <style>
+    .bob { animation: bob .4s ease-in-out infinite; }
+    .leg { transform-box: fill-box; transform-origin: 50% 10%; animation: leg .4s ease-in-out infinite alternate; }
+    .leg.b { animation-direction: alternate-reverse; }
+    .tail { transform-box: fill-box; transform-origin: 100% 60%; animation: wag .2s ease-in-out infinite alternate; }
+    .ear { transform-box: fill-box; transform-origin: 20% 100%; animation: flop .4s ease-in-out infinite alternate; }
+    .shadow { transform-box: fill-box; transform-origin: center; animation: shadow .4s ease-in-out infinite; }
+    .bill { transform-box: fill-box; transform-origin: center; animation: fly 1.6s ease-in-out infinite; }
+    .wing { transform-box: fill-box; transform-origin: 50% 100%; animation: flap .16s ease-in-out infinite alternate; }
+    .ground { animation: ground .45s linear infinite; }
+    .speed line { animation: speed .45s linear infinite; }
+    .speed line:nth-child(2) { animation-delay: -.15s; }
+    .speed line:nth-child(3) { animation-delay: -.3s; }
+    .wind path { animation: speed .8s linear infinite; }
+    .wind path:nth-child(2) { animation-delay: -.4s; }
+    @keyframes bob { 50% { transform: translateY(-3px); } }
+    @keyframes leg { from { transform: rotate(32deg); } to { transform: rotate(-32deg); } }
+    @keyframes wag { from { transform: rotate(-18deg); } to { transform: rotate(14deg); } }
+    @keyframes flop { from { transform: rotate(-6deg); } to { transform: rotate(10deg); } }
+    @keyframes shadow { 50% { transform: scaleX(.82); opacity: .05; } }
+    @keyframes fly {
+      0%, 100% { transform: translate(0, 0) rotate(-7deg); }
+      25% { transform: translate(5px, -8px) rotate(5deg); }
+      50% { transform: translate(10px, -2px) rotate(-3deg); }
+      75% { transform: translate(4px, -10px) rotate(8deg); }
+    }
+    @keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(.2); } }
+    @keyframes ground { to { stroke-dashoffset: 26; } }
+    @keyframes speed { from { transform: translateX(0); opacity: .9; } to { transform: translateX(-18px); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+
+  <!-- piso que corre hacia atrás y sombra del cerdito -->
+  <path class="ground" d="M8 106H232" fill="none" stroke="#d5dce5" stroke-width="3" stroke-linecap="round" stroke-dasharray="12 14"/>
+  <ellipse class="shadow" cx="75" cy="105" rx="30" ry="3.5" fill="#0f172a" opacity=".1"/>
+
+  <!-- líneas de velocidad detrás del cerdito -->
+  <g class="speed" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round">
+    <line x1="22" y1="60" x2="36" y2="60"/>
+    <line x1="12" y1="72" x2="30" y2="72"/>
+    <line x1="22" y1="84" x2="34" y2="84"/>
+  </g>
+
+  <!-- cerdito (mismas formas y colores que el logo, public/icon.svg) -->
+  <g transform="translate(30 26) scale(1.45)">
+    <g class="bob">
+      <!-- patas: las de atrás más oscuras; se mueven en diagonal, como al trotar -->
+      <rect class="leg b" x="15" y="43" width="6" height="11" rx="2.5" fill="#f48fb8"/>
+      <rect class="leg" x="33" y="43" width="6" height="11" rx="2.5" fill="#f48fb8"/>
+      <rect class="leg" x="19" y="43" width="6" height="11" rx="2.5" fill="#f9a8c9"/>
+      <rect class="leg b" x="37" y="43" width="6" height="11" rx="2.5" fill="#f9a8c9"/>
+      <path class="tail" d="M12.5 37c-3.5 0-4.5-4-1.5-5s3 3 .5 3.5" fill="none" stroke="#f9a8c9" stroke-width="2" stroke-linecap="round"/>
+      <path class="ear" d="M38 25.5l4-7 3.5 8.5z" fill="#f9a8c9"/>
+      <!-- cuerpo -->
+      <ellipse cx="31" cy="37" rx="19" ry="14.5" fill="#ffd1e1"/>
+      <ellipse cx="22" cy="31" rx="4" ry="2.4" fill="#fff" opacity=".55" transform="rotate(-25 22 31)"/>
+      <circle cx="40.5" cy="39" r="2.3" fill="#f9a8c9" opacity=".7"/>
+      <!-- hocico, ojo y ranura de alcancía -->
+      <rect x="45" y="31.5" width="10" height="11" rx="5" fill="#f9a8c9"/>
+      <circle cx="48.4" cy="37" r="1.3" fill="#be185d"/>
+      <circle cx="51.6" cy="37" r="1.3" fill="#be185d"/>
+      <circle cx="41.5" cy="32" r="2" fill="#1e293b"/>
+      <circle cx="42.1" cy="31.4" r=".6" fill="#fff"/>
+      <rect x="21.5" y="24.4" width="17" height="2.6" rx="1.3" fill="#be185d"/>
+    </g>
+  </g>
+
+  <!-- aire que deja el billete al volar -->
+  <g class="wind" fill="none" stroke="#bbf7d0" stroke-width="2" stroke-linecap="round">
+    <path d="M150 46q6-3 12 0"/>
+    <path d="M146 58q6-3 12 0"/>
+  </g>
+
+  <!-- billete con alas, siempre un poco más adelante -->
+  <g transform="translate(170 36)">
+    <g class="bill">
+      <path class="wing" d="M9 2C5-8-7-9-8-2c6 2 12 3 17 4z" fill="#fff" stroke="#86efac" stroke-width="1.2" stroke-linejoin="round"/>
+      <path class="wing" d="M25 2c4-10 16-11 17-4-6 2-12 3-17 4z" fill="#fff" stroke="#86efac" stroke-width="1.2" stroke-linejoin="round"/>
+      <rect x="0" y="0" width="34" height="20" rx="3" fill="#22c55e"/>
+      <rect x="3" y="3" width="28" height="14" rx="2" fill="none" stroke="#dcfce7" stroke-width="1.3"/>
+      <circle cx="17" cy="10" r="4.4" fill="#dcfce7"/>
+      <path d="M18.6 8.3c-.5-.8-3.2-1-3.2.6 0 1.8 3.4.9 3.4 2.7 0 1.5-2.6 1.5-3.4.5M17 6.4v7.2" fill="none" stroke="#15803d" stroke-width="1.1" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

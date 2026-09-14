@@ -1,5 +1,5 @@
 import { getJson } from './api.js';
-import { html, mount, toast, setStoreInfo } from './ui.js';
+import { html, mount, toast, setStoreInfo, loader } from './ui.js';
 import { addToList, listCount } from './list-store.js';
 import { setAdminKey } from './admin-auth.js';
 import { navigate } from './nav.js';
@@ -80,6 +80,8 @@ async function router({ keepScroll = false } = {}) {
   });
   searchInput.value = path.startsWith('/buscar') ? params.get('q') ?? '' : '';
 
+  // Si la página tarda, el cerdito corre tras el billete mientras llegan los precios.
+  const slow = keepScroll ? null : setTimeout(() => { if (seq === renderSeq) mount(view, loader()); }, 350);
   try {
     const stores = await loadStores();
     const out = await renderView({ params, match: pattern && path.match(pattern), stores, refresh: () => router({ keepScroll: true }) });
@@ -92,6 +94,7 @@ async function router({ keepScroll = false } = {}) {
     if (seq !== renderSeq) return;
     mount(view, html`<div class="empty"><div class="big">😕</div><p>No pudimos cargar esta página.</p><p>${err.message}</p></div>`);
   }
+  clearTimeout(slow);
   if (!keepScroll) {
     window.scrollTo(0, 0);
     view.focus({ preventScroll: true });

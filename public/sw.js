@@ -1,8 +1,8 @@
 // Service worker mínimo: permite instalar Mercapty como app y abrir la
 // portada sin conexión. Siempre intenta la red primero, así que nunca muestra
 // una versión vieja; los precios y las redirecciones no se guardan.
-const CACHE = 'mercapty-v1';
-const SHELL = ['/', '/index.html', '/styles.css', '/icon.svg', '/manifest.webmanifest'];
+const CACHE = 'mercapty-v2';
+const SHELL = ['/', '/index.html', '/styles.css', '/icon.svg', '/loader.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));

@@ -83,6 +83,8 @@ Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 | Metro Plus | Tipti | ⏳ Vende en línea por Tipti, cuya API exige iniciar sesión: hace falta un acuerdo o un feed |
 | PriceSmart | Nuxt + Bloomreach | ⛔ Su robots.txt bloquea expresamente a los bots que copian datos: solo con acuerdo o feed |
 | Super Kosher | Self-Point | ⛔ Su robots.txt lo permite, pero Cloudflare bloquea a los bots en su API de productos: solo con acuerdo o feed |
+| Super Carnes | Magento | ✅ Bot activo: lee sus 529 subcategorías de súper (hasta 160 productos por página, con código de barras): unos 3 800 productos en ~24 min |
+| Mr Precio | WordPress | ⛔ No vende en línea: su web solo tiene sucursales y un PDF de ofertas (es del Grupo Rey) |
 
 La portada y el pie de página muestran automáticamente cuántos y cuáles supermercados tienen precios hoy.
 
@@ -162,6 +164,11 @@ los bots y el servidor usan Turso. Prueba rápida de los bots:
   La tabla `store_pages` guarda cuándo se leyó cada página y qué se encontró. Solo guarda productos de sus
   departamentos de súper (`departments` en `data/stores.json`); farmacia, ferretería o juguetería se saltan.
   Un precio que no se relee en 14 días deja de mostrarse. Prueba corta: `SUPER99_MINUTES=2 npm run super99`.
+- **Magento por categorías** (`connectors/magento.js`): Super Carnes. Sus páginas de categoría traen hasta 160
+  productos con nombre, precio, precio anterior, foto y código de barras (su SKU, que también va al final de
+  la dirección del producto). Sus categorías cargan más productos al bajar (no hay páginas `?p=2`), así que se
+  leen las subcategorías finales de sus departamentos de súper (`departments`), que su mapa del sitio lista y
+  que caben en una página. Su API interna (GraphQL) responde 403 a los bots, así que no se usa.
 - **Feed** (`connectors/feed.js`): para tiendas socias que comparten su inventario en CSV/JSON con
   las columnas `sku,gtin,nombre,marca,categoria,presentacion,precio,precio_regular,disponible,url,imagen`
   (ejemplo en `data/feeds/minisuper-ejemplo.csv`).
@@ -170,8 +177,8 @@ Cuidados que tienen los bots:
 - Se identifican como `MercaptyBot` y esperan 1.5 s entre peticiones.
 - Si una tienda no responde o devuelve 0 productos, no se toca lo guardado.
 - Si llegan muchos menos productos que la vez anterior, no se marca nada como agotado.
-- Un recorrido completo tarda unos 35 minutos (Super Xtra unos 8 y El Machetazo 6, porque se leen
-  completos) y corre dos veces al día. El repositorio es público, así que los minutos de GitHub Actions no
+- Un recorrido completo tarda cerca de una hora (Super Carnes unos 24 minutos, Super Xtra 8 y El Machetazo 6,
+  porque se leen completos) y corre dos veces al día. El repositorio es público, así que los minutos de GitHub Actions no
   tienen límite. Si vuelve a ser privado (2 000 minutos gratis al mes), hay que dejar una sola corrida
   (`cron: '17 10 * * *'`) y apagar la de Súper 99, que por sí sola usa unas 5 horas cada noche.
 
@@ -210,6 +217,12 @@ aparece el botón «Instalar Mercapty» y en iPhone se explica cómo agregarla d
 existen `public/manifest.webmanifest`, los íconos de `public/icons/` y un service worker mínimo
 (`public/sw.js`) que siempre busca primero en la red y nunca guarda precios. Las versiones de App Store y
 Google Play aparecen como «Próximamente».
+
+**Animación de carga** (`public/loader.svg`): el cerdito del logo corre tras un billete con alas mientras carga
+una página (al abrir la web, y al cambiar de página si tarda más de un tercio de segundo). Es un solo SVG con
+sus movimientos en CSS, sin librerías, y se queda quieto si el equipo pide menos movimiento. Cada parte
+(cuerpo, patas, cola, oreja, billete, alas, piso) es un grupo con su clase, para rehacerla igual en la app
+(Lottie, o react-native-svg con Reanimated).
 
 ## Anuncios (Google AdSense)
 

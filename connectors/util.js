@@ -48,3 +48,56 @@ export function envList(name) {
 }
 
 export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Descarga una página con reintentos ante cortes de red, 429 y errores 5xx.
+// { status: 'ok', text } | { status: 'gone' } (404, 410 o redirige a otra
+// página: el producto ya no existe) | { status: 'error', problem }.
+export async function fetchText(url, headers = { ...BOT_HEADERS, Accept: 'text/html' }, attempts = 3) {
+  for (let i = 1; ; i++) {
+    let problem;
+    try {
+      const res = await fetch(url, { headers, signal: AbortSignal.timeout(45000) });
+      if (res.ok && res.redirected && new URL(res.url).pathname !== new URL(url).pathname) return { status: 'gone' };
+      if (res.ok) return { status: 'ok', text: await res.text() };
+      if (res.status === 404 || res.status === 410) return { status: 'gone' };
+      if (res.status !== 429 && res.status < 500) return { status: 'error', problem: `HTTP ${res.status}` };
+      problem = `HTTP ${res.status}`;
+    } catch (err) {
+      problem = err.cause?.code ?? err.name;
+    }
+    if (i >= attempts) return { status: 'error', problem };
+    await sleep(10000 * i);
+  }
+}
+
+// Todas las direcciones de un mapa del sitio (o de los mapas que agrupa un índice).
+export async function sitemapLocs(sitemapUrl) {
+  const headers = { ...BOT_HEADERS, Accept: 'application/xml' };
+  const locs = (xml) => [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].trim());
+  const index = await fetchText(sitemapUrl, headers);
+  if (index.status !== 'ok') throw new Error(`no se pudo leer el mapa del sitio (${index.problem ?? index.status})`);
+  if (!index.text.includes('<sitemapindex')) return locs(index.text);
+  const urls = [];
+  for (const file of locs(index.text)) {
+    const xml = await fetchText(file, headers);
+    if (xml.status !== 'ok') throw new Error(`no se pudo leer ${file} (${xml.problem ?? xml.status})`);
+    urls.push(...locs(xml.text));
+  }
+  return urls;
+}
+
+// Texto de HTML legible: "LA DO&Ntilde;A" -> "LA DOÑA".
+const ENTITIES = {
+  amp: '&', quot: '"', apos: "'", lt: '<', gt: '>', nbsp: ' ', deg: '°', ordm: 'º', ordf: 'ª', reg: '®', trade: '™',
+  aacute: 'á', eacute: 'é', iacute: 'í', oacute: 'ó', uacute: 'ú', ntilde: 'ñ', uuml: 'ü',
+  Aacute: 'Á', Eacute: 'É', Iacute: 'Í', Oacute: 'Ó', Uacute: 'Ú', Ntilde: 'Ñ', Uuml: 'Ü',
+};
+export const decodeHtml = (s) => String(s ?? '')
+  .replace(/&#x([0-9a-f]+);/gi, (m, hex) => String.fromCodePoint(parseInt(hex, 16)))
+  .replace(/&#(\d+);/g, (m, dec) => String.fromCodePoint(Number(dec)))
+  .replace(/&([a-z]+);/gi, (m, name) => ENTITIES[name] ?? m)
+  .replace(/\s+/g, ' ')
+  .trim();
+
+// Algunas tiendas escriben todo en mayúsculas: "LECHE DE CABRA 1/4GL" -> "Leche De Cabra 1/4gl".
+export const tidyName = (s) => (s === s.toUpperCase() ? s.toLowerCase().replace(/(^|\s)(\p{L})/gu, (m, sp, ch) => sp + ch.toUpperCase()) : s);

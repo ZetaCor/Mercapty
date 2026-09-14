@@ -44,8 +44,13 @@ const SYNONYMS = {
 // (al buscar «coca cola», primero la normal y luego la Zero o la Sin azúcar).
 const SEARCH_VARIANTS = new Set(['zero', 'cero', 'sin', 'light', 'lite', 'diet', 'dietetica', 'descafeinado', 'sugar']);
 
-// Palabras genéricas con las que algunos súper empiezan el nombre ("Soda Coca Cola…").
-const GENERIC_LEADS = new Set(['soda', 'refresco', 'gaseosa', 'bebida', 'jugo', 'agua', 'pack', 'paquete', 'caja', 'six']);
+// Palabras genéricas con las que los súper empiezan el nombre («Soda Coca Cola…»,
+// «Ron Flor de Caña…»): la palabra siguiente también cuenta como inicio del nombre.
+const GENERIC_LEADS = new Set([
+  'soda', 'refresco', 'gaseosa', 'bebida', 'jugo', 'agua', 'pack', 'paquete', 'caja', 'six',
+  'ron', 'seco', 'vino', 'licor', 'cerveza', 'whisky', 'vodka', 'ginebra', 'tequila',
+  'leche', 'arroz', 'aceite', 'cafe', 'atun', 'queso', 'galletas', 'cereal', 'jabon', 'detergente', 'shampoo',
+]);
 const PACK_WORDS = new Set(['pack', 'paquete', 'caja', 'six']);
 
 // Cada palabra buscada con sus alternativas: [["soda", "refresco", "gaseosa"], ["coca"]].

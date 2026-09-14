@@ -132,6 +132,13 @@ const PRODUCT_UPSERT = `
   INSERT INTO products (match_key, gtin, name, brand, category, size_label, size_value, size_unit, image_url, search_text)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   ON CONFLICT(match_key) DO UPDATE SET
+    -- Se queda el nombre más completo: si el guardado no dice el tamaño o la marca
+    -- («Ron Claro») y el de esta tienda sí («Ron Carta Vieja 750 Ml Claro»), se cambia.
+    name = CASE
+      WHEN (products.name NOT GLOB '*[0-9]*' AND excluded.name GLOB '*[0-9]*')
+        OR (products.brand IS NOT NULL AND instr(lower(products.name), lower(products.brand)) = 0
+            AND instr(lower(excluded.name), lower(products.brand)) > 0)
+      THEN excluded.name ELSE products.name END,
     category   = CASE WHEN products.category IS NULL OR products.category = 'Otros' THEN excluded.category ELSE products.category END,
     size_label = COALESCE(products.size_label, excluded.size_label),
     size_value = COALESCE(products.size_value, excluded.size_value),

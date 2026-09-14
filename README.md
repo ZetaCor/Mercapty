@@ -43,7 +43,9 @@ La clave es **reconocer que dos tiendas venden el mismo producto**. Se usa el c�
 (GTIN/EAN), normalizado a 14 dígitos: Super Xtra publica la leche Estrella Azul como
 `88209972267` (UPC sin el cero inicial) y queda igual al `088209972267` de otra tienda. Sin código
 de barras, se usa marca + nombre + presentación como respaldo. Las categorías de cada súper se
-unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`).
+unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`). Como nombre se queda el
+más completo: si una tienda guardó «Ron Claro» y otra trae «Ron Carta Vieja 750 Ml Claro» (con tamaño o
+marca), se cambia por ese.
 
 **Paquetes:** «946 ml (Pack de 12)», «6 pack», «Caja de 24» o «6 x 355 ml» se reconocen como
 paquetes. Un paquete nunca se une con la unidad, aunque la tienda use el mismo código de barras, y

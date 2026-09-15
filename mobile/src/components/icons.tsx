@@ -1,6 +1,6 @@
 // Íconos de línea de la web (public/js/ui.js e index.html).
 import type { ReactNode } from 'react';
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { C } from '@/constants/theme';
 
@@ -47,6 +47,26 @@ const PATHS = {
   trash: <Path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />,
   check: <Path d="M5 12.5l4.5 4.5L19 7.5" />,
   close: <Path d="M6 6l12 12M18 6 6 18" />,
+  mail: (
+    <>
+      <Rect x={3} y={5} width={18} height={14} rx={2.5} />
+      <Path d="m4 7 8 6 8-6" />
+    </>
+  ),
+  whatsapp: (
+    <>
+      <Path d="M20.5 11.8a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.3-4.4a8.5 8.5 0 1 1 15.7-4.3z" />
+      <Path d="M9 8.6c0 3.2 2.9 6.3 6.3 6.4l1.2-1.4-1.9-.9-.9.8a4.4 4.4 0 0 1-2.6-2.6l.8-.9-.9-1.9z" />
+    </>
+  ),
+  instagram: (
+    <>
+      <Rect x={3.5} y={3.5} width={17} height={17} rx={5} />
+      <Circle cx={12} cy={12} r={4} />
+      <Path d="M17.2 6.8h.01" />
+    </>
+  ),
+  facebook: <Path d="M14.5 8.5H17V5h-2.5A3.5 3.5 0 0 0 11 8.5V11H8.5v3.5H11V21h3.5v-6.5H17l.5-3.5h-3V9a.5.5 0 0 1 .5-.5z" />,
 } satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof PATHS;

@@ -3,15 +3,18 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-n
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, openLink } from '@/components/button';
+import { ContactList, openExternal, whatsappWith } from '@/components/contact';
 import { LoadingPiggy } from '@/components/splash-overlay';
 import { StoreAvatar, StoreLogo } from '@/components/store-avatar';
 import { T } from '@/components/text';
 import { ErrorState } from '@/components/ui';
 import { C, PAD, R } from '@/constants/theme';
-import type { Store } from '@/lib/api';
+import type { Meta, Store } from '@/lib/api';
 import { count, timeAgo } from '@/lib/format';
 import { useOnboarding } from '@/lib/onboarding';
 import { useFetch } from '@/lib/use-fetch';
+
+const MERCHANT_MESSAGE = 'Hola, tengo un supermercado y quiero aparecer en Mercapty.';
 
 const SOURCE_LABEL: Record<string, string> = {
   vtex: 'precios de su web',
@@ -23,6 +26,8 @@ export default function Tiendas() {
   const insets = useSafeAreaInsets();
   const { data: stores, error, refresh } = useFetch<Store[]>('/api/stores');
   const { reset } = useOnboarding();
+  const contact = useFetch<Meta>('/api/meta').data?.contact ?? {};
+  const { whatsapp, email } = contact;
 
   return (
     <View style={styles.screen}>
@@ -66,7 +71,32 @@ export default function Tiendas() {
                 presentación, precio, disponibilidad, enlace y foto) y apareces en las comparaciones. Los clientes
                 llegan directo a tu tienda en línea para comprar.
               </T>
+              {(whatsapp || email) && (
+                <View style={styles.ctaActions}>
+                  {whatsapp && (
+                    <Button
+                      title="Escríbenos por WhatsApp"
+                      icon="whatsapp"
+                      variant="primary"
+                      onPress={() => openExternal(whatsappWith(whatsapp, MERCHANT_MESSAGE))}
+                    />
+                  )}
+                  {email && (
+                    <Button
+                      title="Enviar un correo"
+                      icon="mail"
+                      onPress={() => openExternal(`${email.url}?subject=${encodeURIComponent('Quiero sumar mi tienda a Mercapty')}`)}
+                    />
+                  )}
+                </View>
+              )}
             </View>
+            {Object.keys(contact).length > 0 && (
+              <View style={styles.contact}>
+                <T w={700} size={18} tight accessibilityRole="header">Contacto y redes</T>
+                <ContactList contact={contact} />
+              </View>
+            )}
             <Pressable onPress={reset} hitSlop={10} style={{ alignSelf: 'center', marginTop: 24 }} accessibilityRole="button">
               <T w={600} size={13.5} color={C.muted}>Ver la bienvenida otra vez</T>
             </Pressable>
@@ -96,4 +126,6 @@ const styles = StyleSheet.create({
   stat: { flex: 1, paddingVertical: 9, paddingHorizontal: 10, borderRadius: 12, backgroundColor: C.soft },
   foot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   cta: { gap: 6, marginTop: 10, padding: 20, borderRadius: R.xl, backgroundColor: C.brandSoft, borderWidth: 1, borderColor: '#dbe5ff' },
+  ctaActions: { gap: 8, marginTop: 10 },
+  contact: { gap: 10, marginTop: 14 },
 });

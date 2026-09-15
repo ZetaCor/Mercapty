@@ -430,6 +430,7 @@ details summary { cursor: pointer; font-weight: 600; }
 .store-stats span { color: var(--muted); font-size: .72rem; }
 .cta-panel { margin-top: 2rem; padding: 1.5rem; border-radius: var(--r-xl); background: var(--brand-soft); border: 1px solid #dbe5ff; }
 .cta-panel p { margin: .25rem 0 0; color: var(--text-2); max-width: 70ch; }
+.cta-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
 
 /* ---------- Panel de imágenes ---------- */
 .login { max-width: 440px; margin: 2rem auto; }
@@ -446,7 +447,7 @@ details summary { cursor: pointer; font-weight: 600; }
 
 /* ---------- Pie de página ---------- */
 .footer { margin-top: 3rem; padding: 3rem 0 1.5rem; background: var(--soft); border-top: 1px solid var(--border); color: var(--text-2); font-size: .9rem; }
-.footer-grid { display: grid; grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr)); gap: 2rem; }
+.footer-grid { display: grid; grid-template-columns: 1.4fr repeat(4, minmax(0, 1fr)); gap: 2rem; }
 @media (max-width: 860px) {
   .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer-brand { grid-column: 1 / -1; }
@@ -459,6 +460,9 @@ details summary { cursor: pointer; font-weight: 600; }
 .footer-col h3 { margin: 0 0 .75rem; color: var(--text); font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .footer-col a { display: block; padding: .22rem 0; color: var(--text-2); }
 .footer-col a:hover { color: var(--brand); }
+.footer-contact a { display: flex; align-items: center; gap: .5rem; }
+.footer-contact svg { flex: none; width: 17px; height: 17px; }
+.footer-contact span { min-width: 0; overflow-wrap: anywhere; }
 .footer-col p { margin: 0 0 .5rem; color: var(--muted); }
 .footer-bottom { margin-top: 2.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border); color: var(--muted); font-size: .8rem; }
 .footer-bottom p { margin: 0; max-width: 110ch; }

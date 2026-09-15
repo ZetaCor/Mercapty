@@ -270,14 +270,20 @@ compilación de verdad.
 versión de iPhone sin Mac. Antes, confirma `ios.bundleIdentifier` y `android.package` en `mobile/app.json` (hoy
 `com.mercapty.app`): no se pueden cambiar después de publicar. AdSense no funciona dentro de una app; ahí se usa AdMob.
 
+## Contacto y redes
+
+WhatsApp, correo, Instagram y Facebook se configuran en un solo lugar, `server/contact.js`, y llegan por
+`/api/meta` a la web (columna «Contacto» del pie de página y botones «Escríbenos» en Tiendas, para los
+supermercados) y a la app (final de Tiendas), sin publicar otra versión de la app. Un campo vacío no se muestra.
+El correo también está escrito en `public/privacidad.html`: si cambia, cámbialo en los dos.
+
 ## Anuncios (Google AdSense)
 
 Los espacios ya están colocados en la portada, la búsqueda y la ficha de producto. En tu computadora se
 ven como recuadros punteados; en la web no aparecen hasta que configures AdSense.
 
 1. Compra el dominio y conéctalo en Vercel (**Settings** → **Domains**).
-2. En la política de privacidad (`public/privacidad.html`), cambia `[correo de contacto pendiente]` por tu
-   correo. AdSense exige esa página.
+2. La política de privacidad (`public/privacidad.html`) ya tiene el correo de contacto: AdSense exige esa página.
 3. Solicita AdSense con tu dominio. Cuando te aprueben, en Vercel → **Environment Variables** agrega
    `ADSENSE_CLIENT` con tu ID (`ca-pub-…`) y haz **Redeploy**. Con eso se carga el script de AdSense y
    `/ads.txt` se genera solo.
@@ -317,7 +323,7 @@ ven como recuadros punteados; en la web no aparecen hasta que configures AdSense
 api/index.js    función de Vercel (usa server/app.js)
 connectors/     bots: vtex.js, woocommerce.js, instaleap.js, ribasmith.js, magento.js, shopify.js, super99.js, feed.js
 scripts/        ingest.js: corre los bots y guarda en la base · super99.js: bot de Súper 99 · lib/pipeline.js
-server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local)
+server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local), contact.js (contacto)
 public/         index.html, styles.css, js/ (app.js, images.js, views/)
 mobile/         app de Expo: src/app (pantallas), src/components (cerdito, tarjetas…), src/lib (API, lista)
 data/           stores.json, feeds/   · generados (fuera de git): mercapty.db, images/, admin-key.txt

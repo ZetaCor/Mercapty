@@ -1,5 +1,5 @@
 import { getJson } from './api.js';
-import { html, mount, toast, setStoreInfo, loader } from './ui.js';
+import { html, mount, toast, setStoreInfo, loader, contactLinks } from './ui.js';
 import { addToList, listCount } from './list-store.js';
 import { setAdminKey } from './admin-auth.js';
 import { navigate } from './nav.js';
@@ -166,6 +166,10 @@ window.addEventListener('storage', updateCount); // cambios desde otra pestaña
 getJson('/api/meta')
   .then((meta) => {
     document.getElementById('demo-banner').hidden = !meta.demo;
+    // Pie de página: WhatsApp, correo y redes (solo los canales que tienen dato).
+    const contact = contactLinks(meta.contact);
+    document.getElementById('footer-contact-col').hidden = !contact.length;
+    mount(document.getElementById('footer-contact'), contact);
     setAdsConfig(meta.ads);
     activateAds(view);
   })

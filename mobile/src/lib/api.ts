@@ -5,7 +5,11 @@ export const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? 'https://mercapty.ver
 // Dirección pública de las páginas, para compartir un producto.
 export const WEB_URL = 'https://mercapty.vercel.app';
 
-export type Meta = { demo: boolean; products: number; offers: number; updatedAt: string | null };
+// Contacto y redes (server/contact.js): solo vienen los canales que tienen dato.
+export type ContactChannel = { text: string; url: string };
+export type Contact = Partial<Record<'whatsapp' | 'email' | 'instagram' | 'facebook', ContactChannel>>;
+
+export type Meta = { demo: boolean; products: number; offers: number; updatedAt: string | null; contact?: Contact };
 
 export type Store = {
   id: string;

@@ -1,5 +1,5 @@
 import { getJson } from '../api.js';
-import { html, storeAvatar, storeLogo, timeAgo, icons } from '../ui.js';
+import { html, storeAvatar, storeLogo, timeAgo, icons, whatsappWith } from '../ui.js';
 
 const SOURCE_LABEL = {
   vtex: 'precios de su web',
@@ -7,8 +7,26 @@ const SOURCE_LABEL = {
   feed: 'inventario compartido',
 };
 
+// Botones para que un supermercado nos escriba (datos en server/contact.js).
+const MERCHANT_MESSAGE = 'Hola, tengo un supermercado y quiero aparecer en Mercapty.';
+function merchantActions(contact = {}) {
+  if (!contact.whatsapp && !contact.email) return '';
+  return html`
+    <div class="cta-actions">
+      ${contact.whatsapp
+        ? html`<a class="btn btn-primary" href="${whatsappWith(contact.whatsapp, MERCHANT_MESSAGE)}" target="_blank" rel="noopener">${icons.whatsapp} Escríbenos por WhatsApp</a>`
+        : ''}
+      ${contact.email
+        ? html`<a class="btn" href="${contact.email.url}?subject=${encodeURIComponent('Quiero sumar mi tienda a Mercapty')}">${icons.mail} Enviar un correo</a>`
+        : ''}
+    </div>`;
+}
+
 export async function renderStores() {
-  const stores = await getJson('/api/stores'); // datos frescos: incluye visitas enviadas
+  const [stores, meta] = await Promise.all([
+    getJson('/api/stores'), // datos frescos: incluye visitas enviadas
+    getJson('/api/meta'),
+  ]);
   return {
     title: 'Supermercados que comparamos',
     html: html`
@@ -42,6 +60,7 @@ export async function renderStores() {
         <p>Comparte tu inventario con Mercapty en un archivo CSV o Excel (código de barras, nombre, marca,
           presentación, precio, disponibilidad, enlace y foto) y apareces en las comparaciones. Los clientes
           llegan directo a tu tienda en línea para comprar.</p>
+        ${merchantActions(meta.contact)}
       </section>`,
   };
 }

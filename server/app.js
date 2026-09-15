@@ -9,6 +9,7 @@ import { openDb, ROOT } from './db.js';
 import { createApi } from './api.js';
 import { productPath } from './lib/normalize.js';
 import { saveImage, deleteImage, canStoreImages, IMAGES_DIR, LOCAL_IMAGE_RE } from './storage.js';
+import { contactInfo } from './contact.js';
 
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024; // Vercel acepta hasta 4.5 MB por petición
@@ -339,7 +340,9 @@ async function route(req, res) {
 
   const api = await needApi();
   if (pathname.startsWith('/api/admin/')) return handleAdmin(req, res, pathname, api);
-  if (get && pathname === '/api/meta') return sendJson(res, 200, { ...(await api.meta()), ads: adsConfig() });
+  if (get && pathname === '/api/meta') {
+    return sendJson(res, 200, { ...(await api.meta()), ads: adsConfig(), contact: contactInfo() });
+  }
   if (get && pathname === '/api/stores') return sendJson(res, 200, await api.listStores());
   if (get && pathname === '/api/categories') return sendJson(res, 200, await api.listCategories());
   if (get && pathname === '/api/deals') return sendJson(res, 200, await api.deals(intParam(searchParams.get('limit'), 1, 24, 8)));

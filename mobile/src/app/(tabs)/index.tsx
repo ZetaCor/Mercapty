@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { Icon } from '@/components/icons';
+import { LangSwitch } from '@/components/lang-switch';
 import { Brand } from '@/components/logo';
 import { ProductGrid } from '@/components/product-card';
 import { LoadingPiggy } from '@/components/splash-overlay';
@@ -42,7 +43,11 @@ export default function Inicio() {
   return (
     <View style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <Brand size={19} />
+        {/* Idioma a la vista, como el botón «EN / ES» de la web. */}
+        <View style={styles.brandRow}>
+          <Brand size={19} />
+          <LangSwitch compact />
+        </View>
         <View style={styles.searchRow}>
           <Pressable
             onPress={() => search({ focus: '1' })}
@@ -171,6 +176,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: C.border,
   },
+  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   searchRow: { flexDirection: 'row', gap: 10 },
   search: {
     flex: 1,

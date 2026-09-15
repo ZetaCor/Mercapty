@@ -106,17 +106,17 @@ export function unitPrice(price, sizeValue, sizeUnit) {
 // repostería (bicarbonato, mezclas, glaseado) van en Despensa; las barras de
 // cereal o de granola, en snacks.
 const NAME_HEADS = {
-  'Cuidado personal': 'pasta dental|crema dental|cepillo dental|hilo dental|enjuague bucal|papel higienico|toallas sanitarias|toalla sanitaria|protectores diarios|agua oxigenada|alcohol|shampoo|champu|acondicionador|desodorante|antitranspirante|afeitadora|rastrillo|protector solar|bloqueador solar|talco|barra antitranspirante|barra desodorante|aceite corporal|aceite capilar|aceite para cabello|aceite para el cabello|aceite de cabello|aceite nutritivo|aceite de ricino|aceite bio oil|aceite uresim|sal andrews|sal de frutas|suplemento|suplementos|ensure|glucerna|enterex|boost|benet|orgain|nutren',
+  'Cuidado personal': 'pasta dental|crema dental|cepillo dental|hilo dental|enjuague bucal|papel higienico|toallas sanitarias|toalla sanitaria|protectores diarios|agua oxigenada|alcohol|shampoo|champu|acondicionador|desodorante|antitranspirante|afeitadora|rastrillo|protector solar|bloqueador solar|talco|barra antitranspirante|barra desodorante|aceite corporal|aceite capilar|aceite para cabello|aceite para el cabello|aceite de cabello|aceite nutritivo|aceite de ricino|aceite bio oil|aceite uresim|sal andrews|sal de frutas|suplemento|suplementos|ensure|glucerna|enterex|boost|benet|orgain|nutren|agua micelar|agua de rosas|agua termal|agua de colonia|agua de azahar|crema corporal|crema facial|crema para manos|crema de manos|crema hidratante|locion hidratante|energizante|te viro grip',
   'Bebé': 'panales|panal|toallitas humedas|toallitas|formula infantil|formula|compota|compotas|cereal infantil|aceite de bebe|colonia de bebe|biberon|pacha|cerundl infantil|papilla|papillas|aceite para bebe|aceite baby|aceite antes de dormir|aceite johnson|pediasure',
   'Mascotas': 'alimento para perro|alimento para perros|alimento para gato|alimento para gatos|comida para perro|comida para gato|arena para gato|arena sanitaria|snack para perro|snacks para perro|royal canin|suplemento nutricional canplusvit',
-  'Lácteos y huevos': 'arroz con leche|crema de leche|bebida de soya|bebida de almendra|bebida de avena|bebida lactea|leche|leches|lechera|queso|quesos|yogurt|yogur|kumis|mantequilla|margarina|natilla|requeson|huevo|huevos|cheese|milk|barra de queso',
-  Despensa: 'mantequilla de mani|leche de coco|leche coco|crema para cafe|nescafe|maizena|fecula|chicheme|aceite|aceites|arroz|frijol|frijoles|lenteja|lentejas|garbanzo|garbanzos|poroto|porotos|arveja|arvejas|azucar|sal|harina|pasta|pastas|spaghetti|espagueti|fideo|fideos|macarrones|coditos|tallarines|salsa|salsas|ketchup|mayonesa|mostaza|vinagre|aderezo|dip|sopa|sopas|consome|caldo|atun|sardina|sardinas|ajo|ajos|adobo|condimento|sazonador|sazon|pimienta|oregano|comino|canela|achiote|curry|cafe|avena|maicena|gelatina|flan|pudin|mermelada|jalea|miel|maiz|pure|levadura|polvo de hornear|polvo para hornear|bicarbonato|mezcla para|mezcla pancake|mezcla de pancake|mezcla de pancakes|glaseado|pancake|pancakes|panqueque|panqueques|sirope para pancake|sirope de arce|sirope de maple|sirope de chocolate|cake mix|brownie mix|muffin mix|frosting|cereal|cereales|granola|muesli|corn flakes|hojuelas|cheerios|zucaritas|froot loops|corn pops|choco krispis|all bran|cap n crunch|lucky charms|cocoa puffs|trix|chex|cerevita|crema de avellana|crema de avellanas|crema de mani|crema de pistacho|crema de avena|crema de maiz|crema para reposteria|crema pastelera|crema para el cafe|jell o|jello|bongel|bretzke|betty crocker|birch benders|bbndrs|bob s red mill|bob s|pillsbury|duncan hines|royal',
+  'Lácteos y huevos': 'arroz con leche|crema de leche|bebida de soya|bebida de almendra|bebida de avena|bebida lactea|leche|leches|lechera|queso|quesos|yogurt|yogur|kumis|mantequilla|margarina|natilla|requeson|huevo|huevos|cheese|milk|barra de queso|bebida de soja|bebida almendra|bebida de almendras|silk|almond breeze',
+  Despensa: 'mantequilla de mani|leche de coco|leche coco|crema para cafe|nescafe|maizena|fecula|chicheme|aceite|aceites|arroz|frijol|frijoles|lenteja|lentejas|garbanzo|garbanzos|poroto|porotos|arveja|arvejas|azucar|sal|harina|pasta|pastas|spaghetti|espagueti|fideo|fideos|macarrones|coditos|tallarines|salsa|salsas|ketchup|mayonesa|mostaza|vinagre|aderezo|dip|sopa|sopas|consome|caldo|atun|sardina|sardinas|ajo|ajos|adobo|condimento|sazonador|sazon|pimienta|oregano|comino|canela|achiote|curry|cafe|avena|maicena|gelatina|flan|pudin|mermelada|jalea|miel|maiz|pure|levadura|polvo de hornear|polvo para hornear|bicarbonato|mezcla para|mezcla pancake|mezcla de pancake|mezcla de pancakes|glaseado|pancake|pancakes|panqueque|panqueques|sirope para pancake|sirope de arce|sirope de maple|sirope de chocolate|cake mix|brownie mix|muffin mix|frosting|cereal|cereales|granola|muesli|corn flakes|hojuelas|cheerios|zucaritas|froot loops|corn pops|choco krispis|all bran|cap n crunch|lucky charms|cocoa puffs|trix|chex|cerevita|crema de avellana|crema de avellanas|crema de mani|crema de pistacho|crema de avena|crema de maiz|crema para reposteria|crema pastelera|crema para el cafe|jell o|jello|bongel|bretzke|betty crocker|birch benders|bbndrs|bob s red mill|bob s|pillsbury|duncan hines|royal|coffeehat|baking soda',
   'Carnes y embutidos': 'carne|carnes|res|cerdo|pollo|alas|alitas|tasajo|bologna|aros de pollo|barritas de pollo|pechuga|pechugas|muslo|muslos|chuleta|chuletas|costilla|costillas|bistec|lomo|molida|filete|jamon|salchicha|salchichas|chorizo|chorizos|tocino|mortadela|salami|pavo|pescado|camaron|camarones|langostino|langostinos|pulpo|calamar|corvina|salmon|tilapia|hamburguesa|hamburguesas',
   'Panadería y snacks': 'pan|panes|arepa|arepas|arepitas|tortilla|tortillas|bollo|bollos|galleta|galletas|cereal en barra|granola bar|granola bars|granola barra|granola en barra|granola nature valley|chex mix|barra|barras|barrita|barritas|papitas|papas fritas|papas rizadas|papas onduladas|papas tostadas|chips|chocolate|chocolates|bombones|caramelos|gomitas|chicles|mani|bizcocho|pastel|rosquitas|tostadas|palomitas|dulce|dulces',
-  Bebidas: 'agua de coco|agua|jugo|jugos|nectar|soda|sodas|refresco|refrescos|gaseosa|bebida|bebidas|te|malta|cerveza|cervezas|vino|vinos|ron|seco|whisky|vodka|ginebra|tequila|licor|sangria|energizante|hidratante',
-  Limpieza: 'detergente|cloro|suavizante|lavaplatos|desinfectante|limpiador|limpiavidrios|desengrasante|blanqueador|jabon para ropa|jabon en polvo|servilletas|toallas de papel|papel toalla|bolsas de basura|bolsas para basura|esponja|esponjas|escoba|trapeador|insecticida|ambientador|aromatizante|papel aluminio|guantes|bicarbonato de limon|aceite 3 en 1|aceite rojo',
-  Congelados: 'helado|helados|papas congeladas|nuggets|hielo|barra de helado|barras de helado',
-  Otros: 'aceite de motor|aceite para motor',
+  Bebidas: 'agua de coco|agua|jugo|jugos|nectar|soda|sodas|refresco|refrescos|gaseosa|bebida|bebidas|malta|cerveza|cervezas|vino|vinos|ron|seco|whisky|whiskey|vodka|ginebra|tequila|licor|sangria|coca cola|coke|pepsi|fanta|sprite|seven up|canada dry|schweppes|dr pepper|gatorade|powerade|red bull|monster',
+  Limpieza: 'detergente|cloro|suavizante|lavaplatos|desinfectante|limpiador|limpiavidrios|desengrasante|blanqueador|jabon para ropa|jabon en polvo|servilletas|toallas de papel|papel toalla|bolsas de basura|bolsas para basura|esponja|esponjas|escoba|trapeador|insecticida|ambientador|aromatizante|papel aluminio|guantes|bicarbonato de limon|aceite 3 en 1|aceite rojo|baking soda multicleaner',
+  Congelados: 'helado|helados|papas congeladas|nuggets|hielo|barra de helado|barras de helado|tequeno|tequenos|te pequeno',
+  Otros: 'aceite de motor|aceite para motor|cigarrillos|cigarrillo|cigarillos|cigarros|marlboro|vape fume|termo para|carded',
   'Frutas y verduras': 'manzana|manzanas|banano|guineo|platano|platanos|papa|cebolla|cebollas|tomate|tomates|lechuga|zanahoria|zanahorias|limon|limones|naranja|naranjas|pina|papaya|sandia|melon|uva|uvas|fresa|fresas|aguacate|yuca|name|otoe|culantro|pimenton|pepino|repollo|brocoli|apio|mango|mandarina|pera|peras',
 };
 // Palabras con que empiezan algunos nombres y no dicen qué es: «3pack», «Promo», «Caja de».
@@ -153,20 +153,35 @@ export const nameHead = (name = '') => headWords(name)[0] ?? '';
 // Si la primera palabra no lo dice (el nombre empieza con la marca: «Borden Gelatina…»,
 // «Cocoa Pebbles, Cereal…»), unas pocas palabras dicen qué es el producto aunque vayan
 // después. No hay sabores en la lista, así «Doritos Queso» sigue decidiéndolo la tienda.
-// Las barras de cereal y los alimentos de mascotas («…Leche y Cereal» de Alpo) no cuentan.
-// «Bicarbonato» solo cuenta al principio: también hay limpiadores y jabones «con bicarbonato».
+// Las barras de cereal, los alimentos de mascotas («…Leche y Cereal» de Alpo) y los jabones
+// («Jabón Dove Leche de Coco») no cuentan. «Bicarbonato» solo cuenta al principio: también hay
+// limpiadores y jabones «con bicarbonato»; «baking soda», al principio o seguido solo del tamaño
+// («Arm & Hammer Baking Soda 2 lb»), así la pasta dental «with Baking Soda» no cuenta.
 const TYPE_ANYWHERE = [
   ['Bebé', /\bcereal(es)? infantil(es)?\b/],
-  ['Despensa', /\b(cereal|cereales|cheerios|gelatina|gelatinas|pudding|pudin|levadura|polvo para hornear|polvo de hornear|bettycrocker|mezcla dulce|mezcla para)\b/],
+  // Leches vegetales («Califia Farms … Bebida de Almendra»): con la leche.
+  ['Lácteos y huevos', /\b(bebidas? de (almendras?|soya|soja|avena)|leche de (almendras?|soya|soja|coco barista)|almond breeze)\b/],
+  ['Despensa', /\b(cereal|cereales|cheerios|gelatina|gelatinas|pudding|pudin|levadura|polvo para hornear|polvo de hornear|bettycrocker|mezcla dulce|mezcla para|leche de coco|leche coco|dolce gusto)\b|\bbaking soda( \d+)*( ?(lb|lbs|oz|g|gr|grs|kg))?$/],
 ];
 // Mezclas para hornear: Despensa aunque el nombre empiece por el sabor («Chocolate Cake Mix»).
 const BAKING_MIX = /\b(cake mix|brownie mix|baking mix|muffin mix|pancake mix)\b/;
-const NOT_BY_WORDS = /\b(barra|barras|barrita|barritas|perro|perros|gato|gatos|cachorro|cachorros|mascota|mascotas)\b/;
+const NOT_BY_WORDS = /\b(barra|barras|barrita|barritas|perro|perros|gato|gatos|cachorro|cachorros|mascota|mascotas|jabon|jabones)\b/;
+
+// El té en bolsitas o sobres va en Despensa, con el café; el que ya viene para tomar
+// («Té Frío Lipton 500ml», «Te Arándanos Arizona»), en Bebidas. Hindu, Bigelow y Twinings solo hacen té.
+const TEA_HEAD = /^(te|infusion|infusiones|tisana|aromatica|hindu|bigelow|twinings)$/;
+const LIQUID = /\b\d+([.,]\d+)? ?(ml|l|lt|lts|litro|litros)\b|\b(frio|fria|helado|sparkling|lata|botella|pet|tetra|arizona)\b/;
+// Lo de bebé que empieza como cuidado personal («Shampoo Johnson's Baby», «Talco para Bebé»,
+// Ricitos de Oro) va en Bebé, igual que el aceite y la colonia de bebé. El desodorante
+// «Baby Powder» no es de bebé.
+const FOR_BABY = /\b(bebe|bebes|baby|ricitos de oro)\b(?! powder)/;
 
 // Categoría según la primera palabra (o frase) del nombre, o null si no lo dice.
 export function categoryFromHead(name = '') {
   const words = headWords(name);
-  return NAME_PHRASES.get(words[0])?.find(([phrase]) => phrase.every((w, i) => words[i] === w))?.[1] ?? null;
+  const found = NAME_PHRASES.get(words[0])?.find(([phrase]) => phrase.every((w, i) => words[i] === w))?.[1];
+  if (found || !TEA_HEAD.test(words[0] ?? '')) return found ?? null;
+  return LIQUID.test(words.join(' ')) ? 'Bebidas' : 'Despensa';
 }
 
 // Categoría según el nombre, o null si el nombre no lo dice.
@@ -175,6 +190,7 @@ export function categoryFromName(name = '') {
   const skipWords = NOT_BY_WORDS.test(text);
   if (!skipWords && BAKING_MIX.test(text)) return 'Despensa';
   const fromHead = categoryFromHead(name);
+  if (fromHead === 'Cuidado personal' && FOR_BABY.test(text)) return 'Bebé';
   if (fromHead || skipWords) return fromHead;
   return TYPE_ANYWHERE.find(([, re]) => re.test(text))?.[0] ?? null;
 }
@@ -191,7 +207,7 @@ const CATEGORY_RULES = [
   ['Lácteos y huevos', /\b(lacteo|lacteos|leche|leches|queso|quesos|yogur|yogurt|mantequilla|huevo|huevos)\b/],
   ['Congelados', /\b(congelado|congelados|helado|helados)\b/],
   ['Panadería y snacks', /\b(pan|panes|panaderia|galleta|galletas|snack|snacks|golosina|golosinas|dulces|chocolate|chocolates|arepa|arepas|tortilla|tortillas|bollo|bollos|barra|barras)\b/],
-  ['Bebidas', /\b(bebida|bebidas|agua|jugo|jugos|refresco|refrescos|soda|sodas|gaseosa|gaseosas|cola|malta|energizante|energizantes|energetica|energeticas|hidratante|isotonica|cerveza|cervezas|vino|vinos|licor|licores|ron|whisky)\b/],
+  ['Bebidas', /\b(bebida|bebidas|agua|jugo|jugos|refresco|refrescos|soda|sodas|gaseosa|gaseosas|cola|malta|energizante|energizantes|energetica|energeticas|isotonica|cerveza|cervezas|vino|vinos|licor|licores|ron|whisky)\b/],
   ['Limpieza', /\b(limpieza|detergente|detergentes|cloro|desinfectante|lavaplatos|suavizante|lavanderia|hogar)\b/],
   ['Cuidado personal', /\b(cuidado personal|higiene|shampoo|champu|jabon|desodorante|dental|belleza|farmacia|papel higienico)\b/],
   // «Repostería» es harina, azúcar, bicarbonato y mezclas: despensa, no panadería.

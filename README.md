@@ -56,8 +56,11 @@ la tienda. Si el nombre empieza con una marca que suele ir antes del producto (�
 Avena…»), decide la palabra siguiente; y unas pocas palabras deciden aunque vayan después (cereal, gelatina, levadura,
 «cake mix»), nunca un sabor. Los cereales, la avena y lo de repostería (bicarbonato, mezclas, glaseado; también la
 sección «Repostería» de las tiendas) van en Despensa; las barras de cereal o de granola, en Panadería y snacks. Los
-aceites corporales o para el cabello, los suplementos (Ensure, Glucerna…) y la sal de frutas van en Cuidado personal;
-el aceite de bebé y Pediasure, en Bebé; el de motor, en Otros. Al final de cada corrida de los bots, cada producto se reubica según su nombre (`recategorize` en
+aceites corporales o para el cabello, los suplementos (Ensure, Glucerna…), la sal de frutas, las cremas corporales y el
+agua micelar, de rosas o de colonia van en Cuidado personal; lo de bebé (aceite, shampoo, talco o crema de bebé) y
+Pediasure, en Bebé; el aceite de motor, los cigarrillos y los termos, en Otros. El té en bolsitas o sobres va en Despensa,
+con el café, y el que ya viene para tomar (té frío, con ml o litros), en Bebidas; las bebidas de almendra, soya o avena
+van con la leche, en Lácteos y huevos, y la leche de coco, en Despensa. Al final de cada corrida de los bots, cada producto se reubica según su nombre (`recategorize` en
 `scripts/lib/pipeline.js`). Al ver una categoría, primero salen los productos que se comparan en más tiendas.
 
 **Paquetes:** «946 ml (Pack de 12)», «6 pack», «Caja de 24» o «6 x 355 ml» se reconocen como

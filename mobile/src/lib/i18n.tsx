@@ -214,6 +214,8 @@ const EN: Record<string, string> = {
   Vaciar: 'Clear',
   Cancelar: 'Cancel',
   'Vaciar lista': 'Clear list',
+  'Se quitará el producto que agregaste.': 'This removes the product you added.',
+  'Se quitarán los {n} productos que agregaste.': 'This removes the {n} products you added.',
   'Tu lista está vacía': 'Your list is empty',
   'Agrega productos con el botón + y te decimos dónde te sale más barato comprarlos.':
     'Add products with the + button and we’ll tell you where they’re cheapest.',

@@ -11,6 +11,7 @@ const VARIANTS = {
   default: { bg: '#fff', pressed: C.soft, border: C.border, text: C.text },
   soft: { bg: C.brandSoft, pressed: '#e2eaff', border: 'transparent', text: C.brand },
   danger: { bg: '#fff', pressed: C.promoSoft, border: C.border, text: C.promo },
+  destructive: { bg: C.promo, pressed: '#be123c', border: C.promo, text: '#fff' },
 } as const;
 
 const SIZES = {

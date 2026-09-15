@@ -189,10 +189,22 @@ export function productGrid(items, stores) {
 }
 
 let toastTimer;
-export function toast(message) {
+// Aviso al pie de la pantalla. Con `action` lleva un botón («Deshacer») y dura un poco más.
+export function toast(message, { action, onAction } = {}) {
   const el = document.getElementById('toast');
-  el.textContent = message;
+  el.replaceChildren(message);
+  if (action) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = action;
+    button.addEventListener('click', () => {
+      clearTimeout(toastTimer);
+      el.hidden = true;
+      onAction();
+    });
+    el.append(button);
+  }
   el.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.hidden = true; }, 2200);
+  toastTimer = setTimeout(() => { el.hidden = true; }, action ? 6000 : 2200);
 }

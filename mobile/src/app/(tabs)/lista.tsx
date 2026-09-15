@@ -1,10 +1,11 @@
 // Mi lista: compara «todo en una tienda» contra «repartir cada producto donde está más barato».
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, openLink } from '@/components/button';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Icon } from '@/components/icons';
 import { openProduct } from '@/components/product-card';
 import { ProductMedia } from '@/components/product-media';
@@ -15,25 +16,15 @@ import { EmptyState, ErrorState, Note, Panel } from '@/components/ui';
 import { C, PAD, R, shadow } from '@/constants/theme';
 import { goUrl, postJson, type OptimizeResult } from '@/lib/api';
 import { money } from '@/lib/format';
-import { hlParts, useI18n, type T as Translate } from '@/lib/i18n';
+import { hlParts, useI18n } from '@/lib/i18n';
 import { useList } from '@/lib/list';
-
-function confirm(t: Translate, onConfirm: () => void) {
-  const title = t('¿Vaciar tu lista?');
-  if (Platform.OS === 'web') {
-    if (window.confirm(title)) onConfirm();
-    return;
-  }
-  Alert.alert(title, undefined, [
-    { text: t('Cancelar'), style: 'cancel' },
-    { text: t('Vaciar'), style: 'destructive', onPress: onConfirm },
-  ]);
-}
 
 export default function Lista() {
   const insets = useSafeAreaInsets();
   const { t } = useI18n();
   const { items, setQty, clear } = useList();
+  // El número se guarda al abrir: al vaciar, el diálogo se desvanece sin pasar a «0 productos».
+  const [asking, setAsking] = useState({ open: false, count: 0 });
   const [result, setResult] = useState<OptimizeResult | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [retry, setRetry] = useState(0);
@@ -69,7 +60,9 @@ export default function Lista() {
             <T size={13.5} color={C.muted}>{items.length === 1 ? t('1 producto') : t('{n} productos', { n: items.length })}</T>
           )}
         </View>
-        {items.length > 0 && <Button title={t('Vaciar lista')} size="sm" onPress={() => confirm(t, clear)} />}
+        {items.length > 0 && (
+          <Button title={t('Vaciar lista')} size="sm" variant="danger" icon="trash" onPress={() => setAsking({ open: true, count: items.length })} />
+        )}
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -116,6 +109,19 @@ export default function Lista() {
           </>
         )}
       </ScrollView>
+
+      <ConfirmDialog
+        visible={asking.open}
+        title={t('¿Vaciar tu lista?')}
+        message={asking.count === 1 ? t('Se quitará el producto que agregaste.') : t('Se quitarán los {n} productos que agregaste.', { n: asking.count })}
+        confirmText={t('Vaciar')}
+        cancelText={t('Cancelar')}
+        onConfirm={() => {
+          setAsking((a) => ({ ...a, open: false }));
+          clear();
+        }}
+        onCancel={() => setAsking((a) => ({ ...a, open: false }))}
+      />
     </View>
   );
 }

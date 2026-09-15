@@ -1,7 +1,7 @@
 import { postJson } from '../api.js';
-import { html, hl, money, storeAvatar, productMedia } from '../ui.js';
+import { html, hl, icons, money, storeAvatar, productMedia, toast } from '../ui.js';
 import { t } from '../i18n.js';
-import { getList, setQty, clearList } from '../list-store.js';
+import { getList, setQty, clearList, restoreList } from '../list-store.js';
 
 function cheapestPlan({ split, bestSingle, savings }) {
   if (!split.stores.length) return '';
@@ -90,7 +90,7 @@ export async function renderList({ refresh }) {
             <h1>${t('Mi lista')}</h1>
             <span class="muted">${list.length === 1 ? t('1 producto') : t('{n} productos', { n: list.length })}</span>
           </div>
-          <button class="btn btn-sm" type="button" data-clear>${t('Vaciar lista')}</button>
+          <button class="btn btn-sm btn-danger" type="button" data-clear>${icons.trash} ${t('Vaciar lista')}</button>
         </div>
         <div class="list-layout">
           <section class="panel">
@@ -126,9 +126,18 @@ export async function renderList({ refresh }) {
           const item = getList().find((i) => i.productId === id);
           setQty(id, (item?.qty ?? 0) + Number(qtyButton.dataset.delta));
           refresh();
-        } else if (event.target.closest('[data-clear]') && confirm(t('¿Vaciar tu lista?'))) {
+        } else if (event.target.closest('[data-clear]')) {
+          // Sin preguntar: se vacía y el aviso deja deshacerlo unos segundos.
+          const previous = getList();
           clearList();
           refresh();
+          toast(t('Vaciaste tu lista'), {
+            action: t('Deshacer'),
+            onAction: () => {
+              restoreList(previous);
+              if (location.pathname.startsWith('/lista')) refresh();
+            },
+          });
         }
       });
     },

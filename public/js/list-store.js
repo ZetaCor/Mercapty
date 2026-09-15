@@ -34,4 +34,9 @@ export function clearList() {
   save([]);
 }
 
+// Vuelve a poner una lista anterior («Deshacer» después de vaciarla).
+export function restoreList(list) {
+  save(list);
+}
+
 export const listCount = () => getList().length;

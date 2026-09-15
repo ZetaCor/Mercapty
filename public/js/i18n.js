@@ -228,7 +228,8 @@ const EN = {
   'Agotado en todas las tiendas: {items}.': 'Out of stock at every store: {items}.',
   'Los totales no incluyen envío: cada tienda tiene su propia tarifa y monto mínimo.':
     'Totals don’t include delivery: each store has its own fee and minimum order.',
-  '¿Vaciar tu lista?': 'Clear your list?',
+  'Vaciaste tu lista': 'List cleared',
+  Deshacer: 'Undo',
 
   // Tiendas (stores.js)
   'precios de su web': 'prices from its website',

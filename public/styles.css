@@ -522,6 +522,12 @@ a.footer-badge:hover { background: var(--brand); }
 
 .toast {
   position: fixed; left: 50%; bottom: 1.5rem; z-index: 40; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 1rem; width: max-content; max-width: calc(100vw - 2rem);
   padding: .7rem 1.15rem; border-radius: 999px; background: var(--text); color: #fff; font-weight: 500; box-shadow: var(--shadow);
 }
+.toast button {
+  margin: -.3rem -.55rem -.3rem 0; padding: .3rem .75rem; border: 0; border-radius: 999px;
+  background: rgb(255 255 255 / 14%); color: #fff; font: inherit; font-weight: 700; cursor: pointer;
+}
+.toast button:hover { background: rgb(255 255 255 / 24%); }
 @media (max-width: 760px) { .toast { bottom: calc(80px + env(safe-area-inset-bottom)); } }

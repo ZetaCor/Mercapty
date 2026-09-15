@@ -47,6 +47,13 @@ const PATHS = {
   trash: <Path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />,
   check: <Path d="M5 12.5l4.5 4.5L19 7.5" />,
   close: <Path d="M6 6l12 12M18 6 6 18" />,
+  barcode: (
+    <>
+      <Path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" />
+      <Path d="M8 8v8M11 8v8M14 8v8M17 8v8" />
+    </>
+  ),
+  flash: <Path d="M13 3 5 13.5h6L10 21l8-10.5h-6L13 3z" />,
   globe: (
     <>
       <Circle cx={12} cy={12} r={9} />

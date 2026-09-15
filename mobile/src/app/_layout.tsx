@@ -95,6 +95,7 @@ function App() {
                 headerStyle: { backgroundColor: C.bg },
               }}
             />
+            <Stack.Screen name="escanear" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
           </Stack.Protected>
         </Stack>
       )}

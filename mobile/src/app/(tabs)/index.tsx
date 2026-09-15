@@ -43,14 +43,23 @@ export default function Inicio() {
     <View style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <Brand size={19} />
-        <Pressable
-          onPress={() => search({ focus: '1' })}
-          style={styles.search}
-          accessibilityRole="search"
-          accessibilityLabel={t('Buscar productos')}>
-          <Icon name="search" size={18} color={C.muted} />
-          <T color={C.muted}>{t('Busca leche, arroz, café…')}</T>
-        </Pressable>
+        <View style={styles.searchRow}>
+          <Pressable
+            onPress={() => search({ focus: '1' })}
+            style={styles.search}
+            accessibilityRole="search"
+            accessibilityLabel={t('Buscar productos')}>
+            <Icon name="search" size={18} color={C.muted} />
+            <T color={C.muted} numberOfLines={1} style={{ flexShrink: 1 }}>{t('Busca leche, arroz, café…')}</T>
+          </Pressable>
+          <Pressable
+            onPress={() => router.push('/escanear')}
+            style={({ pressed }) => [styles.scan, pressed && { backgroundColor: '#e2eaff' }]}
+            accessibilityRole="button"
+            accessibilityLabel={t('Escanear código de barras')}>
+            <Icon name="barcode" size={21} color={C.brand} />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
@@ -162,7 +171,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: C.border,
   },
+  searchRow: { flexDirection: 'row', gap: 10 },
   search: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
@@ -171,6 +182,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: C.soft,
   },
+  scan: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: C.brandSoft },
   content: { paddingTop: 16, paddingBottom: 32 },
   hero: {
     gap: 14,

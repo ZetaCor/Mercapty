@@ -253,4 +253,19 @@ const EN: Record<string, string> = {
   'Quiero sumar mi tienda a Mercapty': 'I want to add my store to Mercapty',
   'Contacto y redes': 'Contact and social media',
   'Ver la bienvenida otra vez': 'See the welcome again',
+
+  // Escanear
+  'Escanear código de barras': 'Scan barcode',
+  'Apunta al código de barras del producto': 'Point at the product’s barcode',
+  'Buscando {code}…': 'Looking up {code}…',
+  'No encontramos el código {code}': 'We couldn’t find code {code}',
+  'Todavía no tenemos ese producto en ninguna tienda. Prueba buscándolo por nombre.':
+    'We don’t have that product at any store yet. Try searching for it by name.',
+  'Escanear otro': 'Scan another',
+  'Buscar por nombre': 'Search by name',
+  'Para leer el código de barras necesitamos la cámara.': 'We need the camera to read the barcode.',
+  'Permitir cámara': 'Allow camera',
+  'Abrir ajustes': 'Open settings',
+  Linterna: 'Flashlight',
+  Cerrar: 'Close',
 };

@@ -258,6 +258,9 @@ App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
   abre encima y se puede compartir con su dirección de la web. «Comprar en…» pasa por `/go/:id` (cuenta la
   visita) y abre la tienda en el navegador dentro de la app.
 - **Mi lista** se guarda en el teléfono (AsyncStorage), con la misma forma que en la web.
+- **Escanear** (botón de código de barras en Inicio y en Buscar, `src/app/escanear.tsx`): la cámara lee EAN, UPC
+  y QR con un enlace de Mercapty. Si el código es de un solo producto abre su ficha; si hay varias presentaciones
+  (unidad y paquete), la búsqueda. Usa la búsqueda por código de la API y funciona en Expo Go.
 - Íconos y splash (`mobile/assets/images/`) salen de `public/icon.svg` y `public/loader.svg`.
 
 Probarla en tu celular, sin emulador:

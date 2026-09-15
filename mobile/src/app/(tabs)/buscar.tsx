@@ -1,7 +1,7 @@
 // Buscar: por nombre, marca o código de barras, con filtro de categoría y orden,
 // como /buscar de la web. Busca mientras escribes y carga más al llegar al final.
 // En inglés también funciona: el servidor entiende «milk», «eggs», «rice»…
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -117,7 +117,15 @@ export default function Buscar() {
             <Pressable onPress={() => setText('')} hitSlop={10} accessibilityLabel={t('Borrar búsqueda')}>
               <Icon name="close" size={18} color={C.muted} />
             </Pressable>
-          ) : null}
+          ) : (
+            <Pressable
+              onPress={() => router.push('/escanear')}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel={t('Escanear código de barras')}>
+              <Icon name="barcode" size={21} color={C.brand} />
+            </Pressable>
+          )}
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} keyboardShouldPersistTaps="handled">
           {[{ name: '', count: 0 }, ...categories].map((c) => {

@@ -10,7 +10,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { LogBox, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { SplashOverlay } from '@/components/splash-overlay';
@@ -24,6 +24,12 @@ import { StoresProvider } from '@/lib/stores';
 
 // El splash nativo (cerdito quieto) queda hasta que SplashOverlay lo reemplaza.
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+// Aviso de desarrollo de expo-router, no de la app: su NavigationContainer pide la dirección
+// inicial durante el primer render y, si React repite ese render, la respuesta llega a una
+// copia que nunca se montó. No aparece en la versión publicada. Quitar cuando Expo lo arregle:
+// https://github.com/expo/expo/issues/35224
+if (__DEV__) LogBox.ignoreLogs(["Can't perform a React state update on a component that hasn't mounted yet"]);
 
 // Si la red está lenta, el arranque no espera más que esto por los precios.
 const PREFETCH_MAX_MS = 4000;

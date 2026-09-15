@@ -234,8 +234,41 @@ Google Play aparecen como «Próximamente».
 **Animación de carga** (`public/loader.svg`): el cerdito del logo corre tras un billete con alas mientras carga
 una página (al abrir la web, y al cambiar de página si tarda más de un tercio de segundo). Es un solo SVG con
 sus movimientos en CSS, sin librerías, y se queda quieto si el equipo pide menos movimiento. Cada parte
-(cuerpo, patas, cola, oreja, billete, alas, piso) es un grupo con su clase, para rehacerla igual en la app
-(Lottie, o react-native-svg con Reanimated).
+(cuerpo, patas, cola, oreja, billete, alas, piso) es un grupo con su clase; la app la rehace igual en
+`mobile/src/components/piggy-loader.tsx`.
+
+### App para iPhone y Android (`mobile/`)
+
+App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
+(`https://mercapty.vercel.app/api/...`): no tiene base de datos ni bots propios.
+
+- **Arranque:** el splash nativo muestra el cerdito de `loader.svg` quieto en el centro. Al abrir, la app dibuja
+  encima el mismo cerdito, que empieza a correr mientras cargan la fuente, «Mi lista» y los precios de la portada
+  (se ve al menos 1.6 s y no espera más de 4 s por la red). `piggy-loader.tsx` rehace cada parte del SVG con sus
+  mismos keyframes, pivotes y tiempos (animaciones CSS de Reanimated); también es la carga de cada pantalla.
+- **Bienvenida («Get started»):** solo la primera vez. Tres páginas que se deslizan: el precio más bajo (con
+  ofertas reales de `/api/deals`), la canasta y el cerdito alcancía con los logos de los súper. «Saltar» o
+  «Empezar a ahorrar» la cierran; «Ver la bienvenida otra vez», al final de Tiendas, la vuelve a mostrar.
+- **Pestañas nativas:** Inicio, Buscar, Mi lista (con la cantidad de productos) y Tiendas; la ficha de producto se
+  abre encima y se puede compartir con su dirección de la web. «Comprar en…» pasa por `/go/:id` (cuenta la
+  visita) y abre la tienda en el navegador dentro de la app.
+- **Mi lista** se guarda en el teléfono (AsyncStorage), con la misma forma que en la web.
+- Íconos y splash (`mobile/assets/images/`) salen de `public/icon.svg` y `public/loader.svg`.
+
+Probarla en tu celular, sin emulador:
+
+1. Instala **Expo Go** (App Store o Google Play).
+2. En `mobile/`: `npm install` y después `npx expo start`.
+3. Escanea el código QR con la cámara (iPhone) o con Expo Go (Android). El celular y la computadora deben estar
+   en la misma red Wi-Fi; si no, `npx expo start --tunnel`.
+
+Usa la API de producción; para probar otra: `EXPO_PUBLIC_API_URL=<dirección> npx expo start`. Revisión de
+tipos: `npx tsc --noEmit`. En Expo Go no aparece el splash nativo (sí el cerdito animado): se ve en una
+compilación de verdad.
+
+**Publicar en App Store y Google Play:** con EAS (`npm i -g eas-cli`, luego `eas build`), que también compila la
+versión de iPhone sin Mac. Antes, confirma `ios.bundleIdentifier` y `android.package` en `mobile/app.json` (hoy
+`com.mercapty.app`): no se pueden cambiar después de publicar. AdSense no funciona dentro de una app; ahí se usa AdMob.
 
 ## Anuncios (Google AdSense)
 
@@ -286,6 +319,7 @@ connectors/     bots: vtex.js, woocommerce.js, instaleap.js, ribasmith.js, magen
 scripts/        ingest.js: corre los bots y guarda en la base · super99.js: bot de Súper 99 · lib/pipeline.js
 server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local)
 public/         index.html, styles.css, js/ (app.js, images.js, views/)
+mobile/         app de Expo: src/app (pantallas), src/components (cerdito, tarjetas…), src/lib (API, lista)
 data/           stores.json, feeds/   · generados (fuera de git): mercapty.db, images/, admin-key.txt
 .github/        workflows/precios.yml: bots dos veces al día · super99.yml: Súper 99 cada noche
 ```

@@ -13,6 +13,7 @@ import { T } from './text';
 import { C, shadow } from '@/constants/theme';
 import type { ProductSummary, Store } from '@/lib/api';
 import { money } from '@/lib/format';
+import { useI18n } from '@/lib/i18n';
 
 const float = (dy: number): CSSAnimationKeyframes => ({
   from: { transform: [{ translateY: 0 }] },
@@ -46,6 +47,7 @@ const CHIP_DELAYS = [0, 4000, 2000]; // en la web: 0, -2 s y -4 s de un ciclo de
 
 export function CompareArt({ deals, stores }: { deals?: ProductSummary[]; stores: Map<string, Store> }) {
   const loop = useLoop();
+  const { t } = useI18n();
   const real = (deals ?? []).filter((d) => d.image).slice(0, 3);
   return (
     <View style={{ width: 330, height: 290 }}>
@@ -71,7 +73,7 @@ export function CompareArt({ deals, stores }: { deals?: ProductSummary[]; stores
             />
             <View style={{ flex: 1, gap: 4 }}>
               <T w={600} size={13} numberOfLines={2} style={{ lineHeight: 17 }}>
-                {deal?.name ?? example.name}
+                {deal?.name ?? t(example.name)}
               </T>
               {deal ? (
                 <View style={styles.row}>
@@ -81,7 +83,7 @@ export function CompareArt({ deals, stores }: { deals?: ProductSummary[]; stores
                 </View>
               ) : (
                 <View style={styles.goodTag}>
-                  <T w={600} size={11.5} color={C.good}>{example.note}</T>
+                  <T w={600} size={11.5} color={C.good}>{t(example.note)}</T>
                 </View>
               )}
             </View>
@@ -111,22 +113,23 @@ const tick: CSSAnimationKeyframes = {
 export function BasketArt() {
   const loop = useLoop();
   const still = useReducedMotion();
+  const { t } = useI18n();
   return (
     <Animated.View style={[styles.basket, loop(float(-6), 4000)]}>
-      <T w={700} size={16} style={{ marginBottom: 6 }}>Tu canasta</T>
+      <T w={700} size={16} style={{ marginBottom: 6 }}>{t('Tu canasta')}</T>
       {BASKET.map(([emoji, name], i) => (
         <View key={name} style={styles.basketRow}>
           <View style={styles.basketEmoji}>
             <T size={18} style={{ lineHeight: 24 }}>{emoji}</T>
           </View>
-          <T w={500} style={{ flex: 1 }}>{name}</T>
+          <T w={500} style={{ flex: 1 }}>{t(name)}</T>
           <Animated.View style={[styles.check, still ? null : { ...loop(tick, 3200, 300 + i * 320) }]}>
             <T w={800} size={12} color={C.good}>✓</T>
           </Animated.View>
         </View>
       ))}
       <View style={styles.basketTotal}>
-        <T w={600} size={14} color="#fff" style={{ textAlign: 'center' }}>Te decimos dónde te cuesta menos</T>
+        <T w={600} size={14} color="#fff" style={{ textAlign: 'center' }}>{t('Te decimos dónde te cuesta menos')}</T>
       </View>
     </Animated.View>
   );

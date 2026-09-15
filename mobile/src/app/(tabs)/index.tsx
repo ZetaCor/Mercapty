@@ -15,6 +15,7 @@ import { C, PAD, R } from '@/constants/theme';
 import type { Category, Meta, ProductSummary, SearchResult } from '@/lib/api';
 import { categoryIcon, categoryTint } from '@/lib/categories';
 import { count, joinList, timeAgo } from '@/lib/format';
+import { hlParts, useI18n } from '@/lib/i18n';
 import { useStores } from '@/lib/stores';
 import { useFetch } from '@/lib/use-fetch';
 
@@ -24,6 +25,7 @@ const search = (params: Record<string, string> = {}) =>
 
 export default function Inicio() {
   const insets = useSafeAreaInsets();
+  const { t, category } = useI18n();
   const stores = useStores();
   const meta = useFetch<Meta>('/api/meta');
   const deals = useFetch<ProductSummary[]>('/api/deals?limit=8');
@@ -45,9 +47,9 @@ export default function Inicio() {
           onPress={() => search({ focus: '1' })}
           style={styles.search}
           accessibilityRole="search"
-          accessibilityLabel="Buscar productos">
+          accessibilityLabel={t('Buscar productos')}>
           <Icon name="search" size={18} color={C.muted} />
-          <T color={C.muted}>Busca leche, arroz, café…</T>
+          <T color={C.muted}>{t('Busca leche, arroz, café…')}</T>
         </Pressable>
       </View>
 
@@ -62,18 +64,18 @@ export default function Inicio() {
           <>
             {meta.data.demo && (
               <View style={{ paddingHorizontal: PAD }}>
-                <Note tone="warn">Modo demostración: los precios son de ejemplo.</Note>
+                <Note tone="warn">{t('Modo demostración: los precios son de ejemplo.')}</Note>
               </View>
             )}
             <Hero meta={meta.data} names={stores.active.map((s) => s.name)} />
 
             <View style={styles.section}>
-              <SectionHead title="Supermercados que comparamos" action="Ver tiendas" onAction={() => router.navigate('/tiendas')} />
+              <SectionHead title={t('Supermercados que comparamos')} action={t('Ver tiendas')} onAction={() => router.navigate('/tiendas')} />
               <StoreMarquee stores={stores.active} />
             </View>
 
             <View style={styles.section}>
-              <SectionHead title="Categorías" />
+              <SectionHead title={t('Categorías')} />
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cats}>
                 {categories.data.map((c) => (
                   <Pressable
@@ -84,25 +86,24 @@ export default function Inicio() {
                     <View style={[styles.catIcon, { backgroundColor: categoryTint(c.name) }]}>
                       <T size={26} style={{ lineHeight: 32 }}>{categoryIcon(c.name)}</T>
                     </View>
-                    <T w={600} size={12.5} numberOfLines={2} style={{ textAlign: 'center', lineHeight: 16 }}>{c.name}</T>
+                    <T w={600} size={12.5} numberOfLines={2} style={{ textAlign: 'center', lineHeight: 16 }}>{category(c.name)}</T>
                   </Pressable>
                 ))}
               </ScrollView>
             </View>
 
             <View style={styles.section}>
-              <SectionHead title="Donde más ahorras eligiendo bien" action="Ver más" onAction={() => search({ orden: 'ahorro' })} />
+              <SectionHead title={t('Donde más ahorras eligiendo bien')} action={t('Ver más')} onAction={() => search({ orden: 'ahorro' })} />
               <ProductGrid items={deals.data} />
             </View>
 
             <View style={styles.section}>
-              <SectionHead title="Productos" action={`Ver todos (${count(all.data.total)})`} onAction={() => search()} />
+              <SectionHead title={t('Productos')} action={t('Ver todos ({n})', { n: count(all.data.total) })} onAction={() => search()} />
               <ProductGrid items={all.data.items} />
             </View>
 
             <T size={12.5} color={C.muted} style={styles.legal}>
-              Los precios se toman de las webs de cada supermercado y pueden cambiar: confirma el precio final en la
-              tienda antes de pagar. Mercapty no vende productos; la compra, el pago y la entrega se hacen en la tienda.
+              {t('Los precios se toman de las webs de cada supermercado y pueden cambiar: confirma el precio final en la tienda antes de pagar. Mercapty no vende productos; la compra, el pago y la entrega se hacen en la tienda.')}
             </T>
           </>
         )}
@@ -114,35 +115,39 @@ export default function Inicio() {
 // La primera diapositiva de la portada de la web. El número y los nombres salen de las
 // tiendas que hoy tienen precios, para no prometer más supermercados de los que se comparan.
 function Hero({ meta, names }: { meta: Meta; names: string[] }) {
-  const where = names.length === 1 ? 'en 1 supermercado' : names.length ? `en ${names.length} supermercados a la vez` : 'en los supermercados de Panamá';
-  const list = names.length ? joinList(names) : 'los principales supermercados en línea de Panamá';
+  const { t } = useI18n();
+  const where = names.length === 1
+    ? t('en 1 supermercado')
+    : names.length ? t('en {n} supermercados a la vez', { n: names.length }) : t('en los supermercados de Panamá');
+  const list = names.length ? joinList(names, t) : t('los principales supermercados en línea de Panamá');
   return (
     <View style={styles.hero}>
       <View style={styles.eyebrow}>
-        <T w={600} size={13} color={C.brand}>Canasta básica · Panamá</T>
+        <T w={600} size={13} color={C.brand}>{t('Canasta básica · Panamá')}</T>
       </View>
       <T w={800} size={27} tight accessibilityRole="header">
-        El <T w={800} size={27} tight color={C.brand}>precio más bajo</T> de tu canasta básica, {where}.
+        {hlParts(t('El [precio más bajo] de tu canasta básica, {where}.', { where })).map((part, i) => (
+          <T key={i} w={800} size={27} tight color={part.hl ? C.brand : C.text}>{part.text}</T>
+        ))}
       </T>
       <T size={15.5} color={C.text2} style={{ lineHeight: 23 }}>
-        Mercapty compara arroz, pollo, huevos, leche y miles de productos en {list}. Arma tu canasta y te decimos
-        exactamente dónde te costará menos.
+        {t('Mercapty compara arroz, pollo, huevos, leche y miles de productos en {list}. Arma tu canasta y te decimos exactamente dónde te costará menos.', { list })}
       </T>
       <View style={styles.actions}>
-        <Button title="Arma tu canasta" variant="primary" size="lg" onPress={() => search()} />
-        <Button title="Ver dónde se ahorra más" size="lg" onPress={() => search({ orden: 'ahorro' })} />
+        <Button title={t('Arma tu canasta')} variant="primary" size="lg" onPress={() => search()} />
+        <Button title={t('Ver dónde se ahorra más')} size="lg" onPress={() => search({ orden: 'ahorro' })} />
       </View>
       <View style={styles.stats}>
         <View>
           <T w={800} size={24} tight>{count(meta.products)}</T>
-          <T size={13} color={C.muted}>productos</T>
+          <T size={13} color={C.muted}>{t('productos')}</T>
         </View>
         <View>
           <T w={800} size={24} tight>{count(meta.offers)}</T>
-          <T size={13} color={C.muted}>precios comparados</T>
+          <T size={13} color={C.muted}>{t('precios comparados')}</T>
         </View>
       </View>
-      <T size={12.5} color={C.muted}>Precios actualizados {timeAgo(meta.updatedAt)}</T>
+      <T size={12.5} color={C.muted}>{t('Precios actualizados {ago}', { ago: timeAgo(meta.updatedAt, t) })}</T>
     </View>
   );
 }

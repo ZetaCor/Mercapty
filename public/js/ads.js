@@ -2,6 +2,7 @@
 // configuración (variable ADSENSE_CLIENT en Vercel). Las vistas marcan cada
 // espacio con adSlot('nombre') y app.js lo activa después de mostrarlo.
 import { html } from './ui.js';
+import { t } from './i18n.js';
 
 let config = null;
 const isLocal = () => ['localhost', '127.0.0.1'].includes(location.hostname);
@@ -25,7 +26,7 @@ export function activateAds(root) {
     box.dataset.adReady = '1';
     if (!config) {
       // En local se ve dónde irá cada anuncio, para revisar el diseño.
-      box.textContent = `Espacio para anuncio · ${box.dataset.ad}`;
+      box.textContent = t('Espacio para anuncio · {name}', { name: box.dataset.ad });
       box.classList.add('ad-preview');
       box.hidden = false;
       continue;
@@ -34,7 +35,7 @@ export function activateAds(root) {
     if (!slot) continue; // sin bloque definido, los anuncios automáticos de AdSense deciden
     const label = document.createElement('span');
     label.className = 'ad-label';
-    label.textContent = 'Publicidad';
+    label.textContent = t('Publicidad');
     const ins = document.createElement('ins');
     ins.className = 'adsbygoogle';
     ins.style.display = 'block';

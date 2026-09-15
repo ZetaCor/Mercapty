@@ -15,21 +15,24 @@ import { EmptyState, ErrorState, Note, Panel } from '@/components/ui';
 import { C, PAD, R, shadow } from '@/constants/theme';
 import { goUrl, postJson, type OptimizeResult } from '@/lib/api';
 import { money } from '@/lib/format';
+import { hlParts, useI18n, type T as Translate } from '@/lib/i18n';
 import { useList } from '@/lib/list';
 
-function confirm(title: string, action: string, onConfirm: () => void) {
+function confirm(t: Translate, onConfirm: () => void) {
+  const title = t('¿Vaciar tu lista?');
   if (Platform.OS === 'web') {
     if (window.confirm(title)) onConfirm();
     return;
   }
   Alert.alert(title, undefined, [
-    { text: 'Cancelar', style: 'cancel' },
-    { text: action, style: 'destructive', onPress: onConfirm },
+    { text: t('Cancelar'), style: 'cancel' },
+    { text: t('Vaciar'), style: 'destructive', onPress: onConfirm },
   ]);
 }
 
 export default function Lista() {
   const insets = useSafeAreaInsets();
+  const { t } = useI18n();
   const { items, setQty, clear } = useList();
   const [result, setResult] = useState<OptimizeResult | null>(null);
   const [error, setError] = useState<Error | null>(null);
@@ -61,21 +64,21 @@ export default function Lista() {
     <View style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View>
-          <T w={800} size={26} tight accessibilityRole="header">Mi lista</T>
-          {items.length > 0 && <T size={13.5} color={C.muted}>{items.length} producto{items.length === 1 ? '' : 's'}</T>}
+          <T w={800} size={26} tight accessibilityRole="header">{t('Mi lista')}</T>
+          {items.length > 0 && (
+            <T size={13.5} color={C.muted}>{items.length === 1 ? t('1 producto') : t('{n} productos', { n: items.length })}</T>
+          )}
         </View>
-        {items.length > 0 && (
-          <Button title="Vaciar lista" size="sm" onPress={() => confirm('¿Vaciar tu lista?', 'Vaciar', clear)} />
-        )}
+        {items.length > 0 && <Button title={t('Vaciar lista')} size="sm" onPress={() => confirm(t, clear)} />}
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         {!items.length ? (
           <EmptyState
             emoji="🛒"
-            title="Tu lista está vacía"
-            text="Agrega productos con el botón + y te decimos dónde te sale más barato comprarlos."
-            action="Ver productos"
+            title={t('Tu lista está vacía')}
+            text={t('Agrega productos con el botón + y te decimos dónde te sale más barato comprarlos.')}
+            action={t('Ver productos')}
             onAction={() => router.navigate('/buscar')}
           />
         ) : (
@@ -90,11 +93,11 @@ export default function Lista() {
                       <T w={500} size={14.5} numberOfLines={3} style={{ lineHeight: 19 }}>{item.label}</T>
                     </Pressable>
                     <View style={styles.qty}>
-                      <Pressable onPress={() => setQty(item.productId, item.qty - 1)} style={styles.qtyButton} accessibilityLabel="Quitar uno">
+                      <Pressable onPress={() => setQty(item.productId, item.qty - 1)} style={styles.qtyButton} accessibilityLabel={t('Quitar uno')}>
                         <Icon name={item.qty === 1 ? 'trash' : 'minus'} size={16} color={item.qty === 1 ? C.promo : C.text} />
                       </Pressable>
                       <T w={700} size={14.5} style={styles.qtyValue}>{item.qty}</T>
-                      <Pressable onPress={() => setQty(item.productId, item.qty + 1)} style={styles.qtyButton} accessibilityLabel="Agregar uno">
+                      <Pressable onPress={() => setQty(item.productId, item.qty + 1)} style={styles.qtyButton} accessibilityLabel={t('Agregar uno')}>
                         <Icon name="plus" size={16} color={C.text} />
                       </Pressable>
                     </View>
@@ -106,7 +109,7 @@ export default function Lista() {
             {error && !result ? (
               <ErrorState message={error.message} onRetry={() => setRetry((n) => n + 1)} />
             ) : !result ? (
-              <LoadingPiggy text="Comparando tu lista en cada tienda…" />
+              <LoadingPiggy text={t('Comparando tu lista en cada tienda…')} />
             ) : (
               <Plans result={result} showAll={showAll} onToggleAll={() => setShowAll((v) => !v)} />
             )}
@@ -118,20 +121,27 @@ export default function Lista() {
 }
 
 function Plans({ result, showAll, onToggleAll }: { result: OptimizeResult; showAll: boolean; onToggleAll: () => void }) {
+  const { t } = useI18n();
   const { split, bestSingle, savings, perStore, considered, unavailable } = result;
   return (
     <View style={{ gap: 14, marginTop: 20 }}>
       {split.stores.length > 0 && (
         <View style={[styles.plan, styles.planBest]}>
-          <T w={700} size={12} color={C.good} style={{ letterSpacing: 0.7 }}>LO MÁS BARATO</T>
+          <T w={700} size={12} color={C.good} style={{ letterSpacing: 0.7 }}>{t('LO MÁS BARATO')}</T>
           <View style={styles.planHead}>
             <T w={700} size={17} style={{ flexShrink: 1 }}>
-              {split.stores.length === 1 ? `Todo en ${split.stores[0].storeName}` : `Repartir en ${split.stores.length} tiendas`}
+              {split.stores.length === 1
+                ? t('Todo en {store}', { store: split.stores[0].storeName })
+                : t('Repartir en {n} tiendas', { n: split.stores.length })}
             </T>
             <T w={800} size={20} tight>{money(split.total)}</T>
           </View>
           {savings != null && savings > 0 && bestSingle && (
-            <Note>Ahorras <T w={700} size={14} color={C.good}>{money(savings)}</T> frente a comprar todo en {bestSingle.storeName}.</Note>
+            <Note>
+              {hlParts(t('Ahorras [{amount}] frente a comprar todo en {store}.', { amount: money(savings), store: bestSingle.storeName })).map((part, i) => (
+                <T key={i} w={part.hl ? 700 : 400} size={14} color={C.good}>{part.text}</T>
+              ))}
+            </Note>
           )}
           {split.stores.map((group) => (
             <View key={group.storeId} style={styles.planStore}>
@@ -158,7 +168,7 @@ function Plans({ result, showAll, onToggleAll }: { result: OptimizeResult; showA
       {bestSingle && split.stores.length > 1 && (
         <View style={styles.plan}>
           <View style={styles.planHead}>
-            <T w={700} size={17}>Todo en una sola tienda</T>
+            <T w={700} size={17}>{t('Todo en una sola tienda')}</T>
             <T w={800} size={20} tight>{money(bestSingle.total)}</T>
           </View>
           <View style={[styles.cellStore, { marginTop: 10 }]}>
@@ -167,8 +177,8 @@ function Plans({ result, showAll, onToggleAll }: { result: OptimizeResult; showA
           </View>
           <T size={14} color={C.muted} style={{ marginTop: 8 }}>
             {bestSingle.complete
-              ? 'Tiene todos tus productos: pagas un poco más, pero con un solo envío.'
-              : `Le faltan: ${bestSingle.missing.join(', ')}.`}
+              ? t('Tiene todos tus productos: pagas un poco más, pero con un solo envío.')
+              : t('Le faltan: {items}.', { items: bestSingle.missing.join(', ') })}
           </T>
         </View>
       )}
@@ -176,14 +186,14 @@ function Plans({ result, showAll, onToggleAll }: { result: OptimizeResult; showA
       {perStore.length > 0 && (
         <View style={styles.plan}>
           <Pressable onPress={onToggleAll} style={styles.planHead} accessibilityRole="button" accessibilityState={{ expanded: showAll }}>
-            <T w={600}>Comparar todas las tiendas</T>
+            <T w={600}>{t('Comparar todas las tiendas')}</T>
             <Icon name={showAll ? 'down' : 'next'} size={18} color={C.muted} />
           </Pressable>
           {showAll && (
             <View style={{ marginTop: 10 }}>
               <View style={styles.rankRow}>
-                <T w={600} size={11.5} color={C.muted} style={{ flex: 1 }}>TIENDA</T>
-                <T w={600} size={11.5} color={C.muted} style={styles.rankCell}>TIENE</T>
+                <T w={600} size={11.5} color={C.muted} style={{ flex: 1 }}>{t('TIENDA')}</T>
+                <T w={600} size={11.5} color={C.muted} style={styles.rankCell}>{t('TIENE')}</T>
                 <T w={600} size={11.5} color={C.muted} style={styles.rankTotal}>TOTAL</T>
               </View>
               {perStore.map((s) => (
@@ -201,8 +211,8 @@ function Plans({ result, showAll, onToggleAll }: { result: OptimizeResult; showA
         </View>
       )}
 
-      {unavailable.length > 0 && <T size={14} color={C.muted}>Agotado en todas las tiendas: {unavailable.join(', ')}.</T>}
-      <T size={12.5} color={C.muted}>Los totales no incluyen envío: cada tienda tiene su propia tarifa y monto mínimo.</T>
+      {unavailable.length > 0 && <T size={14} color={C.muted}>{t('Agotado en todas las tiendas: {items}.', { items: unavailable.join(', ') })}</T>}
+      <T size={12.5} color={C.muted}>{t('Los totales no incluyen envío: cada tienda tiene su propia tarifa y monto mínimo.')}</T>
     </View>
   );
 }

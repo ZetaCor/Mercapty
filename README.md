@@ -277,6 +277,23 @@ WhatsApp, correo, Instagram y Facebook se configuran en un solo lugar, `server/c
 supermercados) y a la app (final de Tiendas), sin publicar otra versión de la app. Un campo vacío no se muestra.
 El correo también está escrito en `public/privacidad.html`: si cambia, cámbialo en los dos.
 
+## Idiomas (español e inglés)
+
+La web y la app se pueden usar en español o en inglés. En el código los textos van en español y `t()` los cambia por
+su traducción: la web en `public/js/i18n.js` y la app en `mobile/src/lib/i18n.tsx`. Si falta una traducción, se ve el
+español. Para un texto nuevo, escríbelo con `t('…')` y agrega su traducción al diccionario `EN` del mismo archivo.
+
+- **Web:** botón «EN / ES» arriba (en el celular, junto al logo) y enlace «English / Español» en el pie de página. La
+  elección se guarda en el navegador; la primera vez se usa el idioma del navegador. Cambiar de idioma recarga la
+  página. La política de privacidad tiene su versión en inglés en la misma página. El panel de imágenes (`/admin`)
+  queda en español.
+- **App:** «EN» junto a «Saltar» en la bienvenida e «Idioma · Language» al final de Tiendas. El cambio es inmediato y
+  se guarda en el teléfono; la primera vez se usa el idioma del teléfono.
+- Los nombres de los productos quedan como los publica cada tienda (en español). Para quien busca en inglés, el
+  servidor entiende las palabras más comunes del súper («milk» → leche, «eggs» → huevos, «toilet paper» → papel
+  higiénico): lista `ENGLISH` en `server/api.js`.
+- Google indexa la web en español: las direcciones son las mismas en los dos idiomas.
+
 ## Anuncios (Google AdSense)
 
 Los espacios ya están colocados en la portada, la búsqueda y la ficha de producto. En tu computadora se
@@ -324,7 +341,7 @@ api/index.js    función de Vercel (usa server/app.js)
 connectors/     bots: vtex.js, woocommerce.js, instaleap.js, ribasmith.js, magento.js, shopify.js, super99.js, feed.js
 scripts/        ingest.js: corre los bots y guarda en la base · super99.js: bot de Súper 99 · lib/pipeline.js
 server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local), contact.js (contacto)
-public/         index.html, styles.css, js/ (app.js, images.js, views/)
+public/         index.html, styles.css, js/ (app.js, i18n.js, images.js, views/)
 mobile/         app de Expo: src/app (pantallas), src/components (cerdito, tarjetas…), src/lib (API, lista)
 data/           stores.json, feeds/   · generados (fuera de git): mercapty.db, images/, admin-key.txt
 .github/        workflows/precios.yml: bots dos veces al día · super99.yml: Súper 99 cada noche

@@ -19,100 +19,106 @@
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="/" aria-label="Mercapty, inicio">
+      <a class="brand" href="/" aria-label="Mercapty, inicio" data-i18n-attr="aria-label">
         <img src="/icon.svg" alt="" width="34" height="34">
         <span>Merca<b>pty</b></span>
       </a>
       <form class="search" id="search-form" role="search">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="search-input" type="search" name="q" placeholder="Busca leche, arroz, café…" autocomplete="off" aria-label="Buscar productos">
-        <button type="submit">Buscar</button>
+        <input id="search-input" type="search" name="q" placeholder="Busca leche, arroz, café…" autocomplete="off" aria-label="Buscar productos" data-i18n-attr="placeholder,aria-label">
+        <button type="submit" data-i18n>Buscar</button>
       </form>
-      <nav class="nav" aria-label="Principal">
-        <a href="/" data-nav="inicio">Inicio</a>
-        <a href="/tiendas" data-nav="tiendas">Tiendas</a>
+      <nav class="nav" aria-label="Principal" data-i18n-attr="aria-label">
+        <a href="/" data-nav="inicio" data-i18n>Inicio</a>
+        <a href="/tiendas" data-nav="tiendas" data-i18n>Tiendas</a>
         <a href="/app" data-nav="app">App</a>
         <a href="/lista" data-nav="lista">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
-          Mi lista <span class="count list-count" hidden>0</span>
+          <span data-i18n>Mi lista</span> <span class="count list-count" hidden>0</span>
         </a>
       </nav>
+      <!-- Idioma: muestra el otro idioma; app.js le pone el texto y lo activa. -->
+      <button class="lang-toggle" type="button" data-lang-toggle="short" aria-label="Switch to English" lang="en">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9"/></svg>
+        <span data-lang-label>EN</span>
+      </button>
     </div>
   </header>
 
   <div class="container">
     <div id="demo-banner" class="notice" hidden>
       <span class="notice-dot" aria-hidden="true"></span>
-      <span><b>Modo demostración:</b> los precios son de ejemplo. Los botones «Comprar» sí te llevan a la búsqueda del producto en cada tienda.</span>
+      <span><b data-i18n>Modo demostración:</b> <span data-i18n>los precios son de ejemplo. Los botones «Comprar» sí te llevan a la búsqueda del producto en cada tienda.</span></span>
     </div>
   </div>
 
   <main id="view" class="container" tabindex="-1">
     <div class="loader" role="status">
       <img src="/loader.svg" alt="" width="240" height="120">
-      <p>Buscando los mejores precios…</p>
+      <p data-i18n>Buscando los mejores precios…</p>
     </div>
   </main>
 
   <footer class="footer">
     <div class="container footer-grid">
       <div class="footer-brand">
-        <a class="brand" href="/" aria-label="Mercapty, inicio">
+        <a class="brand" href="/" aria-label="Mercapty, inicio" data-i18n-attr="aria-label">
           <img src="/icon.svg" alt="" width="34" height="34">
           <span>Merca<b>pty</b></span>
         </a>
-        <p>Compara los precios del súper en Panamá y ahorra en cada compra.</p>
-        <div class="footer-badges" aria-label="La app llega pronto">
-          <a class="footer-badge" href="/app"><small>Próximamente en</small>App Store</a>
-          <a class="footer-badge" href="/app"><small>Próximamente en</small>Google Play</a>
+        <p data-i18n>Compara los precios del súper en Panamá y ahorra en cada compra.</p>
+        <div class="footer-badges" aria-label="La app llega pronto" data-i18n-attr="aria-label">
+          <a class="footer-badge" href="/app"><small data-i18n>Próximamente en</small>App Store</a>
+          <a class="footer-badge" href="/app"><small data-i18n>Próximamente en</small>Google Play</a>
         </div>
       </div>
-      <nav class="footer-col" aria-label="Explorar">
-        <h3>Explorar</h3>
-        <a href="/">Inicio</a>
-        <a href="/buscar">Buscar productos</a>
-        <a href="/buscar?orden=ahorro">Mayores ahorros</a>
-        <a href="/lista">Mi lista</a>
-        <a href="/app">Descarga la app</a>
+      <nav class="footer-col" aria-label="Explorar" data-i18n-attr="aria-label">
+        <h3 data-i18n>Explorar</h3>
+        <a href="/" data-i18n>Inicio</a>
+        <a href="/buscar" data-i18n>Buscar productos</a>
+        <a href="/buscar?orden=ahorro" data-i18n>Mayores ahorros</a>
+        <a href="/lista" data-i18n>Mi lista</a>
+        <a href="/app" data-i18n>Descarga la app</a>
       </nav>
-      <nav class="footer-col" aria-label="Supermercados">
-        <h3>Supermercados</h3>
-        <div id="footer-stores"><a href="/tiendas">Ver tiendas</a></div>
+      <nav class="footer-col" aria-label="Supermercados" data-i18n-attr="aria-label">
+        <h3 data-i18n>Supermercados</h3>
+        <div id="footer-stores"><a href="/tiendas" data-i18n>Ver tiendas</a></div>
       </nav>
       <div class="footer-col">
-        <h3>Para comercios</h3>
-        <p>¿Tienes un súper o minisúper? Comparte tu inventario y llega a más clientes.</p>
-        <a href="/tiendas">Cómo sumarte</a>
+        <h3 data-i18n>Para comercios</h3>
+        <p data-i18n>¿Tienes un súper o minisúper? Comparte tu inventario y llega a más clientes.</p>
+        <a href="/tiendas" data-i18n>Cómo sumarte</a>
       </div>
-      <nav class="footer-col" id="footer-contact-col" aria-label="Contacto y redes" hidden>
-        <h3>Contacto</h3>
+      <nav class="footer-col" id="footer-contact-col" aria-label="Contacto y redes" data-i18n-attr="aria-label" hidden>
+        <h3 data-i18n>Contacto</h3>
         <div id="footer-contact" class="footer-contact"></div>
       </nav>
     </div>
     <div class="container footer-bottom">
-      <p>© <span id="footer-year">2026</span> Mercapty. Los precios se toman de las webs de cada supermercado y pueden
+      <p>© <span id="footer-year">2026</span> <span data-i18n>Mercapty. Los precios se toman de las webs de cada supermercado y pueden
         cambiar: confirma el precio final en la tienda antes de pagar. Mercapty no vende productos; la compra, el pago y
-        la entrega se hacen en la tienda.</p>
+        la entrega se hacen en la tienda.</span></p>
       <nav class="footer-links" aria-label="Legal">
-        <a href="/privacidad.html">Política de privacidad</a>
-        <a href="/tiendas">Para comercios</a>
+        <a href="/privacidad.html" data-i18n>Política de privacidad</a>
+        <a href="/tiendas" data-i18n>Para comercios</a>
+        <button class="footer-lang" type="button" data-lang-toggle="long" lang="en">English</button>
       </nav>
     </div>
   </footer>
 
-  <nav class="tabbar" aria-label="Principal">
+  <nav class="tabbar" aria-label="Principal" data-i18n-attr="aria-label">
     <a href="/" data-nav="inicio">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.5 12 3.5l8.5 7V20H15v-5.5H9V20H3.5z"/></svg>
-      Inicio
+      <span data-i18n>Inicio</span>
     </a>
     <a href="/buscar" data-nav="buscar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      Buscar
+      <span data-i18n>Buscar</span>
     </a>
     <a href="/lista" data-nav="lista">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
       <span class="count list-count" hidden>0</span>
-      Mi lista
+      <span data-i18n>Mi lista</span>
     </a>
     <a href="/app" data-nav="app">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2" stroke-linecap="round"/></svg>
@@ -120,7 +126,7 @@
     </a>
     <a href="/tiendas" data-nav="tiendas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h16l-1.5-5h-13z"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/></svg>
-      Tiendas
+      <span data-i18n>Tiendas</span>
     </a>
   </nav>
 

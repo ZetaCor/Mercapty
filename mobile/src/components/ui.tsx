@@ -6,6 +6,7 @@ import { Button } from './button';
 import { T } from './text';
 
 import { C, PAD, R } from '@/constants/theme';
+import { useI18n } from '@/lib/i18n';
 
 export function SectionHead({ title, sub, action, onAction }: {
   title: string;
@@ -75,12 +76,13 @@ export function EmptyState({ emoji, title, text, action, onAction }: {
 }
 
 export function ErrorState({ message, onRetry }: { message?: string; onRetry?: () => void }) {
+  const { t } = useI18n();
   return (
     <EmptyState
       emoji="😕"
-      title="No pudimos cargar esta página"
-      text={message}
-      action={onRetry ? 'Reintentar' : undefined}
+      title={t('No pudimos cargar esta página')}
+      text={message ? t(message) : undefined} // los mensajes conocidos (sin conexión) también se traducen
+      action={onRetry ? t('Reintentar') : undefined}
       onAction={onRetry}
     />
   );

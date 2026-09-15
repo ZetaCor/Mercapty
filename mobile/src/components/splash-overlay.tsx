@@ -11,11 +11,13 @@ import { PiggyLoader } from './piggy-loader';
 import { T } from './text';
 
 import { C } from '@/constants/theme';
+import { useI18n } from '@/lib/i18n';
 
 const MIN_MS = 1600; // una vuelta completa del billete: se alcanza a ver al cerdito correr
 
 export function SplashOverlay({ ready, fontsReady }: { ready: boolean; fontsReady: boolean }) {
   const [visible, setVisible] = useState(true);
+  const { t } = useI18n();
   const [minElapsed, setMinElapsed] = useState(false);
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export function SplashOverlay({ ready, fontsReady }: { ready: boolean; fontsRead
           <T size={26} w={600} tight>
             Merca<T size={26} w={800} tight color={C.brand}>pty</T>
           </T>
-          <T size={14} color={C.muted}>Buscando los mejores precios…</T>
+          <T size={14} color={C.muted}>{t('Buscando los mejores precios…')}</T>
         </Animated.View>
       )}
     </Animated.View>
@@ -67,11 +69,13 @@ const styles = StyleSheet.create({
 });
 
 // Para las pantallas que cargan: el mismo cerdito que en la web.
-export function LoadingPiggy({ text = 'Buscando los mejores precios…' }: { text?: string }) {
+export function LoadingPiggy({ text }: { text?: string }) {
+  const { t } = useI18n();
+  const label = text ?? t('Buscando los mejores precios…');
   return (
-    <View style={loadingStyles.box} accessibilityRole="progressbar" accessibilityLabel={text}>
+    <View style={loadingStyles.box} accessibilityRole="progressbar" accessibilityLabel={label}>
       <PiggyLoader width={200} />
-      <T w={500} color={C.muted}>{text}</T>
+      <T w={500} color={C.muted}>{label}</T>
     </View>
   );
 }

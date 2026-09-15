@@ -10,11 +10,23 @@ import { renderList } from './views/list.js';
 import { renderStores } from './views/stores.js';
 import { renderAdmin } from './views/admin.js';
 import { renderAppPage } from './views/app-page.js';
+import { t, lang, setLang, translateStatic } from './i18n.js';
 import './install.js'; // escucha el aviso de instalación desde que carga la página
 
 const view = document.getElementById('view');
 const searchInput = document.getElementById('search-input');
-const DEFAULT_TITLE = 'Mercapty · Compara precios de supermercados en Panamá';
+const DEFAULT_TITLE = t('Mercapty · Compara precios de supermercados en Panamá');
+
+// Idioma: los textos fijos de la página y los botones «EN / ES» (arriba y en el pie).
+translateStatic();
+const otherLang = lang === 'en' ? 'es' : 'en';
+for (const button of document.querySelectorAll('[data-lang-toggle]')) {
+  const label = button.querySelector('[data-lang-label]') ?? button;
+  label.textContent = button.dataset.langToggle === 'short' ? otherLang.toUpperCase() : otherLang === 'en' ? 'English' : 'Español';
+  button.lang = otherLang;
+  button.setAttribute('aria-label', otherLang === 'en' ? 'Switch to English' : 'Cambiar a español');
+  button.addEventListener('click', () => setLang(otherLang));
+}
 
 // [ruta, vista, sección del menú]
 const ROUTES = [
@@ -30,12 +42,12 @@ const isAppRoute = (pathname) => ROUTES.some(([re]) => re.test(pathname));
 
 function renderNotFound() {
   return {
-    title: 'Página no encontrada',
+    title: t('Página no encontrada'),
     html: html`
       <div class="empty">
         <div class="big">🧭</div>
-        <h1>No encontramos esta página</h1>
-        <p><a href="/">Vuelve al inicio</a> o busca un producto arriba.</p>
+        <h1>${t('No encontramos esta página')}</h1>
+        <p><a href="/">${t('Vuelve al inicio')}</a> ${t('o busca un producto arriba.')}</p>
       </div>`,
   };
 }
@@ -92,7 +104,7 @@ async function router({ keepScroll = false } = {}) {
     activateAds(view);
   } catch (err) {
     if (seq !== renderSeq) return;
-    mount(view, html`<div class="empty"><div class="big">😕</div><p>No pudimos cargar esta página.</p><p>${err.message}</p></div>`);
+    mount(view, html`<div class="empty"><div class="big">😕</div><p>${t('No pudimos cargar esta página.')}</p><p>${err.message}</p></div>`);
   }
   clearTimeout(slow);
   if (!keepScroll) {
@@ -120,7 +132,7 @@ document.addEventListener('click', (event) => {
   if (!button) return;
   event.preventDefault();
   addToList({ productId: Number(button.dataset.add), label: button.dataset.label });
-  toast('Agregado a tu lista');
+  toast(t('Agregado a tu lista'));
 });
 
 // Los enlaces internos cambian de página sin recargar; los externos, los que

@@ -60,9 +60,17 @@ select, .input {
   border-bottom: 1px solid var(--border);
 }
 .topbar-inner {
-  max-width: 1200px; margin: 0 auto; padding: .7rem 1.25rem;
-  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .75rem 1.5rem; align-items: center;
+  position: relative; max-width: 1200px; margin: 0 auto; padding: .7rem 1.25rem;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: .75rem 1.5rem; align-items: center;
 }
+/* Botón de idioma: muestra el otro idioma («EN» o «ES»). */
+.lang-toggle {
+  display: inline-flex; align-items: center; gap: .35rem; padding: .42rem .7rem; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 999px; background: #fff;
+  color: var(--text-2); font: inherit; font-size: .82rem; font-weight: 700; letter-spacing: .02em;
+}
+.lang-toggle:hover { background: var(--soft); border-color: var(--border-2); }
+.lang-toggle svg { width: 16px; height: 16px; }
 .brand { display: flex; align-items: center; gap: .55rem; font-size: 1.2rem; font-weight: 600; color: var(--text); letter-spacing: -.02em; }
 .brand b { color: var(--brand); font-weight: 800; }
 .brand img { border-radius: 10px; }
@@ -105,6 +113,8 @@ select, .input {
 
 @media (max-width: 760px) {
   .topbar-inner { grid-template-columns: 1fr; gap: .6rem; padding: .6rem 1rem; }
+  .lang-toggle { position: absolute; top: .6rem; right: 1rem; }
+  .topbar .brand { justify-self: start; } /* el enlace del logo no pasa por debajo del botón de idioma */
   .nav { display: none; }
   .search { max-width: none; }
   .tabbar { display: grid; }
@@ -470,6 +480,8 @@ a.footer-badge:hover { background: var(--brand); }
 .footer-links { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: .75rem; }
 .footer-links a { color: var(--muted); }
 .footer-links a:hover { color: var(--brand); }
+.footer-lang { padding: 0; border: 0; background: none; color: var(--muted); font: inherit; cursor: pointer; }
+.footer-lang:hover { color: var(--brand); }
 
 /* ---------- Página de la app ---------- */
 .app-hero {

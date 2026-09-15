@@ -1,17 +1,20 @@
 import { postJson } from '../api.js';
-import { html, money, storeAvatar, productMedia } from '../ui.js';
+import { html, hl, money, storeAvatar, productMedia } from '../ui.js';
+import { t } from '../i18n.js';
 import { getList, setQty, clearList } from '../list-store.js';
 
 function cheapestPlan({ split, bestSingle, savings }) {
   if (!split.stores.length) return '';
   const title = split.stores.length === 1
-    ? `Todo en ${split.stores[0].storeName}`
-    : `Repartir en ${split.stores.length} tiendas`;
+    ? t('Todo en {store}', { store: split.stores[0].storeName })
+    : t('Repartir en {n} tiendas', { n: split.stores.length });
   return html`
     <div class="plan best">
-      <div class="best-label">Lo más barato</div>
+      <div class="best-label">${t('Lo más barato')}</div>
       <div class="plan-head"><h2>${title}</h2><span class="price">${money(split.total)}</span></div>
-      ${savings > 0 ? html`<div class="saving-note">Ahorras <b>${money(savings)}</b> frente a comprar todo en ${bestSingle.storeName}.</div>` : ''}
+      ${savings > 0
+        ? html`<div class="saving-note">${hl(t('Ahorras [{amount}] frente a comprar todo en {store}.', { amount: money(savings), store: bestSingle.storeName }), 'b')}</div>`
+        : ''}
       ${split.stores.map((group) => html`
         <div class="plan-store">
           <div class="plan-head">
@@ -33,11 +36,11 @@ function singleStorePlan({ bestSingle, split }) {
   if (!bestSingle || split.stores.length <= 1) return '';
   return html`
     <div class="plan">
-      <div class="plan-head"><h2>Todo en una sola tienda</h2><span class="price">${money(bestSingle.total)}</span></div>
+      <div class="plan-head"><h2>${t('Todo en una sola tienda')}</h2><span class="price">${money(bestSingle.total)}</span></div>
       <p class="cell-store">${storeAvatar(bestSingle.storeName, bestSingle.storeColor)} <b>${bestSingle.storeName}</b></p>
       <p class="muted">${bestSingle.complete
-        ? 'Tiene todos tus productos: pagas un poco más, pero con un solo envío.'
-        : `Le faltan: ${bestSingle.missing.join(', ')}.`}</p>
+        ? t('Tiene todos tus productos: pagas un poco más, pero con un solo envío.')
+        : t('Le faltan: {items}.', { items: bestSingle.missing.join(', ') })}</p>
     </div>`;
 }
 
@@ -45,9 +48,9 @@ function storeRanking({ perStore, considered }) {
   if (!perStore.length) return '';
   return html`
     <details class="panel">
-      <summary>Comparar todas las tiendas</summary>
+      <summary>${t('Comparar todas las tiendas')}</summary>
       <table class="store-rank">
-        <thead><tr><th>Tienda</th><th>Tiene</th><th>Total</th></tr></thead>
+        <thead><tr><th>${t('Tienda')}</th><th>${t('Tiene')}</th><th>Total</th></tr></thead>
         <tbody>
           ${perStore.map((s) => html`
             <tr>
@@ -65,12 +68,12 @@ export async function renderList({ refresh }) {
   if (!list.length) {
     return {
       html: html`
-        <h1>Mi lista</h1>
+        <h1>${t('Mi lista')}</h1>
         <div class="panel empty">
           <div class="big">🛒</div>
-          <p>Tu lista está vacía.</p>
-          <p>Agrega productos con el botón <b>+</b> y te decimos dónde te sale más barato comprarlos.</p>
-          <a class="btn btn-primary" href="/buscar">Ver productos</a>
+          <p>${t('Tu lista está vacía.')}</p>
+          <p>${hl(t('Agrega productos con el botón [+] y te decimos dónde te sale más barato comprarlos.'), 'b')}</p>
+          <a class="btn btn-primary" href="/buscar">${t('Ver productos')}</a>
         </div>`,
     };
   }
@@ -84,10 +87,10 @@ export async function renderList({ refresh }) {
       <div class="list-page">
         <div class="section-head">
           <div>
-            <h1>Mi lista</h1>
-            <span class="muted">${list.length} producto${list.length === 1 ? '' : 's'}</span>
+            <h1>${t('Mi lista')}</h1>
+            <span class="muted">${list.length === 1 ? t('1 producto') : t('{n} productos', { n: list.length })}</span>
           </div>
-          <button class="btn btn-sm" type="button" data-clear>Vaciar lista</button>
+          <button class="btn btn-sm" type="button" data-clear>${t('Vaciar lista')}</button>
         </div>
         <div class="list-layout">
           <section class="panel">
@@ -98,9 +101,9 @@ export async function renderList({ refresh }) {
                   ${productMedia({ image: thumb.image, category: thumb.category, name: item.label }, { className: 'thumb' })}
                   <a href="/producto/${item.productId}">${item.label}</a>
                   <div class="qty">
-                    <button type="button" data-qty="${item.productId}" data-delta="-1" aria-label="Quitar uno">−</button>
+                    <button type="button" data-qty="${item.productId}" data-delta="-1" aria-label="${t('Quitar uno')}">−</button>
                     <span>${item.qty}</span>
-                    <button type="button" data-qty="${item.productId}" data-delta="1" aria-label="Agregar uno">+</button>
+                    <button type="button" data-qty="${item.productId}" data-delta="1" aria-label="${t('Agregar uno')}">+</button>
                   </div>
                 </div>`;
             })}
@@ -109,8 +112,8 @@ export async function renderList({ refresh }) {
             ${cheapestPlan(result)}
             ${singleStorePlan(result)}
             ${storeRanking(result)}
-            ${result.unavailable.length ? html`<p class="muted">Agotado en todas las tiendas: ${result.unavailable.join(', ')}.</p>` : ''}
-            <p class="meta">Los totales no incluyen envío: cada tienda tiene su propia tarifa y monto mínimo.</p>
+            ${result.unavailable.length ? html`<p class="muted">${t('Agotado en todas las tiendas: {items}.', { items: result.unavailable.join(', ') })}</p>` : ''}
+            <p class="meta">${t('Los totales no incluyen envío: cada tienda tiene su propia tarifa y monto mínimo.')}</p>
           </section>
         </div>
       </div>`,
@@ -123,7 +126,7 @@ export async function renderList({ refresh }) {
           const item = getList().find((i) => i.productId === id);
           setQty(id, (item?.qty ?? 0) + Number(qtyButton.dataset.delta));
           refresh();
-        } else if (event.target.closest('[data-clear]') && confirm('¿Vaciar tu lista?')) {
+        } else if (event.target.closest('[data-clear]') && confirm(t('¿Vaciar tu lista?'))) {
           clearList();
           refresh();
         }

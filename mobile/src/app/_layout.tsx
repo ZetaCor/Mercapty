@@ -17,6 +17,7 @@ import { SplashOverlay } from '@/components/splash-overlay';
 import { ToastProvider } from '@/components/toast';
 import { C } from '@/constants/theme';
 import { prefetchHome } from '@/lib/api';
+import { I18nProvider, useI18n } from '@/lib/i18n';
 import { ListProvider } from '@/lib/list';
 import { OnboardingProvider, useOnboarding } from '@/lib/onboarding';
 import { StoresProvider } from '@/lib/stores';
@@ -30,15 +31,17 @@ const PREFETCH_MAX_MS = 4000;
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <OnboardingProvider>
-        <StoresProvider>
-          <ListProvider>
-            <ToastProvider>
-              <App />
-            </ToastProvider>
-          </ListProvider>
-        </StoresProvider>
-      </OnboardingProvider>
+      <I18nProvider>
+        <OnboardingProvider>
+          <StoresProvider>
+            <ListProvider>
+              <ToastProvider>
+                <App />
+              </ToastProvider>
+            </ListProvider>
+          </StoresProvider>
+        </OnboardingProvider>
+      </I18nProvider>
     </SafeAreaProvider>
   );
 }
@@ -53,6 +56,7 @@ function App() {
   });
   const fontsReady = fontsLoaded || fontError != null; // sin Inter, la app sigue con la letra del sistema
   const { seen } = useOnboarding();
+  const { ready: langReady } = useI18n(); // el idioma guardado, antes de mostrar textos
 
   // Mientras corre el cerdito se piden los datos de la portada y de la bienvenida.
   const [dataReady, setDataReady] = useState(false);
@@ -62,7 +66,7 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  const ready = fontsReady && seen !== null;
+  const ready = fontsReady && seen !== null && langReady;
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar style="dark" />

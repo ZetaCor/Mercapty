@@ -1,5 +1,6 @@
 import { getJson } from '../api.js';
 import { html, productGrid, categoryIcon, categoryTint } from '../ui.js';
+import { t, category } from '../i18n.js';
 import { renderHero, bindHero } from './hero.js';
 import { storeMarquee } from './store-marquee.js';
 import { adSlot } from '../ads.js';
@@ -26,22 +27,22 @@ function searchHref({ q = '', categoria = '', orden = '', pagina = 1 }) {
 
 function categoryTiles(categories) {
   return html`
-    <nav class="cats" aria-label="Categorías">
+    <nav class="cats" aria-label="${t('Categorías')}">
       ${categories.map((c) => html`
         <a class="cat" href="${searchHref({ categoria: c.name })}">
           <span class="cat-icon" style="--ph:${categoryTint(c.name)}" aria-hidden="true">${categoryIcon(c.name)}</span>
-          ${c.name}
+          ${category(c.name)}
         </a>`)}
     </nav>`;
 }
 
 function categoryChips(categories, current) {
   return html`
-    <nav class="chips" aria-label="Categorías">
-      <a class="chip ${current.categoria ? '' : 'is-active'}" href="${searchHref({ ...current, categoria: '' })}">Todo</a>
+    <nav class="chips" aria-label="${t('Categorías')}">
+      <a class="chip ${current.categoria ? '' : 'is-active'}" href="${searchHref({ ...current, categoria: '' })}">${t('Todo')}</a>
       ${categories.map((c) => html`
         <a class="chip ${current.categoria === c.name ? 'is-active' : ''}" href="${searchHref({ ...current, categoria: c.name })}">
-          ${categoryIcon(c.name)} ${c.name}
+          ${categoryIcon(c.name)} ${category(c.name)}
         </a>`)}
     </nav>`;
 }
@@ -59,14 +60,14 @@ export async function renderHome({ stores }) {
       ${storeMarquee(stores)}
 
       <section class="section">
-        <div class="section-head"><h2>Categorías</h2></div>
+        <div class="section-head"><h2>${t('Categorías')}</h2></div>
         ${categoryTiles(categories)}
       </section>
 
       <section class="section">
         <div class="section-head">
-          <h2>Donde más ahorras eligiendo bien</h2>
-          <a class="link" href="${searchHref({ orden: 'ahorro' })}">Ver más</a>
+          <h2>${t('Donde más ahorras eligiendo bien')}</h2>
+          <a class="link" href="${searchHref({ orden: 'ahorro' })}">${t('Ver más')}</a>
         </div>
         ${productGrid(deals, stores)}
       </section>
@@ -75,8 +76,8 @@ export async function renderHome({ stores }) {
 
       <section class="section">
         <div class="section-head">
-          <h2>Productos</h2>
-          <a class="link" href="/buscar">Ver todos (${all.total})</a>
+          <h2>${t('Productos')}</h2>
+          <a class="link" href="/buscar">${t('Ver todos ({n})', { n: all.total })}</a>
         </div>
         ${productGrid(all.items, stores)}
       </section>`,
@@ -96,7 +97,9 @@ export async function renderSearch({ params, stores }) {
     getJson(`/api/products?${qs}`),
     getJson('/api/categories'),
   ]);
-  const title = current.q ? `Resultados para «${current.q}»` : current.categoria || 'Todos los productos';
+  const title = current.q
+    ? t('Resultados para «{q}»', { q: current.q })
+    : current.categoria ? category(current.categoria) : t('Todos los productos');
 
   return {
     title,
@@ -104,26 +107,26 @@ export async function renderSearch({ params, stores }) {
       <div class="section-head">
         <div>
           <h1>${title}</h1>
-          <span class="muted">${result.total} producto${result.total === 1 ? '' : 's'}</span>
+          <span class="muted">${result.total === 1 ? t('1 producto') : t('{n} productos', { n: result.total })}</span>
         </div>
-        <select id="sort" aria-label="Ordenar por">
-          ${SORT_OPTIONS.map(([value, text]) => html`<option value="${value}" ${value === current.orden ? html`selected` : ''}>${text}</option>`)}
+        <select id="sort" aria-label="${t('Ordenar por')}">
+          ${SORT_OPTIONS.map(([value, text]) => html`<option value="${value}" ${value === current.orden ? html`selected` : ''}>${t(text)}</option>`)}
         </select>
       </div>
       ${categoryChips(categories, current)}
       ${result.approximate
-        ? html`<p class="notice-soft">No encontramos productos con todas las palabras de «${current.q}». Te mostramos los más parecidos.</p>`
+        ? html`<p class="notice-soft">${t('No encontramos productos con todas las palabras de «{q}». Te mostramos los más parecidos.', { q: current.q })}</p>`
         : ''}
       ${result.items.length
         ? productGrid(result.items, stores)
         : html`<div class="empty">
             <div class="big">🔎</div>
-            <p>No encontramos productos para esa búsqueda.</p>
-            <p>Prueba con otra palabra (por ejemplo «leche», «arroz» o una marca) o <a href="/buscar">mira todo el catálogo</a>.</p>
+            <p>${t('No encontramos productos para esa búsqueda.')}</p>
+            <p>${t('Prueba con otra palabra (por ejemplo «leche», «arroz» o una marca) o')} <a href="/buscar">${t('mira todo el catálogo')}</a>.</p>
           </div>`}
       ${result.items.length ? adSlot('search') : ''}
       ${result.total > result.items.length
-        ? html`<div class="more"><button class="btn" type="button" data-more>Ver más productos (${result.total - result.items.length})</button></div>`
+        ? html`<div class="more"><button class="btn" type="button" data-more>${t('Ver más')} (${result.total - result.items.length})</button></div>`
         : ''}`,
     bind(root) {
       root.querySelector('#sort').addEventListener('change', (event) => {

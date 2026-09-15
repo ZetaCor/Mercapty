@@ -38,7 +38,8 @@
             "imageWidth": 240
           }
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

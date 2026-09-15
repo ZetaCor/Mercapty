@@ -1,3 +1,5 @@
+import { t } from './i18n.js';
+
 // Plantillas HTML seguras: todo lo interpolado se escapa salvo lo que ya es html``.
 class SafeHtml {
   constructor(value) { this.value = value; }
@@ -24,6 +26,11 @@ export function mount(el, content) {
   el.innerHTML = render(content);
 }
 
+// Frase traducida con una parte resaltada: «El [precio más bajo]…» -> El <span>precio más bajo</span>…
+export function hl(text, tag = 'span') {
+  return new SafeHtml(escapeHtml(text).replace(/\[(.+?)\]/g, `<${tag}>$1</${tag}>`));
+}
+
 const icon = (body) => new SafeHtml(
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`,
 );
@@ -44,7 +51,7 @@ export const icons = {
 // Contacto y redes: vienen de /api/meta y se configuran en server/contact.js.
 const CONTACT_CHANNELS = [
   ['whatsapp', 'WhatsApp', icons.whatsapp],
-  ['email', 'Correo', icons.mail],
+  ['email', t('Correo'), icons.mail],
   ['instagram', 'Instagram', icons.instagram],
   ['facebook', 'Facebook', icons.facebook],
 ];
@@ -55,7 +62,7 @@ export const whatsappWith = (channel, text) => `${channel.url}?text=${encodeURIC
 export function contactLinks(contact = {}, className = 'contact-link') {
   return CONTACT_CHANNELS.filter(([id]) => contact[id]).map(([id, label, svg]) => {
     const { url, text } = contact[id];
-    const href = id === 'whatsapp' ? whatsappWith(contact[id], 'Hola, les escribo desde Mercapty.') : url;
+    const href = id === 'whatsapp' ? whatsappWith(contact[id], t('Hola, les escribo desde Mercapty.')) : url;
     const external = /^https?:/.test(href);
     return html`<a class="${className}" href="${href}" ${external ? html`target="_blank" rel="noopener"` : ''}
       aria-label="${label}: ${text}">${svg}<span>${text}</span></a>`;
@@ -65,18 +72,18 @@ export function contactLinks(contact = {}, className = 'contact-link') {
 export const money = (n) => (n == null ? '—' : `$${Number(n).toFixed(2)}`);
 
 export function unitPriceText(up) {
-  return up ? `${money(up.amount)} / ${up.per}` : '';
+  return up ? `${money(up.amount)} / ${t(up.per)}` : '';
 }
 
 export function timeAgo(iso) {
-  if (!iso) return 'sin datos';
+  if (!iso) return t('sin datos');
   const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (minutes < 1) return 'hace un momento';
-  if (minutes < 60) return `hace ${minutes} min`;
+  if (minutes < 1) return t('hace un momento');
+  if (minutes < 60) return t('hace {n} min', { n: minutes });
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `hace ${hours} h`;
+  if (hours < 24) return t('hace {n} h', { n: hours });
   const days = Math.round(hours / 24);
-  return `hace ${days} día${days === 1 ? '' : 's'}`;
+  return days === 1 ? t('hace 1 día') : t('hace {n} días', { n: days });
 }
 
 // Ícono y color de fondo por categoría, para productos que aún no tienen foto.
@@ -138,7 +145,7 @@ export function storeLogo(store, className = 'store-logo') {
 export const productLabel = (p) => [p.name, p.brand, p.size].filter(Boolean).join(' · ');
 
 // El cerdito corriendo tras un billete (public/loader.svg) mientras carga una página.
-export const loader = (text = 'Buscando los mejores precios…') =>
+export const loader = (text = t('Buscando los mejores precios…')) =>
   html`<div class="loader" role="status"><img src="/loader.svg" alt="" width="240" height="120"><p>${text}</p></div>`;
 
 // Íconos de todas las tiendas que venden el producto, de la más barata a la más cara.
@@ -147,7 +154,7 @@ function storeStack(item, stores) {
   const names = list.map((s) => s.name).join(', ');
   return html`<span class="tag store-stack" title="${names}">
     <span class="stack" aria-hidden="true">${list.map((s) => storeAvatar(s.name, s.color))}</span>
-    ${item.storeCount > 1 ? `${item.storeCount} tiendas` : '1 tienda'}<span class="sr-only">: ${names}</span></span>`;
+    ${item.storeCount > 1 ? t('{n} tiendas', { n: item.storeCount }) : t('1 tienda')}<span class="sr-only">: ${names}</span></span>`;
 }
 
 export function productCard(item, stores) {
@@ -157,9 +164,9 @@ export function productCard(item, stores) {
     <article class="card">
       <div class="media-wrap">
         ${productMedia(item, { href })}
-        ${item.bestListPrice ? html`<span class="badge">Oferta</span>` : ''}
+        ${item.bestListPrice ? html`<span class="badge">${t('Oferta')}</span>` : ''}
         <button class="add-fab" type="button" data-add="${item.id}" data-label="${productLabel(item)}"
-          aria-label="Agregar ${item.name} a mi lista" title="Agregar a mi lista">${icons.plus}</button>
+          aria-label="${t('Agregar {name} a mi lista', { name: item.name })}" title="${t('Agregar a mi lista')}">${icons.plus}</button>
       </div>
       <a class="card-body" href="${href}">
         <div class="price-row">
@@ -168,9 +175,9 @@ export function productCard(item, stores) {
         </div>
         <div class="name">${item.name}</div>
         <div class="meta">${[item.brand, item.size].filter(Boolean).join(' · ')}</div>
-        <div class="best-at">${storeAvatar(store?.name, store?.color)}<span>en <b>${store?.name ?? item.bestStoreId}</b></span></div>
+        <div class="best-at">${storeAvatar(store?.name, store?.color)}<span>${t('en')} <b>${store?.name ?? item.bestStoreId}</b></span></div>
         <div class="tags">
-          ${item.savings > 0 ? html`<span class="tag good">Ahorra ${money(item.savings)}</span>` : ''}
+          ${item.savings > 0 ? html`<span class="tag good">${t('Ahorra {amount}', { amount: money(item.savings) })}</span>` : ''}
           ${storeStack(item, stores)}
         </div>
       </a>

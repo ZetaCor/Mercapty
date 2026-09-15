@@ -2,6 +2,7 @@
 // derecha a izquierda, se detiene al pasar el mouse o con el teclado, y queda
 // quieta (con desplazamiento a mano) para quien prefiere menos movimiento.
 import { html, storeLogo } from '../ui.js';
+import { t } from '../i18n.js';
 
 const MIN_ITEMS = 10; // logos suficientes para cubrir pantallas anchas sin huecos
 
@@ -20,8 +21,8 @@ export function storeMarquee(stores) {
   return html`
     <section class="section" aria-labelledby="store-strip-title">
       <div class="section-head">
-        <h2 id="store-strip-title">Supermercados que comparamos</h2>
-        <a class="link" href="/tiendas">Ver tiendas</a>
+        <h2 id="store-strip-title">${t('Supermercados que comparamos')}</h2>
+        <a class="link" href="/tiendas">${t('Ver tiendas')}</a>
       </div>
       <div class="marquee" style="--duration:${items.length * 4}s">
         <div class="marquee-track">${group(false)}${group(true)}</div>

@@ -47,6 +47,12 @@ const PATHS = {
   trash: <Path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />,
   check: <Path d="M5 12.5l4.5 4.5L19 7.5" />,
   close: <Path d="M6 6l12 12M18 6 6 18" />,
+  globe: (
+    <>
+      <Circle cx={12} cy={12} r={9} />
+      <Path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9" />
+    </>
+  ),
   mail: (
     <>
       <Rect x={3} y={5} width={18} height={14} rx={2.5} />

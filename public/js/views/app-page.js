@@ -1,6 +1,7 @@
 // Página «Descarga la app» (/app). Hoy Mercapty se instala como app web,
 // sin tienda de aplicaciones; las versiones de App Store y Google Play vienen después.
-import { html, icons } from '../ui.js';
+import { html, hl, icons } from '../ui.js';
+import { t } from '../i18n.js';
 import { phoneVisual } from './hero.js';
 import { canInstall, isStandalone, promptInstall } from '../install.js';
 
@@ -13,58 +14,57 @@ const FEATURES = [
 
 export async function renderAppPage() {
   return {
-    title: 'Descarga la app',
+    title: t('Descarga la app'),
     html: html`
       <div class="app-page">
         <section class="app-hero">
           <div class="app-hero-copy">
-            <span class="eyebrow">App de Mercapty</span>
-            <h1>El precio más bajo, en tu bolsillo</h1>
-            <p>Instala Mercapty en tu celular en segundos. Se abre como una app, casi no ocupa espacio y no necesitas
-              pasar por ninguna tienda de aplicaciones.</p>
+            <span class="eyebrow">${t('App de Mercapty')}</span>
+            <h1>${t('El precio más bajo, en tu bolsillo')}</h1>
+            <p>${t('Instala Mercapty en tu celular en segundos. Se abre como una app, casi no ocupa espacio y no necesitas pasar por ninguna tienda de aplicaciones.')}</p>
             <div class="hero-actions">
-              <button class="btn btn-primary btn-lg" type="button" data-install hidden>Instalar Mercapty</button>
-              <button class="btn btn-lg" type="button" data-scroll>Cómo instalarla</button>
+              <button class="btn btn-primary btn-lg" type="button" data-install hidden>${t('Instalar Mercapty')}</button>
+              <button class="btn btn-lg" type="button" data-scroll>${t('Cómo instalarla')}</button>
             </div>
-            <p class="installed-note" data-installed hidden>✓ Ya tienes Mercapty instalada en este dispositivo.</p>
+            <p class="installed-note" data-installed hidden>${t('✓ Ya tienes Mercapty instalada en este dispositivo.')}</p>
             <div class="store-badges on-light">
-              <span class="store-badge">${icons.phone}<span><small>Próximamente en</small>App Store</span></span>
-              <span class="store-badge">${icons.phone}<span><small>Próximamente en</small>Google Play</span></span>
+              <span class="store-badge">${icons.phone}<span><small>${t('Próximamente en')}</small>App Store</span></span>
+              <span class="store-badge">${icons.phone}<span><small>${t('Próximamente en')}</small>Google Play</span></span>
             </div>
           </div>
           <div class="app-hero-visual">${phoneVisual()}</div>
         </section>
 
         <section class="section">
-          <div class="section-head"><h2>Lo que puedes hacer con la app</h2></div>
+          <div class="section-head"><h2>${t('Lo que puedes hacer con la app')}</h2></div>
           <div class="feature-grid">
             ${FEATURES.map(([emoji, title, text, ready]) => html`
               <article class="feature">
                 <span class="feature-icon" aria-hidden="true">${emoji}</span>
-                <h3>${title}</h3>
-                <p>${text}</p>
-                <span class="tag ${ready ? 'good' : ''}">${ready ? 'Disponible' : 'Próximamente'}</span>
+                <h3>${t(title)}</h3>
+                <p>${t(text)}</p>
+                <span class="tag ${ready ? 'good' : ''}">${ready ? t('Disponible') : t('Próximamente')}</span>
               </article>`)}
           </div>
         </section>
 
         <section class="section" id="instalar">
-          <div class="section-head"><h2>Instálala hoy</h2></div>
+          <div class="section-head"><h2>${t('Instálala hoy')}</h2></div>
           <div class="install-steps">
             <div class="panel">
               <h3>Android · Chrome</h3>
               <ol>
-                <li>Abre Mercapty en Chrome.</li>
-                <li>Toca el menú <b>⋮</b> y elige <b>Instalar app</b> o <b>Agregar a la pantalla principal</b>.</li>
-                <li>Confirma: el cerdito aparecerá en tu pantalla.</li>
+                <li>${t('Abre Mercapty en Chrome.')}</li>
+                <li>${hl(t('Toca el menú [⋮] y elige [Instalar app] o [Agregar a la pantalla principal].'), 'b')}</li>
+                <li>${t('Confirma: el cerdito aparecerá en tu pantalla.')}</li>
               </ol>
             </div>
             <div class="panel">
               <h3>iPhone · Safari</h3>
               <ol>
-                <li>Abre Mercapty en Safari.</li>
-                <li>Toca <b>Compartir</b> (el cuadro con la flecha hacia arriba).</li>
-                <li>Elige <b>Agregar a inicio</b> y luego <b>Agregar</b>.</li>
+                <li>${t('Abre Mercapty en Safari.')}</li>
+                <li>${hl(t('Toca [Compartir] (el cuadro con la flecha hacia arriba).'), 'b')}</li>
+                <li>${hl(t('Elige [Agregar a inicio] y luego [Agregar].'), 'b')}</li>
               </ol>
             </div>
           </div>

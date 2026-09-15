@@ -28,7 +28,10 @@ const SORTS = {
 
 // --- Búsqueda por relevancia ---
 
-const SEARCH_STOPWORDS = new Set(['de', 'del', 'la', 'el', 'los', 'las', 'con', 'y', 'en', 'para', 'por', 'a', 'al']);
+const SEARCH_STOPWORDS = new Set([
+  'de', 'del', 'la', 'el', 'los', 'las', 'con', 'y', 'en', 'para', 'por', 'a', 'al',
+  'the', 'of', 'for', 'and', 'with', 'an', // quien busca en inglés
+]);
 
 // Singular de lo que escribe el cliente, para encontrar ambas formas:
 // "leches" -> "leche", "frijoles" -> "frijol", "galletas" -> "galleta".
@@ -42,6 +45,23 @@ function searchStem(t) {
 const SYNONYMS = {
   soda: ['refresco', 'gaseosa'], refresco: ['soda', 'gaseosa'], gaseosa: ['soda', 'refresco'],
   guineo: ['banano'], banano: ['guineo'], papita: ['chip'], cocacola: ['coca'],
+};
+
+// Palabras en inglés, para quien usa la web o la app en inglés: los productos se llaman
+// en español, así que «milk» busca «leche». Van en singular (searchStem quita la «s»).
+const ENGLISH = {
+  milk: ['leche'], egg: ['huevo'], rice: ['arroz'], chicken: ['pollo'], beef: ['res', 'carne'], pork: ['cerdo'],
+  meat: ['carne'], fish: ['pescado'], tuna: ['atun'], sardine: ['sardina'], ham: ['jamon'], sausage: ['salchicha'],
+  bacon: ['tocino'], turkey: ['pavo'], cheese: ['queso'], butter: ['mantequilla'], bread: ['pan'], flour: ['harina'],
+  sugar: ['azucar'], salt: ['sal'], oil: ['aceite'], coffee: ['cafe'], juice: ['jugo'], water: ['agua'],
+  beer: ['cerveza'], wine: ['vino'], rum: ['ron'], bean: ['frijol', 'poroto'], lentil: ['lenteja'], corn: ['maiz'],
+  oat: ['avena'], cookie: ['galleta'], cracker: ['galleta'], candy: ['dulce', 'caramelo'], chip: ['papita'],
+  food: ['alimento', 'comida'], banana: ['guineo', 'banano'], apple: ['manzana'], orange: ['naranja'],
+  lemon: ['limon'], lime: ['limon'], tomato: ['tomate'], tomatoe: ['tomate'], potato: ['papa'], potatoe: ['papa'],
+  onion: ['cebolla'], garlic: ['ajo'], lettuce: ['lechuga'], carrot: ['zanahoria'], avocado: ['aguacate'],
+  soap: ['jabon'], detergent: ['detergente'], bleach: ['cloro'], diaper: ['panal'], wipe: ['toallita'],
+  toothpaste: ['dental'], toilet: ['higienico'], paper: ['papel'], napkin: ['servilleta'], dog: ['perro'],
+  cat: ['gato'], baby: ['bebe'], soup: ['sopa'], sauce: ['salsa'], honey: ['miel'], peanut: ['mani'], yogurt: ['yogur'],
 };
 
 // Variantes que, si el cliente no las pidió, van después de la versión normal
@@ -74,7 +94,7 @@ const PLAIN_FIRST = {
 // Cada palabra buscada con sus alternativas: [["soda", "refresco", "gaseosa"], ["coca"]].
 function queryTerms(q) {
   const words = [...new Set(normalizeText(q).split(' ').filter((t) => t && !SEARCH_STOPWORDS.has(t)).map(searchStem))];
-  return words.slice(0, 8).map((w) => [w, ...(SYNONYMS[w] ?? [])]);
+  return words.slice(0, 8).map((w) => [w, ...(SYNONYMS[w] ?? ENGLISH[w] ?? [])]);
 }
 
 // Qué tan bien responde un producto a la búsqueda. Primero lo que ES el
@@ -103,7 +123,7 @@ function relevance(row, terms, intent) {
   const asked = new Set(terms.flat());
   score -= Math.min(24, 12 * words.filter((w) => SEARCH_VARIANTS.has(w) && !asked.has(w)).length);
   for (const alts of terms) {
-    const rule = PLAIN_FIRST[alts[0]];
+    const rule = alts.map((a) => PLAIN_FIRST[a]).find(Boolean); // también «milk» -> leche
     if (!rule) continue;
     if (words.some((w) => rule.avoid.has(w) && !asked.has(w))) score -= 25;
     else if (words.some((w) => rule.prefer.has(w))) score += 10;

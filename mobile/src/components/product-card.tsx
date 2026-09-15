@@ -12,6 +12,7 @@ import { useToast } from './toast';
 import { C, PAD, R } from '@/constants/theme';
 import type { ProductSummary, Store } from '@/lib/api';
 import { money, productLabel } from '@/lib/format';
+import { useI18n } from '@/lib/i18n';
 import { useList } from '@/lib/list';
 import { useStores } from '@/lib/stores';
 
@@ -20,9 +21,10 @@ const GAP = 12;
 export function useAddToList() {
   const { add } = useList();
   const toast = useToast();
+  const { t } = useI18n();
   return (item: { id: number; name: string; brand?: string | null; size?: string | null }) => {
     add({ productId: item.id, label: productLabel(item) });
-    toast('Agregado a tu lista');
+    toast(t('Agregado a tu lista'));
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   };
 }
@@ -32,6 +34,7 @@ export const openProduct = (id: number) => router.push({ pathname: '/producto/[i
 export function ProductCard({ item, width }: { item: ProductSummary; width: number }) {
   const store = useStores().byId.get(item.bestStoreId);
   const addToList = useAddToList();
+  const { t } = useI18n();
   // El botón + va al lado de la tarjeta, no dentro (en la web un botón no puede ir dentro de otro).
   return (
     <View style={[styles.card, { width }]}>
@@ -39,12 +42,12 @@ export function ProductCard({ item, width }: { item: ProductSummary; width: numb
         onPress={() => openProduct(item.id)}
         style={({ pressed }) => [{ flex: 1 }, pressed && styles.pressed]}
         accessibilityRole="button"
-        accessibilityLabel={`${item.name}, ${money(item.bestPrice)} en ${store?.name ?? item.bestStoreId}`}>
+        accessibilityLabel={t('{name}, {price} en {store}', { name: item.name, price: money(item.bestPrice), store: store?.name ?? item.bestStoreId })}>
         <View>
           <ProductMedia image={item.image} category={item.category} name={item.name} style={styles.media} />
           {item.bestListPrice ? (
             <View style={styles.badge}>
-              <T w={700} size={11} color="#fff">Oferta</T>
+              <T w={700} size={11} color="#fff">{t('Oferta')}</T>
             </View>
           ) : null}
         </View>
@@ -56,7 +59,7 @@ export function ProductCard({ item, width }: { item: ProductSummary; width: numb
         // abajo a la derecha de la foto (cuadrada, del ancho de la tarjeta sin sus bordes)
         style={({ pressed }) => [styles.fab, { top: width - 2 - 48 }, pressed && { backgroundColor: C.brand }]}
         accessibilityRole="button"
-        accessibilityLabel={`Agregar ${item.name} a mi lista`}>
+        accessibilityLabel={t('Agregar {name} a mi lista', { name: item.name })}>
         {({ pressed }) => <Icon name="plus" size={20} color={pressed ? '#fff' : C.brand} />}
       </Pressable>
     </View>
@@ -64,6 +67,7 @@ export function ProductCard({ item, width }: { item: ProductSummary; width: numb
 }
 
 function Body({ item, store }: { item: ProductSummary; store?: Store }) {
+  const { t } = useI18n();
   return (
     <View style={styles.body}>
       <View style={styles.priceRow}>
@@ -79,13 +83,13 @@ function Body({ item, store }: { item: ProductSummary; store?: Store }) {
       <View style={styles.bestAt}>
         <StoreAvatar name={store?.name} color={store?.color} />
         <T size={12.5} color={C.text2} numberOfLines={1} style={{ flexShrink: 1 }}>
-          en <T size={12.5} w={700} color={C.text2}>{store?.name ?? item.bestStoreId}</T>
+          {t('en')} <T size={12.5} w={700} color={C.text2}>{store?.name ?? item.bestStoreId}</T>
         </T>
       </View>
       <View style={styles.tags}>
         {item.savings > 0 ? (
           <View style={[styles.tag, { backgroundColor: C.goodSoft }]}>
-            <T w={600} size={11} color={C.good}>Ahorra {money(item.savings)}</T>
+            <T w={600} size={11} color={C.good}>{t('Ahorra {amount}', { amount: money(item.savings) })}</T>
           </View>
         ) : null}
         <StoreStack ids={item.storeIds ?? [item.bestStoreId]} total={item.storeCount} />

@@ -1,5 +1,6 @@
 // Buscar: por nombre, marca o código de barras, con filtro de categoría y orden,
 // como /buscar de la web. Busca mientras escribes y carga más al llegar al final.
+// En inglés también funciona: el servidor entiende «milk», «eggs», «rice»…
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
@@ -11,9 +12,10 @@ import { LoadingPiggy } from '@/components/splash-overlay';
 import { T } from '@/components/text';
 import { EmptyState, ErrorState, Note } from '@/components/ui';
 import { C, F, PAD } from '@/constants/theme';
-import { getJson, type Category, type ProductSummary, type SearchResult } from '@/lib/api';
+import { getJson, type Category, type SearchResult } from '@/lib/api';
 import { categoryIcon } from '@/lib/categories';
 import { count } from '@/lib/format';
+import { useI18n } from '@/lib/i18n';
 import { useFetch } from '@/lib/use-fetch';
 
 const PAGE = 24;
@@ -30,6 +32,7 @@ type Results = SearchResult & { url: string };
 export default function Buscar() {
   const params = useLocalSearchParams<Params>();
   const insets = useSafeAreaInsets();
+  const { t, category } = useI18n();
   const cardWidth = useGridCardWidth();
   const input = useRef<TextInput>(null);
   const categories = useFetch<Category[]>('/api/categories').data ?? [];
@@ -90,8 +93,8 @@ export default function Buscar() {
       .finally(() => setLoadingMore(false));
   };
 
-  const title = q ? `Resultados para «${q}»` : categoria || 'Todos los productos';
-  const sortLabel = SORTS.find(([value]) => value === orden)?.[1] ?? SORTS[0][1];
+  const title = q ? t('Resultados para «{q}»', { q }) : categoria ? category(categoria) : t('Todos los productos');
+  const sortLabel = t(SORTS.find(([value]) => value === orden)?.[1] ?? SORTS[0][1]);
 
   return (
     <View style={styles.screen}>
@@ -103,15 +106,15 @@ export default function Buscar() {
             value={text}
             onChangeText={setText}
             onSubmitEditing={() => setQ(text.trim())}
-            placeholder="Busca leche, arroz, café…"
+            placeholder={t('Busca leche, arroz, café…')}
             placeholderTextColor={C.muted}
             returnKeyType="search"
             autoCorrect={false}
             style={styles.input}
-            accessibilityLabel="Buscar productos"
+            accessibilityLabel={t('Buscar productos')}
           />
           {text ? (
-            <Pressable onPress={() => setText('')} hitSlop={10} accessibilityLabel="Borrar búsqueda">
+            <Pressable onPress={() => setText('')} hitSlop={10} accessibilityLabel={t('Borrar búsqueda')}>
               <Icon name="close" size={18} color={C.muted} />
             </Pressable>
           ) : null}
@@ -127,7 +130,7 @@ export default function Buscar() {
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}>
                 <T w={500} size={14} color={active ? '#fff' : C.text2}>
-                  {c.name ? `${categoryIcon(c.name)} ${c.name}` : 'Todo'}
+                  {c.name ? `${categoryIcon(c.name)} ${category(c.name)}` : t('Todo')}
                 </T>
               </Pressable>
             );
@@ -158,7 +161,7 @@ export default function Buscar() {
                 <View style={{ flex: 1 }}>
                   <T w={800} size={22} tight numberOfLines={2} accessibilityRole="header">{title}</T>
                   <T size={13.5} color={C.muted}>
-                    {count(current.total)} producto{current.total === 1 ? '' : 's'}
+                    {current.total === 1 ? t('1 producto') : t('{n} productos', { n: count(current.total) })}
                   </T>
                 </View>
                 <Pressable onPress={() => setSortOpen((open) => !open)} style={styles.sortButton} accessibilityRole="button">
@@ -178,23 +181,23 @@ export default function Buscar() {
                       style={styles.sortOption}
                       accessibilityRole="button"
                       accessibilityState={{ selected: value === orden }}>
-                      <T w={value === orden ? 700 : 500} color={value === orden ? C.brand : C.text}>{label}</T>
+                      <T w={value === orden ? 700 : 500} color={value === orden ? C.brand : C.text}>{t(label)}</T>
                       {value === orden && <Icon name="check" size={18} color={C.brand} />}
                     </Pressable>
                   ))}
                 </View>
               )}
               {current.approximate && (
-                <Note tone="soft">No encontramos productos con todas las palabras de «{q}». Te mostramos los más parecidos.</Note>
+                <Note tone="soft">{t('No encontramos productos con todas las palabras de «{q}». Te mostramos los más parecidos.', { q })}</Note>
               )}
             </View>
           }
           ListEmptyComponent={
             <EmptyState
               emoji="🔎"
-              title="No encontramos productos para esa búsqueda"
-              text="Prueba con otra palabra (por ejemplo «leche», «arroz» o una marca) o mira todo el catálogo."
-              action={q || categoria ? 'Ver todo el catálogo' : undefined}
+              title={t('No encontramos productos para esa búsqueda')}
+              text={t('Prueba con otra palabra (por ejemplo «leche», «arroz» o una marca) o mira todo el catálogo.')}
+              action={q || categoria ? t('Ver todo el catálogo') : undefined}
               onAction={() => {
                 setText('');
                 setQ('');

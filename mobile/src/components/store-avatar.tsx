@@ -9,6 +9,7 @@ import { T } from './text';
 import { C } from '@/constants/theme';
 import type { Store } from '@/lib/api';
 import { initials, safeColor, tint } from '@/lib/format';
+import { useI18n } from '@/lib/i18n';
 import { useStores } from '@/lib/stores';
 
 export function StoreAvatar({ name, color, size = 22 }: { name?: string | null; color?: string | null; size?: number }) {
@@ -74,9 +75,10 @@ export function StoreLogo({ store, small = false }: { store: Store; small?: bool
 // Tiendas que venden el producto, de la más barata a la más cara: «(●●●) 5 tiendas».
 export function StoreStack({ ids, total }: { ids: string[]; total: number }) {
   const { byId } = useStores();
+  const { t } = useI18n();
   const list = ids.map((id) => byId.get(id)).filter((s): s is Store => Boolean(s));
   return (
-    <View style={styles.stackTag} accessibilityLabel={`${total} tiendas: ${list.map((s) => s.name).join(', ')}`}>
+    <View style={styles.stackTag} accessibilityLabel={t('{n} tiendas: {names}', { n: total, names: list.map((s) => s.name).join(', ') })}>
       <View style={styles.stack}>
         {list.map((s, i) => (
           <View key={s.id} style={[styles.ring, i > 0 && { marginLeft: -6 }]}>
@@ -85,7 +87,7 @@ export function StoreStack({ ids, total }: { ids: string[]; total: number }) {
         ))}
       </View>
       <T w={600} size={11} color={C.muted}>
-        {total > 1 ? `${total} tiendas` : '1 tienda'}
+        {total > 1 ? t('{n} tiendas', { n: total }) : t('1 tienda')}
       </T>
     </View>
   );

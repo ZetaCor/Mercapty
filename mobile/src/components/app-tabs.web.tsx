@@ -7,26 +7,28 @@ import { Icon, type IconName } from './icons';
 import { T } from './text';
 
 import { C } from '@/constants/theme';
+import { useI18n } from '@/lib/i18n';
 import { useList } from '@/lib/list';
 
 export default function AppTabs() {
   const count = useList().items.length;
   const insets = useSafeAreaInsets();
+  const { t } = useI18n();
   return (
     <Tabs>
       <TabSlot style={{ flex: 1 }} />
       <TabList style={[styles.bar, { paddingBottom: insets.bottom + 6 }]}>
         <TabTrigger name="index" href="/" asChild>
-          <TabButton icon="home" label="Inicio" />
+          <TabButton icon="home" label={t('Inicio')} />
         </TabTrigger>
         <TabTrigger name="buscar" href="/buscar" asChild>
-          <TabButton icon="search" label="Buscar" />
+          <TabButton icon="search" label={t('Buscar')} />
         </TabTrigger>
         <TabTrigger name="lista" href="/lista" asChild>
-          <TabButton icon="basket" label="Mi lista" badge={count} />
+          <TabButton icon="basket" label={t('Mi lista')} badge={count} />
         </TabTrigger>
         <TabTrigger name="tiendas" href="/tiendas" asChild>
-          <TabButton icon="store" label="Tiendas" />
+          <TabButton icon="store" label={t('Tiendas')} />
         </TabTrigger>
       </TabList>
     </Tabs>

@@ -14,15 +14,20 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="topbar-inner" style="grid-template-columns: auto 1fr">
-      <a class="brand" href="/" aria-label="Mercapty, inicio">
+    <div class="topbar-inner" style="grid-template-columns: auto 1fr auto">
+      <a class="brand" href="/" aria-label="Mercapty">
         <img src="/icon.svg" alt="" width="34" height="34">
         <span>Merca<b>pty</b></span>
       </a>
+      <span></span>
+      <button class="lang-toggle" type="button" data-lang-toggle aria-label="Switch to English" lang="en">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9M12 3C9.5 5.6 8.2 8.6 8.2 12s1.3 6.4 3.8 9"/></svg>
+        <span>EN</span>
+      </button>
     </div>
   </header>
 
-  <main class="container legal">
+  <main class="container legal" data-lang="es">
     <h1>Política de privacidad</h1>
     <p class="muted">Última actualización: 15 de septiembre de 2026</p>
 
@@ -65,5 +70,74 @@
 
     <p><a href="/">← Volver a Mercapty</a></p>
   </main>
+
+  <main class="container legal" data-lang="en" lang="en" hidden>
+    <h1>Privacy policy</h1>
+    <p class="muted">Last updated: September 15, 2026. If this translation differs from the Spanish version, the Spanish
+      version prevails.</p>
+
+    <h2>Who we are</h2>
+    <p>Mercapty is a supermarket price comparison site in Panama. We show the prices each supermarket publishes on its
+      website and take you to that store to buy. We don’t sell products: purchase, payment and delivery happen at the
+      store.</p>
+
+    <h2>What data we process</h2>
+    <ul>
+      <li>We don’t ask you to sign up or give personal data to use the site.</li>
+      <li><b>My list</b> is stored only in your browser. When you check where it’s cheapest, we send the products and
+        quantities, without data that identifies you.</li>
+      <li>When you tap “Buy”, we record which offer you chose and when, to count the visits we send to each store. We
+        don’t store data that identifies you.</li>
+      <li>Our hosting provider (Vercel) may log technical data, such as your IP address, for security and to keep the
+        site running.</li>
+    </ul>
+
+    <h2>Cookies and advertising</h2>
+    <p>Mercapty may show Google AdSense ads. Google and its partners use cookies to show ads based on your previous
+      visits to this and other websites. Advertising cookies allow Google and its partners to show you ads based on your
+      visits to Mercapty or to other sites on the Internet.</p>
+    <p>You can turn off personalized advertising in
+      <a href="https://adssettings.google.com" target="_blank" rel="noopener">Google’s Ads Settings</a>
+      or at <a href="https://www.aboutads.info" target="_blank" rel="noopener">www.aboutads.info</a>. Learn more about
+      <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">how Google uses cookies in
+      advertising</a>.</p>
+
+    <h2>Links to supermarkets</h2>
+    <p>When you go to a supermarket’s website, its own terms and privacy policy apply.</p>
+
+    <h2>Your rights</h2>
+    <p>Under Panama’s Law 81 of 2019 on Personal Data Protection, you can request access to, rectification,
+      cancellation, objection to or portability of your data. Write to us at
+      <a href="mailto:eliezercordero10@gmail.com">eliezercordero10@gmail.com</a>.</p>
+
+    <h2>Changes</h2>
+    <p>If we change this policy, we’ll update the date above.</p>
+
+    <p><a href="/">← Back to Mercapty</a></p>
+  </main>
+
+  <script>
+    // Mismo idioma que el resto de la web (public/js/i18n.js): se elige arriba y se guarda en el navegador.
+    (() => {
+      const KEY = 'mercapty:idioma';
+      let saved = null;
+      try { saved = localStorage.getItem(KEY); } catch { /* almacenamiento bloqueado */ }
+      const show = (lang) => {
+        document.documentElement.lang = lang === 'en' ? 'en' : 'es-PA';
+        document.title = lang === 'en' ? 'Privacy policy · Mercapty' : 'Política de privacidad · Mercapty';
+        for (const main of document.querySelectorAll('main[data-lang]')) main.hidden = main.dataset.lang !== lang;
+        const other = lang === 'en' ? 'es' : 'en';
+        const button = document.querySelector('[data-lang-toggle]');
+        button.querySelector('span').textContent = other.toUpperCase();
+        button.lang = other;
+        button.setAttribute('aria-label', other === 'en' ? 'Switch to English' : 'Cambiar a español');
+        button.onclick = () => {
+          try { localStorage.setItem(KEY, other); } catch { /* sin almacenamiento */ }
+          show(other);
+        };
+      };
+      show(saved === 'es' || saved === 'en' ? saved : /^en\b/i.test(navigator.language ?? '') ? 'en' : 'es');
+    })();
+  </script>
 </body>
 </html>

@@ -7,6 +7,7 @@ import { T } from './text';
 
 import { C, R } from '@/constants/theme';
 import type { Contact, ContactChannel } from '@/lib/api';
+import { useI18n } from '@/lib/i18n';
 
 const CHANNELS: [keyof Contact, string, IconName][] = [
   ['whatsapp', 'WhatsApp', 'whatsapp'],
@@ -24,13 +25,15 @@ export function openExternal(url: string) {
 export const whatsappWith = (channel: ContactChannel, text: string) => `${channel.url}?text=${encodeURIComponent(text)}`;
 
 export function ContactList({ contact }: { contact: Contact }) {
+  const { t } = useI18n();
   const rows = CHANNELS.filter(([id]) => contact[id]);
   if (!rows.length) return null;
   return (
     <View style={styles.list}>
-      {rows.map(([id, label, icon], i) => {
+      {rows.map(([id, name, icon], i) => {
         const channel = contact[id] as ContactChannel;
-        const url = id === 'whatsapp' ? whatsappWith(channel, 'Hola, les escribo desde la app de Mercapty.') : channel.url;
+        const label = t(name); // «Correo» -> «Email»; WhatsApp, Instagram y Facebook quedan igual
+        const url = id === 'whatsapp' ? whatsappWith(channel, t('Hola, les escribo desde la app de Mercapty.')) : channel.url;
         return (
           <Pressable
             key={id}

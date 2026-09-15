@@ -1,10 +1,11 @@
 import { getJson } from '../api.js';
-import { html, money, storeAvatar, unitPriceText, timeAgo, productLabel, productMedia, productGrid, icons, toast } from '../ui.js';
+import { html, hl, money, storeAvatar, unitPriceText, timeAgo, productLabel, productMedia, productGrid, icons, toast } from '../ui.js';
+import { t, dateLocale, category } from '../i18n.js';
 import { isAdmin } from '../admin-auth.js';
 import { uploadProductImage, removeProductImage } from '../images.js';
 import { adSlot } from '../ads.js';
 
-const formatDay = (day) => new Date(`${day}T12:00:00`).toLocaleDateString('es-PA', { day: 'numeric', month: 'short' });
+const formatDay = (day) => new Date(`${day}T12:00:00`).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' });
 
 // GTIN-14 guardado -> EAN-13 como aparece impreso en el empaque.
 const displayGtin = (gtin) => gtin.replace(/^0(?=\d{13}$)/, '');
@@ -17,9 +18,9 @@ function similarSection(similar, stores) {
   if (!sameBrand.length && !others.length) return '';
   return html`
     <section class="section">
-      <div class="section-head"><h2>Productos parecidos</h2></div>
-      ${sameBrand.length ? html`<h3 class="subhead">Más de ${titleCase(brand)}</h3>${productGrid(sameBrand, stores)}` : ''}
-      ${others.length ? html`${sameBrand.length ? html`<h3 class="subhead">Otras marcas</h3>` : ''}${productGrid(others, stores)}` : ''}
+      <div class="section-head"><h2>${t('Productos parecidos')}</h2></div>
+      ${sameBrand.length ? html`<h3 class="subhead">${t('Más de {brand}', { brand: titleCase(brand) })}</h3>${productGrid(sameBrand, stores)}` : ''}
+      ${others.length ? html`${sameBrand.length ? html`<h3 class="subhead">${t('Otras marcas')}</h3>` : ''}${productGrid(others, stores)}` : ''}
     </section>`;
 }
 
@@ -30,19 +31,19 @@ function offerRow(offer) {
       <div>
         <div class="offer-name">
           ${offer.storeName}
-          ${offer.isBest ? html`<span class="tag good">Mejor precio</span>` : ''}
-          ${offer.listPrice && offer.inStock ? html`<span class="tag promo">Oferta</span>` : ''}
+          ${offer.isBest ? html`<span class="tag good">${t('Mejor precio')}</span>` : ''}
+          ${offer.listPrice && offer.inStock ? html`<span class="tag promo">${t('Oferta')}</span>` : ''}
           ${offer.storeSource === 'demo' ? html`<span class="tag demo">demo</span>` : ''}
         </div>
-        <div class="offer-sub">${offer.inStock ? 'Disponible' : 'Agotado'} · actualizado ${timeAgo(offer.updatedAt)}</div>
+        <div class="offer-sub">${offer.inStock ? t('Disponible') : t('Agotado')} · ${t('actualizado {ago}', { ago: timeAgo(offer.updatedAt) })}</div>
       </div>
       <div class="offer-price">
         <span class="price">${money(offer.price)}</span>${offer.listPrice ? html` <span class="price-old">${money(offer.listPrice)}</span>` : ''}
         <small>${[unitPriceText(offer.unitPrice), offer.diff > 0 ? `+${money(offer.diff)}` : ''].filter(Boolean).join(' · ')}</small>
       </div>
       ${offer.inStock
-        ? html`<a class="btn ${offer.isBest ? 'btn-primary' : ''}" href="/go/${offer.id}" target="_blank" rel="noopener">Comprar ${icons.external}</a>`
-        : html`<button class="btn" type="button" disabled>Agotado</button>`}
+        ? html`<a class="btn ${offer.isBest ? 'btn-primary' : ''}" href="/go/${offer.id}" target="_blank" rel="noopener">${t('Comprar')} ${icons.external}</a>`
+        : html`<button class="btn" type="button" disabled>${t('Agotado')}</button>`}
     </div>`;
 }
 
@@ -57,17 +58,17 @@ function priceHistory(history, currentBest) {
   const points = history.map((p, i) => [(i / (history.length - 1)) * w, h - 4 - ((p.price - min) / span) * (h - 8)]);
   const line = points.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(2)},${y.toFixed(2)}`).join(' ');
   let verdict = '';
-  if (currentBest != null && currentBest <= min) verdict = 'Hoy está en su precio más bajo registrado: buen momento para comprar.';
-  else if (currentBest != null && currentBest >= max) verdict = 'Hoy está en su precio más alto registrado.';
+  if (currentBest != null && currentBest <= min) verdict = t('Hoy está en su precio más bajo registrado: buen momento para comprar.');
+  else if (currentBest != null && currentBest >= max) verdict = t('Hoy está en su precio más alto registrado.');
 
   return html`
     <section class="panel history">
       <div class="section-head">
-        <h2>Historial del mejor precio</h2>
+        <h2>${t('Historial del mejor precio')}</h2>
         <span class="muted">${money(min)} – ${money(max)}</span>
       </div>
       ${verdict ? html`<div class="saving-note">${verdict}</div>` : ''}
-      <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="Mejor precio entre ${money(min)} y ${money(max)}">
+      <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="${t('Mejor precio entre {min} y {max}', { min: money(min), max: money(max) })}">
         <path class="area" d="${line} L${w},${h} L0,${h} Z"/>
         <path class="line" d="${line}"/>
       </svg>
@@ -75,6 +76,7 @@ function priceHistory(history, currentBest) {
     </section>`;
 }
 
+// Solo para el administrador (queda en español, como el panel de imágenes).
 function adminControls(product) {
   if (!isAdmin()) return '';
   return html`
@@ -97,7 +99,7 @@ export async function renderProduct({ match, stores, refresh }) {
     title: product.name,
     html: html`
       <div class="product-page">
-        <a class="back" href="/buscar">${icons.back} Todos los productos</a>
+        <a class="back" href="/buscar">${icons.back} ${t('Todos los productos')}</a>
         <div class="pd">
           <div class="pd-media">
             ${productMedia(product)}
@@ -107,29 +109,29 @@ export async function renderProduct({ match, stores, refresh }) {
             ${product.brand ? html`<div class="pd-brand">${product.brand}</div>` : ''}
             <h1>${product.name}</h1>
             <div class="meta">
-              ${[product.size, product.category, product.gtin ? `Código ${displayGtin(product.gtin)}` : ''].filter(Boolean).join(' · ')}
+              ${[product.size, category(product.category), product.gtin ? t('Código {code}', { code: displayGtin(product.gtin) }) : ''].filter(Boolean).join(' · ')}
             </div>
             ${best
               ? html`
                 <div class="best-box">
-                  <div class="best-label">Mejor precio</div>
+                  <div class="best-label">${t('Mejor precio')}</div>
                   <div class="price-xl">${money(best.price)}</div>
-                  <div class="best-store">${storeAvatar(best.storeName, best.storeColor)} en <b>${best.storeName}</b></div>
+                  <div class="best-store">${storeAvatar(best.storeName, best.storeColor)} ${t('en')} <b>${best.storeName}</b></div>
                   <div class="best-actions">
-                    <a class="btn btn-primary btn-lg" href="/go/${best.id}" target="_blank" rel="noopener">Comprar en ${best.storeName} ${icons.external}</a>
+                    <a class="btn btn-primary btn-lg" href="/go/${best.id}" target="_blank" rel="noopener">${t('Comprar en {store}', { store: best.storeName })} ${icons.external}</a>
                     <button class="btn btn-lg" type="button" data-add="${product.id}" data-label="${productLabel(product)}"
-                      aria-label="Agregar a mi lista" title="Agregar a mi lista">${icons.plus}</button>
+                      aria-label="${t('Agregar a mi lista')}" title="${t('Agregar a mi lista')}">${icons.plus}</button>
                   </div>
                   ${product.savings > 0
-                    ? html`<div class="saving-note">Te ahorras hasta <b>${money(product.savings)}</b> frente a la tienda más cara.</div>`
+                    ? html`<div class="saving-note">${hl(t('Te ahorras hasta [{amount}] frente a la tienda más cara.', { amount: money(product.savings) }), 'b')}</div>`
                     : ''}
                 </div>`
-              : html`<div class="best-box"><b>Por ahora ninguna tienda lo tiene disponible.</b></div>`}
+              : html`<div class="best-box"><b>${t('Por ahora ninguna tienda lo tiene disponible.')}</b></div>`}
           </div>
         </div>
 
         <section class="section">
-          <div class="section-head"><h2>Compara en ${available} tienda${available === 1 ? '' : 's'}</h2></div>
+          <div class="section-head"><h2>${available === 1 ? t('Compara en 1 tienda') : t('Compara en {n} tiendas', { n: available })}</h2></div>
           <div class="offers">${product.offers.map(offerRow)}</div>
         </section>
         ${similarSection(product.similar, stores)}

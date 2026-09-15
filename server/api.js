@@ -1,4 +1,4 @@
-import { canonicalCategory, categoryFromName, nameHead, normalizeText, parsePack, parseSize, productPath, unitPrice } from './lib/normalize.js';
+import { canonicalCategory, categoryFromHead, nameHead, normalizeText, parsePack, parseSize, productPath, unitPrice } from './lib/normalize.js';
 import { nameSimilarity } from './lib/matching.js';
 
 const round2 = (n) => Math.round(n * 100) / 100;
@@ -289,7 +289,7 @@ export function createApi(db) {
     const brandWords = new Set(brand.split(' ').filter(Boolean));
     // Si el nombre empieza por una marca que otras tiendas usan como tal («Doritos Spicy»,
     // guardado con la marca Frito Lay), los que empiezan igual también son de esa marca.
-    const headIsBrand = Boolean(head) && !categoryFromName(p.name) && rows.some((row) => normalizeText(row.brand ?? '') === head);
+    const headIsBrand = Boolean(head) && !categoryFromHead(p.name) && rows.some((row) => normalizeText(row.brand ?? '') === head);
     // Otras marcas: el mismo tipo de producto (el nombre empieza igual: «Arroz…»).
     let others = head && !brandWords.has(head) ? rows.filter((row) => !isSameBrand(row) && nameHead(row.name) === head) : [];
     // Si el nombre empieza por la marca («Carta Vieja Añejo»), se buscan las demás palabras.

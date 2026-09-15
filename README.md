@@ -52,7 +52,11 @@ marca), se cambia por ese.
 **Categorías:** primero decide cómo empieza el nombre del producto («Aceite Pam» → Despensa, «Arepa de maíz»
 → Panadería y snacks, «Pasta dental» → Cuidado personal; `categoryFromName`), porque cada súper mete cosas
 distintas en secciones como «Refrigerados». Si el nombre no lo dice («Doritos Queso»), decide la categoría de
-la tienda. Al final de cada corrida de los bots, cada producto se reubica según su nombre (`recategorize` en
+la tienda. Si el nombre empieza con una marca que suele ir antes del producto («General Mills Cereal…», «Quaker
+Avena…»), decide la palabra siguiente; y unas pocas palabras deciden aunque vayan después (cereal, gelatina, levadura,
+«cake mix»), nunca un sabor. Los cereales, la avena y lo de repostería (bicarbonato, mezclas, glaseado; también la
+sección «Repostería» de las tiendas) van en Despensa; las barras de cereal o de granola, en Panadería y snacks. Al
+final de cada corrida de los bots, cada producto se reubica según su nombre (`recategorize` en
 `scripts/lib/pipeline.js`). Al ver una categoría, primero salen los productos que se comparan en más tiendas.
 
 **Paquetes:** «946 ml (Pack de 12)», «6 pack», «Caja de 24» o «6 x 355 ml» se reconocen como

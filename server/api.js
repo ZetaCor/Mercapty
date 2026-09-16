@@ -548,6 +548,25 @@ export function createApi(db) {
     return { image: p.custom_image ?? p.image_url ?? null, customImage: p.custom_image, storeImage: p.image_url };
   }
 
+  // Avisos al celular: se guarda el token con lo que quiere recibir y los productos que
+  // sigue. Se queda con los primeros 200 para que un envío raro no llene la fila.
+  function saveDevice({ token, platform, lang, prefs, products }) {
+    return db.run(`
+      INSERT INTO devices (token, platform, lang, prefs, products, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(token) DO UPDATE SET platform = excluded.platform, lang = excluded.lang,
+        prefs = excluded.prefs, products = excluded.products, updated_at = excluded.updated_at`, [
+      token,
+      platform === 'ios' ? 'ios' : 'android',
+      lang === 'en' ? 'en' : 'es',
+      JSON.stringify(prefs ?? {}),
+      JSON.stringify((Array.isArray(products) ? products : []).filter(Number.isInteger).slice(0, 200)),
+      new Date().toISOString(),
+    ]);
+  }
+
+  const removeDevice = (token) => db.run('DELETE FROM devices WHERE token = ?', [token]);
+
   // Productos con algo disponible, para el mapa del sitio, por tandas: el mapa se
   // entrega partido en varios archivos (ver server/app.js).
   async function sitemapEntries({ limit = 50000, offset = 0 } = {}) {
@@ -561,5 +580,6 @@ export function createApi(db) {
   return {
     meta, listStores, listCategories, searchProducts, deals, getProduct, optimizeList, redirectTarget,
     adminProducts, productExists, setCustomImage, productImage, sitemapEntries, countProducts,
+    saveDevice, removeDevice,
   };
 }

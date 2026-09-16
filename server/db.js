@@ -90,6 +90,16 @@ const SCHEMA = [
   'CREATE INDEX IF NOT EXISTS product_best_category_price ON product_best(category, price, name)',
   'CREATE INDEX IF NOT EXISTS product_best_savings ON product_best(savings DESC)',
   'CREATE INDEX IF NOT EXISTS product_best_price ON product_best(price, name)',
+  // Avisos al celular: el token de Expo de cada teléfono, con lo que quiere recibir y los
+  // productos de su lista que sigue. No hay cuentas ni datos personales.
+  `CREATE TABLE IF NOT EXISTS devices (
+    token      TEXT PRIMARY KEY,
+    platform   TEXT,
+    lang       TEXT,
+    prefs      TEXT NOT NULL, -- JSON: qué avisos quiere
+    products   TEXT NOT NULL, -- JSON: ids de «Mi lista»
+    updated_at TEXT NOT NULL
+  )`,
   // Totales de la portada, las categorías y las tiendas, en JSON: contarlos en cada
   // visita cuesta recorrer las tablas enteras.
   `CREATE TABLE IF NOT EXISTS stats (

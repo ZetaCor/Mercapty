@@ -20,6 +20,7 @@ import { C } from '@/constants/theme';
 import { prefetchHome } from '@/lib/api';
 import { I18nProvider, useI18n } from '@/lib/i18n';
 import { ListProvider } from '@/lib/list';
+import { NotificationsProvider, useNotificationTaps } from '@/lib/notifications';
 import { OnboardingProvider, useOnboarding } from '@/lib/onboarding';
 import { PromosProvider } from '@/lib/promos';
 import { StoresProvider } from '@/lib/stores';
@@ -43,11 +44,13 @@ export default function RootLayout() {
         <OnboardingProvider>
           <StoresProvider>
             <ListProvider>
-              <PromosProvider>
-                <ToastProvider>
-                  <App />
-                </ToastProvider>
-              </PromosProvider>
+              <NotificationsProvider>
+                <PromosProvider>
+                  <ToastProvider>
+                    <App />
+                  </ToastProvider>
+                </PromosProvider>
+              </NotificationsProvider>
             </ListProvider>
           </StoresProvider>
         </OnboardingProvider>
@@ -67,6 +70,7 @@ function App() {
   const fontsReady = fontsLoaded || fontError != null; // sin Inter, la app sigue con la letra del sistema
   const { seen } = useOnboarding();
   const { t, ready: langReady } = useI18n(); // el idioma guardado, antes de mostrar textos
+  useNotificationTaps(); // tocar un aviso abre la ficha del producto
 
   // Mientras corre el cerdito se piden los datos de la portada y de la bienvenida.
   const [dataReady, setDataReady] = useState(false);

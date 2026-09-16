@@ -460,6 +460,14 @@ async function route(req, res) {
     const product = await api.getProduct(Number(m[1]));
     return product ? sendJson(res, 200, product, CACHE_READ) : sendJson(res, 404, { error: 'Producto no encontrado' });
   }
+  // Avisos al celular: la app manda su token de Expo y qué quiere recibir.
+  if (req.method === 'POST' && pathname === '/api/devices') {
+    const body = await readJsonBody(req);
+    const token = String(body.token ?? '');
+    if (!/^Expo(nent)?PushToken\[[\w.-]+\]$/.test(token)) throw new HttpError(400, 'Token inválido');
+    await (body.remove ? api.removeDevice(token) : api.saveDevice({ ...body, token }));
+    return sendJson(res, 200, { ok: true });
+  }
   if (req.method === 'POST' && pathname === '/api/list/optimize') {
     const body = await readJsonBody(req);
     return sendJson(res, 200, await api.optimizeList(body.items));

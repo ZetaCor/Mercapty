@@ -1,6 +1,6 @@
 // Ajustes de la app: idioma, versión y volver a ver la bienvenida. Se abre con la rueda
 // dentada de la cabecera de Inicio, para no mezclarlos con el contenido de Tiendas.
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, View } from 'react-native';
 
 import { UpdateStatus } from '@/components/app-updates';
 import { Button } from '@/components/button';
@@ -8,11 +8,26 @@ import { LangSwitch } from '@/components/lang-switch';
 import { T } from '@/components/text';
 import { C, PAD, R } from '@/constants/theme';
 import { useI18n } from '@/lib/i18n';
+import { CAN_NOTIFY, useNotifications, type Prefs } from '@/lib/notifications';
 import { useOnboarding } from '@/lib/onboarding';
+
+// Una línea con su interruptor.
+function Aviso({ etiqueta, valor, onChange }: { etiqueta: string; valor: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <View style={styles.fila}>
+      <T size={14.5} style={{ flex: 1 }}>{etiqueta}</T>
+      <Switch value={valor} onValueChange={onChange} trackColor={{ true: C.brand, false: C.border2 }} />
+    </View>
+  );
+}
 
 export default function Ajustes() {
   const { t } = useI18n();
   const { reset } = useOnboarding();
+  const { estado, prefs, activar, setPref } = useNotifications();
+  const aviso = (key: keyof Prefs, etiqueta: string) => (
+    <Aviso etiqueta={etiqueta} valor={prefs[key]} onChange={(v) => setPref(key, v)} />
+  );
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -20,6 +35,26 @@ export default function Ajustes() {
       <View style={styles.block}>
         <T w={700} size={16} tight accessibilityRole="header">Idioma · Language</T>
         <LangSwitch />
+      </View>
+
+      <View style={styles.block}>
+        <T w={700} size={16} tight accessibilityRole="header">{t('Notificaciones')}</T>
+        {!CAN_NOTIFY ? (
+          <T size={13.5} color={C.muted}>{t('Los avisos llegan en la app instalada.')}</T>
+        ) : estado === 'activo' ? (
+          <>
+            {aviso('lista', t('Bajó de precio algo de mi lista'))}
+            {aviso('promos', t('Día de descuento de un súper'))}
+            {aviso('ofertas', t('Ofertas del día'))}
+          </>
+        ) : estado === 'negado' ? (
+          <T size={13.5} color={C.muted}>{t('Dijiste que no a los avisos. Se vuelven a activar desde los ajustes del teléfono.')}</T>
+        ) : (
+          <>
+            <T size={13.5} color={C.muted}>{t('Te avisamos cuando baje de precio algo de tu lista o haya día de descuento en un súper.')}</T>
+            <Button title={t('Activar avisos')} variant="primary" onPress={activar} />
+          </>
+        )}
       </View>
 
       <View style={styles.block}>
@@ -39,6 +74,7 @@ export default function Ajustes() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg },
   content: { gap: 14, padding: PAD, paddingBottom: 40 },
+  fila: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 34 },
   block: {
     gap: 10,
     padding: 18,

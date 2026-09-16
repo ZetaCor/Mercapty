@@ -292,6 +292,11 @@ App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
   que se abra. En Tiendas se ve la versión instalada y hay un botón para buscarla a mano
   (`src/components/app-updates.tsx`). Lo maneja `expo-updates` con EAS Update, así que solo funciona en la app
   compilada, no en Expo Go.
+- **Avisos (notificaciones):** en Ajustes se activan y se elige qué recibir: cuando baja de precio algo de «Mi
+  lista», el día de descuento de un súper, o las ofertas del día (esta última apagada). El teléfono se guarda en la
+  tabla `devices` con su token de Expo, lo que quiere recibir y los ids de su lista; no hay cuentas ni datos
+  personales, y al apagar todos los avisos se borra la fila. En Android hace falta subir a EAS una clave de servicio
+  de Firebase (FCM V1) para que los avisos se entreguen.
 - Íconos y splash (`mobile/assets/images/`) salen de `public/icon.svg` y `public/loader.svg`.
 
 Probarla en tu celular, sin emulador:

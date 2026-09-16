@@ -1,9 +1,9 @@
 // La app lee la misma API JSON que la web (server/app.js en Vercel).
 // Para probar contra otro servidor: EXPO_PUBLIC_API_URL=http://192.168.x.x:3000 npx expo start
-export const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? 'https://mercapty.vercel.app').replace(/\/+$/, '');
+export const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? 'https://mercapty.com').replace(/\/+$/, '');
 
 // Dirección pública de las páginas, para compartir un producto.
-export const WEB_URL = 'https://mercapty.vercel.app';
+export const WEB_URL = 'https://mercapty.com';
 
 // Contacto y redes (server/contact.js): solo vienen los canales que tienen dato.
 export type ContactChannel = { text: string; url: string };

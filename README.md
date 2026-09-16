@@ -137,7 +137,7 @@ Los cambios llegan a la web la próxima vez que corren los bots.
    Después corre sola dos veces al día (5:17 a. m. y 5:17 p. m. de Panamá). Súper 99 tiene su propio
    trabajo, **Súper 99**, que corre cada noche a las 10:07 p. m.
 
-Panel de imágenes en producción: `https://tu-sitio.vercel.app/admin` (pide la `ADMIN_KEY`).
+Panel de imágenes en producción: `https://mercapty.com/admin` (pide la `ADMIN_KEY`).
 
 ## Trabajar en local
 
@@ -258,7 +258,7 @@ sus movimientos en CSS, sin librerías, y se queda quieto si el equipo pide meno
 ### App para iPhone y Android (`mobile/`)
 
 App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
-(`https://mercapty.vercel.app/api/...`): no tiene base de datos ni bots propios.
+(`https://mercapty.com/api/...`): no tiene base de datos ni bots propios.
 
 - **Arranque:** el splash nativo muestra el cerdito de `loader.svg` quieto en el centro. Al abrir, la app dibuja
   encima el mismo cerdito, que empieza a correr mientras cargan la fuente, «Mi lista» y los precios de la portada
@@ -336,8 +336,9 @@ ven como recuadros punteados; en la web no aparecen hasta que configures AdSense
   (Open Graph) y, en los productos, datos estructurados de Google (precio más bajo y más alto).
 - `/sitemap.xml` lista todos los productos con precio y `/robots.txt` apunta a él. Las búsquedas por
   palabra, «Mi lista» y el panel no se indexan.
-- Con dominio propio, define `SITE_URL` (por ejemplo `https://mercapty.com`) en Vercel para que las
-  direcciones canónicas usen tu dominio, y registra el sitio y el sitemap en
+- El sitio vive en `mercapty.com`: en Vercel hay que definir `SITE_URL=https://mercapty.com` para que las
+  direcciones canónicas y el mapa del sitio usen el dominio propio y Google no lo mezcle con la dirección
+  de vercel.app. Registra el sitio y el sitemap en
   [Google Search Console](https://search.google.com/search-console).
 
 ## Antes de crecer

@@ -72,6 +72,8 @@ ofertas del día, el mapa del sitio y los «productos parecidos» leen decenas d
 toda la tabla. Además, las páginas y las respuestas de `/api/` se guardan diez minutos en la red de
 Vercel y se siguen sirviendo mientras se pide una copia nueva, así que casi ninguna visita llega a la
 base. Si `product_best` está vacío (base recién creada), el servidor lo calcula solo la primera vez.
+El servidor web tampoco crea las tablas al arrancar, porque en Vercel eso lo pagaría cada arranque
+en frío: de eso se encargan los bots (`createSchema`), y si faltaran, la API las crea al vuelo.
 
 **Paquetes:** «946 ml (Pack de 12)», «6 pack», «Caja de 24» o «6 x 355 ml» se reconocen como
 paquetes. Un paquete nunca se une con la unidad, aunque la tienda use el mismo código de barras, y

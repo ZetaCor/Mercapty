@@ -1,6 +1,6 @@
 import { canonicalCategory, categoryFromHead, nameHead, normalizeText, parsePack, parseSize, productPath, unitPrice } from './lib/normalize.js';
 import { nameSimilarity } from './lib/matching.js';
-import { rebuildAggregates } from './db.js';
+import { createSchema, rebuildAggregates } from './db.js';
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
@@ -166,6 +166,12 @@ export function createApi(db) {
     aggregates ??= db.get('SELECT 1 AS ok FROM product_best LIMIT 1').then(async (row) => {
       if (row) return;
       console.warn('product_best vacío: se calcula ahora (normalmente lo dejan listo los bots)');
+      await rebuildAggregates(db);
+    }, async (err) => {
+      // Base recién creada: el servidor no crea las tablas al arrancar (ver openDb).
+      if (!/no such table/i.test(err.message)) throw err;
+      console.warn('faltan las tablas: se crean ahora (normalmente las dejan listas los bots)');
+      await createSchema(db);
       await rebuildAggregates(db);
     }).catch((err) => {
       aggregates = null; // que la siguiente petición lo vuelva a intentar

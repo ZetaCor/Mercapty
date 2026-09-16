@@ -119,7 +119,10 @@ function wrap(client) {
   };
 }
 
-export async function openDb() {
+// El servidor web no crea las tablas al arrancar: son ~25 sentencias que solo hacen falta
+// cuando los bots escriben, y en Vercel las pagaría cada arranque en frío, o sea la primera
+// visita después de un rato. Si faltaran (base recién creada), la API las crea al vuelo.
+export async function openDb({ schema = !process.env.VERCEL } = {}) {
   let client;
   if (process.env.TURSO_DATABASE_URL) {
     // Cliente sin módulos nativos: funciona igual en Vercel y en GitHub Actions.
@@ -134,9 +137,14 @@ export async function openDb() {
     client = createClient({ url: `file:${LOCAL_DB.replaceAll('\\', '/')}` });
   }
   const db = wrap(client);
+  if (schema) await createSchema(db);
+  return db;
+}
+
+// Crea las tablas y los índices que falten, y agrega las columnas de tiendas que llegaron después.
+export async function createSchema(db) {
   await db.batch(SCHEMA);
   await addStoreColumns(db);
-  return db;
 }
 
 // Columnas de tiendas que llegaron después: las bases ya creadas las reciben aquí.

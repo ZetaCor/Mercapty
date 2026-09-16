@@ -548,14 +548,18 @@ export function createApi(db) {
     return { image: p.custom_image ?? p.image_url ?? null, customImage: p.custom_image, storeImage: p.image_url };
   }
 
-  // Productos con algo disponible, para el mapa del sitio (sitemap.xml).
-  async function sitemapEntries() {
+  // Productos con algo disponible, para el mapa del sitio, por tandas: el mapa se
+  // entrega partido en varios archivos (ver server/app.js).
+  async function sitemapEntries({ limit = 50000, offset = 0 } = {}) {
     await ready();
-    return db.all('SELECT product_id AS id, name, updated_at AS updatedAt FROM product_best ORDER BY product_id');
+    return db.all(
+      'SELECT product_id AS id, name, updated_at AS updatedAt FROM product_best ORDER BY product_id LIMIT ? OFFSET ?',
+      [limit, offset],
+    );
   }
 
   return {
     meta, listStores, listCategories, searchProducts, deals, getProduct, optimizeList, redirectTarget,
-    adminProducts, productExists, setCustomImage, productImage, sitemapEntries,
+    adminProducts, productExists, setCustomImage, productImage, sitemapEntries, countProducts,
   };
 }

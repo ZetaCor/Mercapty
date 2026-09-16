@@ -297,22 +297,57 @@ async function renderPage(req, res, pathname, searchParams) {
   res.end(html);
 }
 
-async function sendSitemap(req, res, api) {
+// El mapa del sitio va partido: /sitemap.xml es el índice y apunta a /sitemap-paginas.xml
+// y a /sitemap-productos-N.xml. Es lo que Google recomienda para sitios grandes y, además,
+// cada archivo se arma rápido: uno solo con 28,000 productos tardaba seis segundos.
+const SITEMAP_CHUNK = 5000;
+const CACHE_SITEMAP = 'public, max-age=0, s-maxage=21600, stale-while-revalidate=86400';
+
+function sendXml(res, lines) {
+  res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': CACHE_SITEMAP });
+  res.end([...lines, ''].join('\n'));
+}
+
+const xmlText = (s) => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+
+async function sendSitemapIndex(req, res, api) {
   const origin = siteOrigin(req);
-  const [products, categories] = await Promise.all([api.sitemapEntries(), api.listCategories()]);
-  const xml = (s) => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
-  const url = (loc, lastmod) => `  <url><loc>${xml(origin + loc)}</loc>${lastmod ? `<lastmod>${lastmod.slice(0, 10)}</lastmod>` : ''}</url>`;
-  const body = [
+  const total = await api.countProducts('');
+  const partes = [
+    'paginas',
+    ...Array.from({ length: Math.max(1, Math.ceil(total / SITEMAP_CHUNK)) }, (_, i) => `productos-${i + 1}`),
+  ];
+  sendXml(res, [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...partes.map((p) => `  <sitemap><loc>${xmlText(`${origin}/sitemap-${p}.xml`)}</loc></sitemap>`),
+    '</sitemapindex>',
+  ]);
+}
+
+// parte: «paginas» (portada, tiendas, app y categorías) o «productos-N».
+async function sendSitemapPart(req, res, api, parte) {
+  const origin = siteOrigin(req);
+  const url = (loc, lastmod) => `  <url><loc>${xmlText(origin + loc)}</loc>${lastmod ? `<lastmod>${lastmod.slice(0, 10)}</lastmod>` : ''}</url>`;
+  let urls;
+  if (parte === 'paginas') {
+    const categories = await api.listCategories();
+    urls = [
+      url('/'), url('/tiendas'), url('/app'),
+      ...categories.map((c) => url(`/buscar?categoria=${encodeURIComponent(c.name)}`)),
+    ];
+  } else {
+    const pagina = Number(parte.split('-')[1]);
+    const products = await api.sitemapEntries({ limit: SITEMAP_CHUNK, offset: (pagina - 1) * SITEMAP_CHUNK });
+    if (!products.length) throw new HttpError(404, 'No encontrado');
+    urls = products.map((p) => url(productPath(p.id, p.name), p.updatedAt));
+  }
+  sendXml(res, [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    url('/'), url('/tiendas'), url('/app'),
-    ...categories.map((c) => url(`/buscar?categoria=${encodeURIComponent(c.name)}`)),
-    ...products.map((p) => url(productPath(p.id, p.name), p.updatedAt)),
+    ...urls,
     '</urlset>',
-    '',
-  ].join('\n');
-  res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=0, s-maxage=21600, stale-while-revalidate=86400' });
-  res.end(body);
+  ]);
 }
 
 async function route(req, res) {
@@ -336,7 +371,10 @@ async function route(req, res) {
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' });
     return res.end(robotsTxt(siteOrigin(req)));
   }
-  if (get && pathname === '/sitemap.xml') return sendSitemap(req, res, await needApi());
+  if (get && pathname === '/sitemap.xml') return sendSitemapIndex(req, res, await needApi());
+  if (get && (m = /^\/sitemap-(paginas|productos-\d{1,3})\.xml$/.exec(pathname))) {
+    return sendSitemapPart(req, res, await needApi(), m[1]);
+  }
   // Archivos con extensión (CSS, JS, imágenes, manifiesto...) salen de public/.
   if (get && path.extname(pathname)) return serveStatic(res, pathname);
   // Cualquier otra dirección es una página de la app: la plantilla shell.html con el título,

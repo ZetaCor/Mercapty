@@ -339,7 +339,8 @@ ven como recuadros punteados; en la web no aparecen hasta que configures AdSense
   `/tiendas`, `/app`. Los enlaces viejos con `#` siguen funcionando.
 - El servidor entrega cada página con su título, descripción, dirección canónica, vista previa para redes
   (Open Graph) y, en los productos, datos estructurados de Google (precio más bajo y más alto).
-- `/sitemap.xml` lista todos los productos con precio y `/robots.txt` apunta a él. Las búsquedas por
+- `/sitemap.xml` es un índice que apunta a `/sitemap-paginas.xml` (portada, tiendas, app y categorías)
+  y a `/sitemap-productos-N.xml`, de 5.000 direcciones cada uno; `/robots.txt` apunta al índice. Las búsquedas por
   palabra, «Mi lista» y el panel no se indexan.
 - El sitio vive en `mercapty.com`: en Vercel hay que definir `SITE_URL=https://mercapty.com` para que las
   direcciones canónicas y el mapa del sitio usen el dominio propio y Google no lo mezcle con la dirección

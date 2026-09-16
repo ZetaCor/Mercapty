@@ -11,6 +11,7 @@
     { "source": "/ads.txt", "destination": "/api" },
     { "source": "/robots.txt", "destination": "/api" },
     { "source": "/sitemap.xml", "destination": "/api" },
+    { "source": "/sitemap-:parte.xml", "destination": "/api" },
     { "source": "/producto/:path*", "destination": "/api" },
     { "source": "/(buscar|tiendas|app|lista|admin)", "destination": "/api" }
   ]

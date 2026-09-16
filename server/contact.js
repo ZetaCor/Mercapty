@@ -2,7 +2,7 @@
 // /api/meta, así que un cambio aquí también llega a la app sin publicar otra versión.
 // Un campo vacío ('') no se muestra. El correo también está escrito en public/privacidad.html.
 const CONTACT = {
-  email: 'eliezercordero10@gmail.com',
+  email: 'ptymerca@gmail.com',
   whatsapp: '+50765374371', // con el código del país
   instagram: 'mercapty', // usuario, sin @
   facebook: 'mercapty', // nombre de la página

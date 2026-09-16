@@ -24,13 +24,13 @@ export function t(text, vars) {
 // Nombre de una categoría (la dirección sigue usando el nombre en español).
 export const category = (name) => (lang === 'en' && CATEGORIES_EN[name]) || name;
 
-// Cambiar de idioma recarga la página: así todo, también lo fijo de index.html, sale traducido.
+// Cambiar de idioma recarga la página: así todo, también lo fijo de shell.html, sale traducido.
 export function setLang(next) {
   try { localStorage.setItem(KEY, next); } catch { /* sin almacenamiento: dura hasta recargar */ }
   location.reload();
 }
 
-// Textos fijos de index.html: data-i18n traduce el texto del elemento y
+// Textos fijos de shell.html: data-i18n traduce el texto del elemento y
 // data-i18n-attr="placeholder,aria-label" traduce esos atributos.
 export function translateStatic(root = document) {
   document.documentElement.lang = lang === 'en' ? 'en' : 'es-PA';
@@ -60,7 +60,7 @@ const CATEGORIES_EN = {
 
 // Español -> inglés. «[...]» marca la parte resaltada de una frase (ver hl() en ui.js).
 const EN = {
-  // index.html y app.js
+  // shell.html y app.js
   'Mercapty · Compara precios de supermercados en Panamá': 'Mercapty · Compare supermarket prices in Panama',
   'Mercapty, inicio': 'Mercapty, home',
   'Busca leche, arroz, café…': 'Search milk, rice, coffee…',

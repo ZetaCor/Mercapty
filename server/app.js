@@ -130,7 +130,7 @@ async function sendFile(res, file, cacheControl) {
 
 async function serveStatic(res, pathname) {
   let rel;
-  try { rel = pathname === '/' ? 'index.html' : decodeURIComponent(pathname).replace(/^\/+/, ''); }
+  try { rel = pathname === '/' ? 'shell.html' : decodeURIComponent(pathname).replace(/^\/+/, ''); }
   catch { throw new HttpError(400, 'Ruta inválida'); }
   const file = path.resolve(PUBLIC_DIR, rel);
   if (!file.startsWith(PUBLIC_DIR + path.sep)) throw new HttpError(403, 'Prohibido');
@@ -196,7 +196,7 @@ function siteOrigin(req) {
 }
 
 function robotsTxt(origin) {
-  return ['User-agent: *', 'Allow: /', 'Disallow: /api/', 'Disallow: /go/', 'Disallow: /admin', 'Disallow: /lista', '',
+  return ['User-agent: *', 'Allow: /', 'Disallow: /api/', 'Disallow: /go/', 'Disallow: /admin', 'Disallow: /lista', 'Disallow: /shell.html', '',
     `Sitemap: ${origin}/sitemap.xml`, ''].join('\n');
 }
 
@@ -260,7 +260,7 @@ async function pageMeta(pathname, searchParams, origin) {
 
 let shellHtml;
 async function pageShell() {
-  shellHtml ??= await readFile(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
+  shellHtml ??= await readFile(path.join(PUBLIC_DIR, 'shell.html'), 'utf8');
   return shellHtml;
 }
 
@@ -339,7 +339,7 @@ async function route(req, res) {
   if (get && pathname === '/sitemap.xml') return sendSitemap(req, res, await needApi());
   // Archivos con extensión (CSS, JS, imágenes, manifiesto...) salen de public/.
   if (get && path.extname(pathname)) return serveStatic(res, pathname);
-  // Cualquier otra dirección es una página de la app: index.html con el título,
+  // Cualquier otra dirección es una página de la app: la plantilla shell.html con el título,
   // la descripción y los datos de esa página ya puestos, para Google.
   if (get && !pathname.startsWith('/api/') && !pathname.startsWith('/go/')) return renderPage(req, res, pathname, searchParams);
 

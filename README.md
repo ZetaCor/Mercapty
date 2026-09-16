@@ -363,7 +363,7 @@ api/index.js    función de Vercel (usa server/app.js)
 connectors/     bots: vtex.js, woocommerce.js, instaleap.js, ribasmith.js, magento.js, shopify.js, super99.js, feed.js
 scripts/        ingest.js: corre los bots y guarda en la base · super99.js: bot de Súper 99 · lib/pipeline.js
 server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local), contact.js (contacto)
-public/         index.html, styles.css, js/ (app.js, i18n.js, images.js, views/)
+public/         shell.html (la plantilla que rellena el servidor), styles.css, js/ (app.js, i18n.js, images.js, views/)
 mobile/         app de Expo: src/app (pantallas), src/components (cerdito, tarjetas…), src/lib (API, lista)
 data/           stores.json, feeds/   · generados (fuera de git): mercapty.db, images/, admin-key.txt
 .github/        workflows/precios.yml: bots dos veces al día · super99.yml: Súper 99 cada noche

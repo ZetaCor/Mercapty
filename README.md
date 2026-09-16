@@ -354,6 +354,11 @@ ven como recuadros punteados; en la web no aparecen hasta que configures AdSense
 
 - Cada página tiene su dirección normal: `/producto/45-leche-de-oro-250-ml-entera-fresca`, `/buscar?categoria=Despensa`,
   `/tiendas`, `/app`. Los enlaces viejos con `#` siguen funcionando.
+- Para que Google y Bing comprueben que el sitio es tuyo, define en Vercel `GOOGLE_SITE_VERIFICATION` y
+  `BING_SITE_VERIFICATION` con el código que te den (solo el valor del `content`), o verifícalo por DNS en
+  Hostinger y no hace falta tocar nada.
+- La portada lleva los datos del sitio (`WebSite` y `Organization`, con el logo, el correo y las redes) y la
+  acción de búsqueda, para que Google pueda mostrar una caja de búsqueda de Mercapty en sus resultados.
 - El servidor entrega cada página con su título, descripción, dirección canónica, vista previa para redes
   (Open Graph) y, en los productos, datos estructurados de Google (precio más bajo y más alto).
 - `/sitemap.xml` es un índice que apunta a `/sitemap-paginas.xml` (portada, tiendas, app y categorías)

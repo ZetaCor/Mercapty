@@ -254,7 +254,10 @@ async function pageMeta(pathname, searchParams, origin) {
     return { title: 'Todos los productos', path: '/buscar' };
   }
   const known = STATIC_PAGES[clean];
-  if (known) return { title: known[0], description: known[1], robots: known[2], path: clean };
+  if (known) {
+    const meta = { title: known[0], description: known[1], robots: known[2], path: clean };
+    return clean === '/' ? { ...meta, jsonLd: siteJsonLd(origin) } : meta;
+  }
   return { status: 404, title: 'Página no encontrada', robots: 'noindex' };
 }
 
@@ -262,6 +265,54 @@ let shellHtml;
 async function pageShell() {
   shellHtml ??= await readFile(path.join(PUBLIC_DIR, 'shell.html'), 'utf8');
   return shellHtml;
+}
+
+// Códigos con los que Google Search Console y Bing comprueban que el sitio es tuyo. Se
+// definen en Vercel (GOOGLE_SITE_VERIFICATION y BING_SITE_VERIFICATION) y, si no están,
+// no se escribe nada. También se puede verificar por DNS, sin tocar esto.
+function verificationTags() {
+  return [
+    ['google-site-verification', process.env.GOOGLE_SITE_VERIFICATION],
+    ['msvalidate.01', process.env.BING_SITE_VERIFICATION],
+  ]
+    .filter(([, code]) => code?.trim())
+    .map(([name, code]) => `<meta name="${name}" content="${escapeHtml(code.trim())}">`);
+}
+
+// Datos del sitio para Google: quién está detrás y cómo se busca aquí dentro, para que
+// pueda mostrar la caja de búsqueda de Mercapty junto al resultado.
+function siteJsonLd(origin) {
+  const contact = contactInfo();
+  const redes = [contact.instagram?.url, contact.facebook?.url].filter(Boolean);
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': `${origin}/#sitio`,
+        url: `${origin}/`,
+        name: 'Mercapty',
+        description: DEFAULT_DESCRIPTION,
+        inLanguage: 'es-PA',
+        publisher: { '@id': `${origin}/#organizacion` },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: { '@type': 'EntryPoint', urlTemplate: `${origin}/buscar?q={search_term_string}` },
+          'query-input': 'required name=search_term_string',
+        },
+      },
+      {
+        '@type': 'Organization',
+        '@id': `${origin}/#organizacion`,
+        name: 'Mercapty',
+        url: `${origin}/`,
+        logo: `${origin}/icons/icon-512.png`,
+        areaServed: 'PA',
+        ...(contact.email ? { email: contact.email.text } : {}),
+        ...(redes.length ? { sameAs: redes } : {}),
+      },
+    ],
+  };
 }
 
 function injectHead(shell, meta, origin) {
@@ -280,6 +331,8 @@ function injectHead(shell, meta, origin) {
     url && `<meta property="og:url" content="${escapeHtml(url)}">`,
     `<meta property="og:image" content="${escapeHtml(absoluteUrl(meta.image, origin) ?? `${origin}/icons/icon-512.png`)}">`,
     '<meta name="twitter:card" content="summary">',
+    '<meta property="og:locale" content="es_PA">',
+    ...verificationTags(),
     meta.jsonLd && `<script type="application/ld+json">${JSON.stringify(meta.jsonLd).replaceAll('<', '\\u003c')}</script>`,
   ].filter(Boolean).join('\n  ');
   return shell.replace(/<title>[^<]*<\/title>\s*<meta name="description"[^>]*>/, tags);

@@ -255,6 +255,9 @@ const EN: Record<string, string> = {
   'Quiero sumar mi tienda a Mercapty': 'I want to add my store to Mercapty',
   'Contacto y redes': 'Contact and social media',
   'Ver la bienvenida otra vez': 'See the welcome again',
+  Ajustes: 'Settings',
+  Bienvenida: 'Welcome',
+  'Las tres pantallas que se ven la primera vez que se abre la app.': 'The three screens you see the first time you open the app.',
 
   // Días de descuento
   'Hoy −{n}% en {store}': 'Today −{n}% at {store}',

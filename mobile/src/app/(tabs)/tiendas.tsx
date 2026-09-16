@@ -1,12 +1,12 @@
 // Tiendas: cuántos productos tiene cada súper, en cuántos gana y cuántas visitas le enviamos.
 // Al final: contacto y redes, el idioma y «Ver la bienvenida otra vez».
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { UpdateStatus } from '@/components/app-updates';
+
 import { Button, openLink } from '@/components/button';
 import { ContactList, openExternal, whatsappWith } from '@/components/contact';
-import { LangSwitch } from '@/components/lang-switch';
+
 import { LoadingPiggy } from '@/components/splash-overlay';
 import { StoreAvatar, StoreLogo } from '@/components/store-avatar';
 import { T } from '@/components/text';
@@ -15,7 +15,7 @@ import { C, PAD, R } from '@/constants/theme';
 import type { Meta, Store } from '@/lib/api';
 import { count, timeAgo } from '@/lib/format';
 import { useI18n } from '@/lib/i18n';
-import { useOnboarding } from '@/lib/onboarding';
+
 import { useFetch } from '@/lib/use-fetch';
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -28,7 +28,7 @@ export default function Tiendas() {
   const insets = useSafeAreaInsets();
   const { t } = useI18n();
   const { data: stores, error, refresh } = useFetch<Store[]>('/api/stores');
-  const { reset } = useOnboarding();
+
   const contact = useFetch<Meta>('/api/meta').data?.contact ?? {};
   const { whatsapp, email } = contact;
 
@@ -100,18 +100,7 @@ export default function Tiendas() {
                 <ContactList contact={contact} />
               </View>
             )}
-            {/* Con los dos nombres, para que cualquiera lo encuentre sin importar el idioma actual. */}
-            <View style={styles.block}>
-              <T w={700} size={18} tight accessibilityRole="header">Idioma · Language</T>
-              <LangSwitch />
-            </View>
-            <View style={styles.block}>
-              <T w={700} size={18} tight accessibilityRole="header">{t('Versión de la app')}</T>
-              <UpdateStatus />
-            </View>
-            <Pressable onPress={reset} hitSlop={10} style={{ alignSelf: 'center', marginTop: 24 }} accessibilityRole="button">
-              <T w={600} size={13.5} color={C.muted}>{t('Ver la bienvenida otra vez')}</T>
-            </Pressable>
+
           </>
         )}
       </ScrollView>

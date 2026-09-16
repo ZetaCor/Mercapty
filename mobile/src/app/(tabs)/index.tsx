@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { Icon } from '@/components/icons';
-import { LangSwitch } from '@/components/lang-switch';
+
 import { Brand } from '@/components/logo';
 import { ProductGrid } from '@/components/product-card';
 import { PromoStrip } from '@/components/promo-strip';
@@ -44,10 +44,16 @@ export default function Inicio() {
   return (
     <View style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        {/* Idioma a la vista, como el botón «EN / ES» de la web. */}
         <View style={styles.brandRow}>
           <Brand size={19} />
-          <LangSwitch compact />
+          {/* Idioma, versión de la app y bienvenida viven juntos en Ajustes. */}
+          <Pressable
+            onPress={() => router.push('/ajustes')}
+            style={({ pressed }) => [styles.settings, pressed && { backgroundColor: C.soft2 }]}
+            accessibilityRole="button"
+            accessibilityLabel={t('Ajustes')}>
+            <Icon name="settings" size={20} color={C.text2} />
+          </Pressable>
         </View>
         <View style={styles.searchRow}>
           <Pressable
@@ -179,6 +185,7 @@ const styles = StyleSheet.create({
     borderBottomColor: C.border,
   },
   brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  settings: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: C.soft },
   searchRow: { flexDirection: 'row', gap: 10 },
   search: {
     flex: 1,

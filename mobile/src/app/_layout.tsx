@@ -66,7 +66,7 @@ function App() {
   });
   const fontsReady = fontsLoaded || fontError != null; // sin Inter, la app sigue con la letra del sistema
   const { seen } = useOnboarding();
-  const { ready: langReady } = useI18n(); // el idioma guardado, antes de mostrar textos
+  const { t, ready: langReady } = useI18n(); // el idioma guardado, antes de mostrar textos
 
   // Mientras corre el cerdito se piden los datos de la portada y de la bienvenida.
   const [dataReady, setDataReady] = useState(false);
@@ -100,6 +100,17 @@ function App() {
               }}
             />
             <Stack.Screen name="escanear" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
+            <Stack.Screen
+              name="ajustes"
+              options={{
+                headerShown: true,
+                title: t('Ajustes'),
+                headerBackButtonDisplayMode: 'minimal',
+                headerShadowVisible: false,
+                headerTintColor: C.text,
+                headerStyle: { backgroundColor: C.bg },
+              }}
+            />
           </Stack.Protected>
         </Stack>
       )}

@@ -5,6 +5,7 @@
     "api/index.js": { "includeFiles": "public/index.html" }
   },
   "rewrites": [
+    { "source": "/", "destination": "/api" },
     { "source": "/api/:path*", "destination": "/api" },
     { "source": "/go/:id", "destination": "/api" },
     { "source": "/ads.txt", "destination": "/api" },

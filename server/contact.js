@@ -3,12 +3,12 @@
 // Un campo vacío ('') no se muestra. El correo también está escrito en public/privacidad.html.
 const CONTACT = {
   email: 'ptymerca@gmail.com',
-  whatsapp: '+50765374371', // con el código del país
+  whatsapp: '+50765189265', // con el código del país
   instagram: 'mercapty', // usuario, sin @
   facebook: 'mercapty', // nombre de la página
 };
 
-// +50765374371 -> +507 6537-4371 (los celulares de Panamá tienen 8 dígitos).
+// +50765189265 -> +507 6518-9265 (los celulares de Panamá tienen 8 dígitos).
 function formatPhone(phone) {
   const digits = phone.replace(/\D/g, '');
   const m = /^507(\d{4})(\d{4})$/.exec(digits);

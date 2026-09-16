@@ -10,6 +10,7 @@ import { createApi } from './api.js';
 import { productPath } from './lib/normalize.js';
 import { saveImage, deleteImage, canStoreImages, IMAGES_DIR, LOCAL_IMAGE_RE } from './storage.js';
 import { contactInfo } from './contact.js';
+import { activePromos } from './promos.js';
 
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024; // Vercel acepta hasta 4.5 MB por petición
@@ -70,6 +71,8 @@ class HttpError extends Error {
 // bots, así que casi ninguna visita necesita tocar la base de datos (Turso cobra por filas
 // leídas). Vencido el plazo, sigue sirviendo la copia guardada mientras pide una nueva.
 const CACHE_READ = 'public, max-age=0, s-maxage=600, stale-while-revalidate=86400';
+// Los días de descuento cambian al cambiar el día: se guardan poco y sin servir copias viejas.
+const CACHE_PROMOS = 'public, max-age=0, s-maxage=600';
 
 function sendJson(res, status, body, cache = 'no-store') {
   res.writeHead(status, { 'Content-Type': MIME['.json'], 'Cache-Control': cache });
@@ -424,6 +427,8 @@ async function route(req, res) {
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' });
     return res.end(robotsTxt(siteOrigin(req)));
   }
+  // Los días de descuento que anuncia cada súper no salen de la base de datos.
+  if (get && pathname === '/api/promos') return sendJson(res, 200, activePromos(), CACHE_PROMOS);
   if (get && pathname === '/sitemap.xml') return sendSitemapIndex(req, res, await needApi());
   if (get && (m = /^\/sitemap-(paginas|productos-\d{1,3})\.xml$/.exec(pathname))) {
     return sendSitemapPart(req, res, await needApi(), m[1]);

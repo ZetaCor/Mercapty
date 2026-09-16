@@ -256,6 +256,11 @@ const EN: Record<string, string> = {
   'Contacto y redes': 'Contact and social media',
   'Ver la bienvenida otra vez': 'See the welcome again',
 
+  // Días de descuento
+  'Hoy −{n}% en {store}': 'Today −{n}% at {store}',
+  'Hoy en {store}': 'Today at {store}',
+  'Lo anuncia la tienda: confirma el descuento al pagar.': 'Announced by the store: confirm the discount when you pay.',
+
   // Actualizaciones de la app
   'Hay una versión nueva de Mercapty': 'A new version of Mercapty is ready',
   Actualizar: 'Update',

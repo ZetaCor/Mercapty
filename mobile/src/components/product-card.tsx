@@ -14,9 +14,29 @@ import type { ProductSummary, Store } from '@/lib/api';
 import { money, productLabel } from '@/lib/format';
 import { useI18n } from '@/lib/i18n';
 import { useList } from '@/lib/list';
+import { promoFor, usePromos } from '@/lib/promos';
 import { useStores } from '@/lib/stores';
 
 const GAP = 12;
+
+// «Hoy −25% en Súper 99» cuando al producto le toca el día de descuento de su tienda.
+function PromoTag({ item }: { item: ProductSummary }) {
+  const { t } = useI18n();
+  const promos = usePromos();
+  const { byId } = useStores();
+  const promo = promoFor(item, promos);
+  if (!promo) return null;
+  const store = byId.get(promo.storeId)?.name ?? promo.storeId;
+  return (
+    <View style={[styles.tag, { backgroundColor: C.promoSoft }]}>
+      <T w={600} size={11} color={C.promo}>
+        {promo.discount
+          ? t('Hoy −{n}% en {store}', { n: promo.discount, store })
+          : t('Hoy en {store}', { store })}
+      </T>
+    </View>
+  );
+}
 
 export function useAddToList() {
   const { add } = useList();
@@ -87,6 +107,7 @@ function Body({ item, store }: { item: ProductSummary; store?: Store }) {
         </T>
       </View>
       <View style={styles.tags}>
+        <PromoTag item={item} />
         {item.savings > 0 ? (
           <View style={[styles.tag, { backgroundColor: C.goodSoft }]}>
             <T w={600} size={11} color={C.good}>{t('Ahorra {amount}', { amount: money(item.savings) })}</T>

@@ -229,6 +229,11 @@ const EN = {
   'Los totales no incluyen envío: cada tienda tiene su propia tarifa y monto mínimo.':
     'Totals don’t include delivery: each store has its own fee and minimum order.',
   'Vaciaste tu lista': 'List cleared',
+
+  // Días de descuento (promos.js)
+  'Hoy −{n}% en {store}': 'Today −{n}% at {store}',
+  'Hoy en {store}': 'Today at {store}',
+  'Lo anuncia la tienda: confirma el descuento al pagar.': 'Announced by the store: confirm the discount when you pay.',
   Deshacer: 'Undo',
 
   // Tiendas (stores.js)

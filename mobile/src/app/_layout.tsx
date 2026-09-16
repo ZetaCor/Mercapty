@@ -21,6 +21,7 @@ import { prefetchHome } from '@/lib/api';
 import { I18nProvider, useI18n } from '@/lib/i18n';
 import { ListProvider } from '@/lib/list';
 import { OnboardingProvider, useOnboarding } from '@/lib/onboarding';
+import { PromosProvider } from '@/lib/promos';
 import { StoresProvider } from '@/lib/stores';
 
 // El splash nativo (cerdito quieto) queda hasta que SplashOverlay lo reemplaza.
@@ -42,9 +43,11 @@ export default function RootLayout() {
         <OnboardingProvider>
           <StoresProvider>
             <ListProvider>
-              <ToastProvider>
-                <App />
-              </ToastProvider>
+              <PromosProvider>
+                <ToastProvider>
+                  <App />
+                </ToastProvider>
+              </PromosProvider>
             </ListProvider>
           </StoresProvider>
         </OnboardingProvider>

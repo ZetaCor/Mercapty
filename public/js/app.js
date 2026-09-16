@@ -1,5 +1,5 @@
 import { getJson } from './api.js';
-import { html, mount, toast, setStoreInfo, loader, contactLinks } from './ui.js';
+import { html, mount, toast, setStoreInfo, setPromos, loader, contactLinks } from './ui.js';
 import { addToList, listCount } from './list-store.js';
 import { setAdminKey } from './admin-auth.js';
 import { navigate } from './nav.js';
@@ -70,6 +70,16 @@ function loadStores() {
   return storesPromise;
 }
 
+// Días de descuento de hoy. Si fallan, la página sigue igual: van aparte de los precios.
+let promosPromise;
+function loadPromos() {
+  promosPromise ??= getJson('/api/promos').then((list) => {
+    setPromos(list);
+    return list;
+  }, () => []);
+  return promosPromise;
+}
+
 let renderSeq = 0;
 async function router({ keepScroll = false } = {}) {
   const seq = ++renderSeq; // si el usuario navega de nuevo, la respuesta vieja se descarta
@@ -95,8 +105,8 @@ async function router({ keepScroll = false } = {}) {
   // Si la página tarda, el cerdito corre tras el billete mientras llegan los precios.
   const slow = keepScroll ? null : setTimeout(() => { if (seq === renderSeq) mount(view, loader()); }, 350);
   try {
-    const stores = await loadStores();
-    const out = await renderView({ params, match: pattern && path.match(pattern), stores, refresh: () => router({ keepScroll: true }) });
+    const [stores, promos] = await Promise.all([loadStores(), loadPromos()]);
+    const out = await renderView({ params, match: pattern && path.match(pattern), stores, promos, refresh: () => router({ keepScroll: true }) });
     if (seq !== renderSeq) return;
     mount(view, out.html);
     document.title = out.title ? `${out.title} · Mercapty` : DEFAULT_TITLE;

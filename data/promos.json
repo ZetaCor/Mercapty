@@ -1,0 +1,49 @@
+[
+  {
+    "id": "super99-martes-verduras",
+    "storeId": "super99",
+    "name": "Martes de frutas y verduras",
+    "discount": 25,
+    "weekdays": ["martes"],
+    "categories": ["Frutas y verduras"],
+    "source": "",
+    "note": "Sin confirmar: falta el enlace donde Súper 99 lo anuncia.",
+    "enabled": false
+  },
+  {
+    "id": "super99-lunes-farmacia",
+    "storeId": "super99",
+    "name": "Lunes de farmacia",
+    "discount": null,
+    "weekdays": ["lunes"],
+    "categories": ["Cuidado personal"],
+    "keywords": ["vitamina", "vitaminas", "pastilla", "pastillas", "jarabe", "analgesico", "alcohol", "gasa", "curita", "suplemento"],
+    "source": "",
+    "note": "Sin confirmar: falta el descuento exacto y el enlace.",
+    "enabled": false
+  },
+  {
+    "id": "super99-miercoles-cosmeticos",
+    "storeId": "super99",
+    "name": "Miércoles de cosméticos",
+    "discount": null,
+    "weekdays": ["miercoles"],
+    "categories": ["Cuidado personal"],
+    "keywords": ["labial", "mascara", "rimel", "base", "corrector", "esmalte", "rubor", "sombra", "perfume", "colonia", "crema facial"],
+    "source": "",
+    "note": "Sin confirmar: falta el descuento exacto y el enlace.",
+    "enabled": false
+  },
+  {
+    "id": "super99-black-friday-2026",
+    "storeId": "super99",
+    "name": "Black Friday",
+    "discount": null,
+    "from": "2026-11-27",
+    "to": "2026-11-29",
+    "categories": [],
+    "source": "",
+    "note": "Ejemplo del formato por fechas: revisar cuando el súper lo anuncie.",
+    "enabled": false
+  }
+]

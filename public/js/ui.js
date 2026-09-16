@@ -128,6 +128,39 @@ export function setStoreInfo(stores) {
   for (const s of stores) storeInfo.set(s.name, s);
 }
 
+// Días de descuento que anuncian los súper hoy (/api/promos). Se guardan aquí para que
+// cada tarjeta pueda marcar si al producto le toca uno.
+let todaysPromos = [];
+export function setPromos(list) {
+  todaysPromos = Array.isArray(list) ? list : [];
+}
+
+const withoutAccents = (text) => String(text ?? '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+
+// La promoción de hoy que le aplica a un producto: tiene que ser de una tienda que lo
+// vende, de su categoría y, si la promoción afina por palabras, llevar alguna en el nombre.
+export function promoFor(item) {
+  const inStores = item.storeIds ?? [item.bestStoreId];
+  const name = withoutAccents(item.name);
+  return todaysPromos.find((p) => {
+    if (!inStores.includes(p.storeId)) return false;
+    if (p.categories.length && !p.categories.includes(item.category)) return false;
+    if (p.keywords.length && !p.keywords.some((k) => name.includes(k))) return false;
+    return true;
+  });
+}
+
+// «Hoy −25% en Súper 99» sobre la tarjeta del producto.
+export function promoTag(item, stores) {
+  const promo = promoFor(item);
+  if (!promo) return '';
+  const store = stores?.get(promo.storeId)?.name ?? promo.storeId;
+  const text = promo.discount
+    ? t('Hoy −{n}% en {store}', { n: promo.discount, store })
+    : t('Hoy en {store}', { store });
+  return html`<span class="tag promo" title="${promo.name}">${text}</span>`;
+}
+
 // Ícono de la tienda sobre sus iniciales: si el ícono no carga, quedan las iniciales.
 export function storeAvatar(name, color, size = '') {
   const icon = storeInfo.get(name)?.icon;
@@ -177,6 +210,7 @@ export function productCard(item, stores) {
         <div class="meta">${[item.brand, item.size].filter(Boolean).join(' · ')}</div>
         <div class="best-at">${storeAvatar(store?.name, store?.color)}<span>${t('en')} <b>${store?.name ?? item.bestStoreId}</b></span></div>
         <div class="tags">
+          ${promoTag(item, stores)}
           ${item.savings > 0 ? html`<span class="tag good">${t('Ahorra {amount}', { amount: money(item.savings) })}</span>` : ''}
           ${storeStack(item, stores)}
         </div>

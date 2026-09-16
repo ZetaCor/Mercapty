@@ -286,6 +286,17 @@ select, .input {
 .tag { padding: .18rem .5rem; border-radius: 999px; background: var(--soft); color: var(--muted); font-size: .72rem; font-weight: 600; }
 .tag.good { background: var(--good-soft); color: var(--good); }
 .tag.promo { background: var(--promo-soft); color: var(--promo); }
+
+/* Día de descuento del súper: «Martes de frutas y verduras» */
+.promo-day {
+  display: grid; gap: .6rem; margin: 1.25rem 0 0; padding: 1rem 1.15rem;
+  border: 1px solid #ffd9e0; border-radius: var(--r-lg); background: var(--promo-soft);
+}
+.promo-row { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.promo-text { display: grid; line-height: 1.35; }
+.promo-text span { color: var(--promo); font-weight: 600; font-size: .9rem; }
+.promo-row .btn { margin-left: auto; }
+.promo-day .meta { margin: 0; }
 .tag.demo { background: var(--warn-soft); color: var(--warn); }
 
 .avatar {

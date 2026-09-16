@@ -8,6 +8,7 @@ import { Icon } from '@/components/icons';
 import { LangSwitch } from '@/components/lang-switch';
 import { Brand } from '@/components/logo';
 import { ProductGrid } from '@/components/product-card';
+import { PromoStrip } from '@/components/promo-strip';
 import { LoadingPiggy } from '@/components/splash-overlay';
 import { StoreMarquee } from '@/components/store-marquee';
 import { T } from '@/components/text';
@@ -82,6 +83,7 @@ export default function Inicio() {
               </View>
             )}
             <Hero meta={meta.data} names={stores.active.map((s) => s.name)} />
+            <PromoStrip />
 
             <View style={styles.section}>
               <SectionHead title={t('Supermercados que comparamos')} action={t('Ver tiendas')} onAction={() => router.navigate('/tiendas')} />

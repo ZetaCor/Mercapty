@@ -11,6 +11,20 @@ export type Contact = Partial<Record<'whatsapp' | 'email' | 'instagram' | 'faceb
 
 export type Meta = { demo: boolean; products: number; offers: number; updatedAt: string | null; contact?: Contact };
 
+// Día de descuento que anuncia un súper («Martes de frutas y verduras»), de data/promos.json.
+export type Promo = {
+  id: string;
+  storeId: string;
+  name: string;
+  discount: number | null; // 25 = 25 %, o null si la tienda no lo dice
+  weekdays: string[];      // se repite estos días, o…
+  from: string | null;     // …va entre estas dos fechas
+  to: string | null;
+  categories: string[];
+  keywords: string[];
+  source: string | null;
+};
+
 export type Store = {
   id: string;
   name: string;

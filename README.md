@@ -78,6 +78,14 @@ como antes y todo sigue funcionando igual.
 El servidor web tampoco crea las tablas al arrancar, porque en Vercel eso lo pagaría cada arranque
 en frío: de eso se encargan los bots (`createSchema`), y si faltaran, la API las crea al vuelo.
 
+**Días de descuento:** los súper anuncian días fijos («Martes de frutas y verduras», «Lunes de farmacia») y
+fechas sueltas (Black Friday). Como ninguno los publica en un formato que un bot pueda leer, se escriben a mano en
+`data/promos.json`: de qué tienda es, el descuento, los días (`weekdays`) o el rango de fechas (`from` y `to`), a qué
+categorías aplica y, si hay que afinar dentro de una categoría, unas `keywords` del nombre (la farmacia y los
+cosméticos comparten «Cuidado personal»). Con `enabled` en `false` no se muestra a nadie: así no se anuncia un
+descuento sin confirmar. `/api/promos` devuelve las de hoy según la hora de Panamá (no la del servidor), la portada
+las muestra en una franja y cada producto al que le aplica lleva «Hoy −25% en …».
+
 **Paquetes:** «946 ml (Pack de 12)», «6 pack», «Caja de 24» o «6 x 355 ml» se reconocen como
 paquetes. Un paquete nunca se une con la unidad, aunque la tienda use el mismo código de barras, y
 su precio por litro o por kilo se calcula sobre el total. Los códigos internos de productos pesados

@@ -1,5 +1,5 @@
 import { getJson } from '../api.js';
-import { html, productGrid, categoryIcon, categoryTint } from '../ui.js';
+import { html, productGrid, categoryIcon, categoryTint, storeAvatar } from '../ui.js';
 import { t, category } from '../i18n.js';
 import { renderHero, bindHero } from './hero.js';
 import { storeMarquee } from './store-marquee.js';
@@ -47,7 +47,31 @@ function categoryChips(categories, current) {
     </nav>`;
 }
 
-export async function renderHome({ stores }) {
+// Lo que hoy tiene descuento por el día en algún súper («Martes de frutas y verduras»).
+function promoStrip(promos, stores) {
+  if (!promos?.length) return '';
+  return html`
+    <section class="promo-day">
+      ${promos.map((p) => {
+        const store = stores.get(p.storeId);
+        const name = store?.name ?? p.storeId;
+        return html`
+          <div class="promo-row">
+            ${storeAvatar(name, store?.color)}
+            <div class="promo-text">
+              <b>${p.name}</b>
+              <span>${p.discount ? t('Hoy −{n}% en {store}', { n: p.discount, store: name }) : t('Hoy en {store}', { store: name })}</span>
+            </div>
+            ${p.categories.length === 1
+              ? html`<a class="btn btn-sm" href="${searchHref({ categoria: p.categories[0] })}">${t('Ver productos')}</a>`
+              : ''}
+          </div>`;
+      })}
+      <p class="meta">${t('Lo anuncia la tienda: confirma el descuento al pagar.')}</p>
+    </section>`;
+}
+
+export async function renderHome({ stores, promos }) {
   const [meta, deals, categories, all] = await Promise.all([
     getJson('/api/meta'),
     getJson('/api/deals?limit=8'),
@@ -57,6 +81,7 @@ export async function renderHome({ stores }) {
   return {
     html: html`
       ${renderHero({ meta, stores, deals })}
+      ${promoStrip(promos, stores)}
       ${storeMarquee(stores)}
 
       <section class="section">

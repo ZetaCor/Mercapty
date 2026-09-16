@@ -141,10 +141,45 @@ export async function openDb({ schema = !process.env.VERCEL } = {}) {
   return db;
 }
 
+// Índice de texto para la búsqueda (FTS5): guarda las palabras de cada producto para
+// encontrarlas sin recorrer la tabla. Se mantiene solo con los tres disparadores, y solo
+// cuando el texto cambia, para no escribir de más en cada corrida de los bots.
+const SEARCH_INDEX = [
+  `CREATE VIRTUAL TABLE IF NOT EXISTS products_fts USING fts5(
+    search_text, content='products', content_rowid='id', tokenize='unicode61')`,
+  `CREATE TRIGGER IF NOT EXISTS products_fts_insert AFTER INSERT ON products BEGIN
+    INSERT INTO products_fts(rowid, search_text) VALUES (new.id, new.search_text);
+  END`,
+  `CREATE TRIGGER IF NOT EXISTS products_fts_delete AFTER DELETE ON products BEGIN
+    INSERT INTO products_fts(products_fts, rowid, search_text) VALUES ('delete', old.id, old.search_text);
+  END`,
+  `CREATE TRIGGER IF NOT EXISTS products_fts_update AFTER UPDATE OF search_text ON products
+    WHEN new.search_text IS NOT old.search_text BEGIN
+    INSERT INTO products_fts(products_fts, rowid, search_text) VALUES ('delete', old.id, old.search_text);
+    INSERT INTO products_fts(rowid, search_text) VALUES (new.id, new.search_text);
+  END`,
+];
+
 // Crea las tablas y los índices que falten, y agrega las columnas de tiendas que llegaron después.
 export async function createSchema(db) {
   await db.batch(SCHEMA);
   await addStoreColumns(db);
+  await createSearchIndex(db);
+}
+
+// Si la base no soportara FTS5, la búsqueda sigue funcionando recorriendo los nombres:
+// por eso un fallo aquí solo se avisa. Devuelve si el índice quedó listo.
+export async function createSearchIndex(db) {
+  try {
+    const existed = Boolean(await db.get("SELECT 1 AS ok FROM sqlite_master WHERE name = 'products_fts'"));
+    await db.batch(SEARCH_INDEX);
+    // Recién creado: se llena con lo que ya hay; después lo mantienen los disparadores.
+    if (!existed) await db.run("INSERT INTO products_fts(products_fts) VALUES ('rebuild')");
+    return true;
+  } catch (err) {
+    console.warn(`Sin índice de texto (FTS5): la búsqueda recorrerá los nombres. ${err.message}`);
+    return false;
+  }
 }
 
 // Columnas de tiendas que llegaron después: las bases ya creadas las reciben aquí.

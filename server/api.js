@@ -180,6 +180,16 @@ export function createApi(db) {
     return aggregates;
   }
 
+  // ¿Está el índice de texto de la búsqueda? Se comprueba una vez por instancia.
+  let searchIndex = null;
+  function hasSearchIndex() {
+    searchIndex ??= db
+      .get("SELECT 1 AS ok FROM sqlite_master WHERE name = 'products_fts'")
+      .then(Boolean)
+      .catch(() => false);
+    return searchIndex;
+  }
+
   // Totales que dejan calculados los bots; si aún no están, se calculan al momento.
   async function stats(key, compute) {
     await ready();
@@ -251,14 +261,25 @@ export function createApi(db) {
     // Con palabras: primero los productos que tienen todas (cada palabra o un
     // sinónimo), ordenados por relevancia; así un catálogo grande no deja
     // fuera lo buscado. Si ninguno las tiene todas, los que tienen alguna.
-    const byWords = (groups, joiner) => {
-      const where = [groups.map((alts) => `(${alts.map(() => 'p.search_text LIKE ?').join(' OR ')})`).join(joiner)];
-      const params = groups.flat().map((t) => `%${t}%`);
+    // Con el índice de texto se piden las palabras al índice («leche*» encuentra leche,
+    // leches y lechera); sin él se recorren los nombres con LIKE, que lee toda la tabla.
+    const byWords = async (groups, joiner) => {
+      const params = [];
+      let from = BEST_JOIN;
+      let where;
+      if (await hasSearchIndex()) {
+        from = 'FROM products_fts JOIN products p ON p.id = products_fts.rowid JOIN product_best b ON b.product_id = p.id';
+        where = ['products_fts MATCH ?'];
+        params.push(groups.map((alts) => `(${alts.map((t) => `${t}*`).join(' OR ')})`).join(joiner));
+      } else {
+        where = [groups.map((alts) => `(${alts.map(() => 'p.search_text LIKE ?').join(' OR ')})`).join(joiner)];
+        params.push(...groups.flat().map((t) => `%${t}%`));
+      }
       if (category) {
         where.push('p.category = ?');
         params.push(category);
       }
-      return db.all(`SELECT ${BEST_OFFER_COLUMNS} ${BEST_JOIN} WHERE (${where.join(') AND (')}) LIMIT 5000`, params);
+      return db.all(`SELECT ${BEST_OFFER_COLUMNS} ${from} WHERE (${where.join(') AND (')}) LIMIT 5000`, params);
     };
     let rows = await byWords(terms, ' AND ');
     let approximate = false;

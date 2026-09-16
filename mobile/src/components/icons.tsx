@@ -45,6 +45,13 @@ const PATHS = {
     </>
   ),
   trash: <Path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />,
+  download: (
+    <>
+      <Path d="M12 4v10" />
+      <Path d="m8 11 4 4 4-4" />
+      <Path d="M5 19h14" />
+    </>
+  ),
   check: <Path d="M5 12.5l4.5 4.5L19 7.5" />,
   close: <Path d="M6 6l12 12M18 6 6 18" />,
   barcode: (

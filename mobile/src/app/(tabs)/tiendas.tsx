@@ -3,6 +3,7 @@
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { UpdateStatus } from '@/components/app-updates';
 import { Button, openLink } from '@/components/button';
 import { ContactList, openExternal, whatsappWith } from '@/components/contact';
 import { LangSwitch } from '@/components/lang-switch';
@@ -103,6 +104,10 @@ export default function Tiendas() {
             <View style={styles.block}>
               <T w={700} size={18} tight accessibilityRole="header">Idioma · Language</T>
               <LangSwitch />
+            </View>
+            <View style={styles.block}>
+              <T w={700} size={18} tight accessibilityRole="header">{t('Versión de la app')}</T>
+              <UpdateStatus />
             </View>
             <Pressable onPress={reset} hitSlop={10} style={{ alignSelf: 'center', marginTop: 24 }} accessibilityRole="button">
               <T w={600} size={13.5} color={C.muted}>{t('Ver la bienvenida otra vez')}</T>

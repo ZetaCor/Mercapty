@@ -256,6 +256,18 @@ const EN: Record<string, string> = {
   'Contacto y redes': 'Contact and social media',
   'Ver la bienvenida otra vez': 'See the welcome again',
 
+  // Actualizaciones de la app
+  'Hay una versión nueva de Mercapty': 'A new version of Mercapty is ready',
+  Actualizar: 'Update',
+  'Versión de la app': 'App version',
+  'Las actualizaciones llegan solas en la app instalada.': 'Updates arrive on their own in the installed app.',
+  'Buscar actualizaciones': 'Check for updates',
+  'Buscando…': 'Checking…',
+  'Descargando…': 'Downloading…',
+  'Ya tienes la última versión': 'You have the latest version',
+  'Actualizar ahora': 'Update now',
+  'No se pudo comprobar. Intenta más tarde.': 'We couldn’t check. Try again later.',
+
   // Escanear
   'Escanear código de barras': 'Scan barcode',
   'Apunta al código de barras del producto': 'Point at the product’s barcode',

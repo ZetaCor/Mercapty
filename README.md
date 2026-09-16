@@ -279,6 +279,11 @@ App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
 - **Escanear** (botón de código de barras en Inicio y en Buscar, `src/app/escanear.tsx`): la cámara lee EAN, UPC
   y QR con un enlace de Mercapty. Si el código es de un solo producto abre su ficha; si hay varias presentaciones
   (unidad y paquete), la búsqueda. Usa la búsqueda por código de la API y funciona en Expo Go.
+- **Actualizaciones:** al abrir la app, y al volver a ella, busca si hay una versión nueva del código. La
+  descarga sola y abajo aparece «Hay una versión nueva · Actualizar»; si no se toca, entra sola la próxima vez
+  que se abra. En Tiendas se ve la versión instalada y hay un botón para buscarla a mano
+  (`src/components/app-updates.tsx`). Lo maneja `expo-updates` con EAS Update, así que solo funciona en la app
+  compilada, no en Expo Go.
 - Íconos y splash (`mobile/assets/images/`) salen de `public/icon.svg` y `public/loader.svg`.
 
 Probarla en tu celular, sin emulador:
@@ -292,8 +297,20 @@ Usa la API de producción; para probar otra: `EXPO_PUBLIC_API_URL=<dirección> n
 tipos: `npx tsc --noEmit`. En Expo Go no aparece el splash nativo (sí el cerdito animado): se ve en una
 compilación de verdad.
 
-**Publicar en App Store y Google Play:** con EAS (`npm i -g eas-cli`, luego `eas build`), que también compila la
-versión de iPhone sin Mac. Antes, confirma `ios.bundleIdentifier` y `android.package` en `mobile/app.json` (hoy
+**Publicar en Google Play y App Store**, con EAS, que también compila la versión de iPhone sin tener Mac:
+
+1. `npm i -g eas-cli` y `eas login` (cuenta de Expo, gratis).
+2. En `mobile/`: `eas update:configure`. Agrega a `app.json` el `runtimeVersion`, la dirección de las
+   actualizaciones y el id del proyecto; sin eso, el aviso de versión nueva no tiene de dónde bajarlas.
+3. `eas build --platform android --profile production` deja un `.aab` para Google Play (para iPhone,
+   `--platform ios`).
+4. Subirlo en Play Console (cuenta de desarrollador, pago único) con la ficha de la tienda: nombre,
+   descripción, capturas, ícono y la política de privacidad (`https://mercapty.com/privacidad.html`).
+5. Después, cada cambio que sea solo de código se publica con `eas update --branch production` y les llega a
+   los usuarios sin pasar por la tienda. Si cambia algo nativo (un permiso, una librería con código nativo, la
+   versión del SDK), hay que compilar y subir una versión nueva.
+
+Antes de publicar, confirma `ios.bundleIdentifier` y `android.package` en `mobile/app.json` (hoy
 `com.mercapty.app`): no se pueden cambiar después de publicar. AdSense no funciona dentro de una app; ahí se usa AdMob.
 
 ## Contacto y redes

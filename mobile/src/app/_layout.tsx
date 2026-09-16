@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { LogBox, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { UpdateBanner } from '@/components/app-updates';
 import { SplashOverlay } from '@/components/splash-overlay';
 import { ToastProvider } from '@/components/toast';
 import { C } from '@/constants/theme';
@@ -99,6 +100,8 @@ function App() {
           </Stack.Protected>
         </Stack>
       )}
+      {/* Si se publicó una versión nueva, se descarga sola y aquí se ofrece aplicarla. */}
+      <UpdateBanner />
       <SplashOverlay ready={ready && dataReady} fontsReady={fontsReady} />
     </View>
   );

@@ -262,7 +262,7 @@ const EN: Record<string, string> = {
   'Lo anuncia la tienda: confirma el descuento al pagar.': 'Announced by the store: confirm the discount when you pay.',
 
   // Actualizaciones de la app
-  'Hay una versión nueva de Mercapty': 'A new version of Mercapty is ready',
+  'Hay una versión nueva': 'A new version is ready',
   Actualizar: 'Update',
   'Versión de la app': 'App version',
   'Las actualizaciones llegan solas en la app instalada.': 'Updates arrive on their own in the installed app.',

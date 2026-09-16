@@ -1,29 +1,23 @@
 import { canonicalCategory, categoryFromHead, nameHead, normalizeText, parsePack, parseSize, productPath, unitPrice } from './lib/normalize.js';
 import { nameSimilarity } from './lib/matching.js';
+import { rebuildAggregates } from './db.js';
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
-// Ofertas disponibles ordenadas por precio dentro de cada producto; rn = 1 es la más barata.
-const RANKED = `
-  WITH ranked AS (
-    SELECT o.*,
-      ROW_NUMBER() OVER (PARTITION BY o.product_id ORDER BY o.price, o.store_id) AS rn,
-      COUNT(*)     OVER (PARTITION BY o.product_id) AS store_count,
-      MAX(o.price) OVER (PARTITION BY o.product_id) AS max_price,
-      -- todas las tiendas que lo tienen, de la más barata a la más cara
-      group_concat(o.store_id, ',') OVER (PARTITION BY o.product_id ORDER BY o.price, o.store_id
-        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS store_ids
-    FROM offers o
-    WHERE o.in_stock = 1
-  )`;
+// La mejor oferta de cada producto ya viene calculada en product_best, que rehacen los bots
+// al final de cada corrida (rebuildAggregates en server/db.js): así la web no recorre todas
+// las ofertas en cada visita, que es lo que cobra Turso.
+const BEST_JOIN = 'FROM products p JOIN product_best b ON b.product_id = p.id';
 const BEST_OFFER_COLUMNS = `
-  p.*, r.id AS offer_id, r.price, r.list_price, r.store_id, r.store_count, r.max_price, r.store_ids`;
+  p.*, b.offer_id, b.price, b.list_price, b.store_id, b.store_count, b.max_price, b.store_ids`;
 
+// b.name y b.category son copias de products: ordenar y filtrar por ellas usa los índices
+// de product_best, sin recorrer nada.
 const SORTS = {
-  relevancia: 'r.store_count DESC, p.name', // lo que se compara en más tiendas, primero
+  relevancia: 'b.store_count DESC, b.name', // lo que se compara en más tiendas, primero
   nombre: 'p.name, p.brand',
-  precio: 'r.price ASC',
-  ahorro: '(r.max_price - r.price) DESC, r.price ASC',
+  precio: 'b.price ASC, b.name', // con el mismo precio, por nombre: el orden no cambia entre corridas
+  ahorro: 'b.savings DESC, b.price ASC',
 };
 
 // --- Búsqueda por relevancia ---
@@ -165,53 +159,87 @@ function productSummary(row) {
 }
 
 export function createApi(db) {
+  // product_best y stats los rehacen los bots en cada corrida. Si faltan (base recién creada
+  // o recién migrada), se calculan una vez aquí para no quedarnos sin datos.
+  let aggregates = null;
+  function ready() {
+    aggregates ??= db.get('SELECT 1 AS ok FROM product_best LIMIT 1').then(async (row) => {
+      if (row) return;
+      console.warn('product_best vacío: se calcula ahora (normalmente lo dejan listo los bots)');
+      await rebuildAggregates(db);
+    }).catch((err) => {
+      aggregates = null; // que la siguiente petición lo vuelva a intentar
+      throw err;
+    });
+    return aggregates;
+  }
+
+  // Totales que dejan calculados los bots; si aún no están, se calculan al momento.
+  async function stats(key, compute) {
+    await ready();
+    const row = await db.get('SELECT value FROM stats WHERE key = ?', [key]);
+    return row ? JSON.parse(row.value) : compute();
+  }
+
   async function meta() {
-    const row = await db.get(`
+    const row = await stats('meta', () => db.get(`
       SELECT (SELECT COUNT(*) FROM products) AS products,
         (SELECT COUNT(*) FROM offers WHERE in_stock = 1) AS offers,
         (SELECT MAX(updated_at) FROM offers) AS updatedAt,
-        (SELECT COUNT(*) FROM stores WHERE source = 'demo') AS demoStores`);
+        (SELECT COUNT(*) FROM stores WHERE source = 'demo') AS demoStores`));
     return { demo: row.demoStores > 0, products: row.products, offers: row.offers, updatedAt: row.updatedAt };
   }
 
-  function listStores() {
-    return db.all(`
-      ${RANKED}
-      SELECT s.id, s.name, s.homepage, s.platform, s.color, s.source, s.logo, s.icon, s.logo_bg AS logoBg,
-        (SELECT COUNT(*) FROM offers o WHERE o.store_id = s.id AND o.in_stock = 1) AS offers,
-        (SELECT MAX(updated_at) FROM offers o WHERE o.store_id = s.id) AS updatedAt,
-        (SELECT COUNT(*) FROM ranked r WHERE r.store_id = s.id AND r.rn = 1 AND r.store_count > 1) AS bestCount,
-        (SELECT COUNT(*) FROM clicks c JOIN offers o ON o.id = c.offer_id WHERE o.store_id = s.id) AS clicks
-      FROM stores s
-      ORDER BY bestCount DESC, s.name
-    `);
+  // Los totales de cada tienda los dejan calculados los bots; los clics se cuentan al momento,
+  // porque cambian con cada visita enviada.
+  async function listStores() {
+    const [stores, totals, clicks] = await Promise.all([
+      db.all('SELECT id, name, homepage, platform, color, source, logo, icon, logo_bg AS logoBg FROM stores'),
+      stats('stores', () => db.all(`
+        SELECT s.id,
+          (SELECT COUNT(*) FROM offers o WHERE o.store_id = s.id AND o.in_stock = 1) AS offers,
+          (SELECT MAX(o.updated_at) FROM offers o WHERE o.store_id = s.id) AS updatedAt,
+          (SELECT COUNT(*) FROM product_best b WHERE b.store_id = s.id AND b.store_count > 1) AS bestCount
+        FROM stores s`)),
+      db.all('SELECT o.store_id AS id, COUNT(*) AS clicks FROM clicks c JOIN offers o ON o.id = c.offer_id GROUP BY o.store_id'),
+    ]);
+    const totalsById = new Map(totals.map((t) => [t.id, t]));
+    const clicksById = new Map(clicks.map((c) => [c.id, c.clicks]));
+    return stores
+      .map((s) => ({ ...s, offers: 0, updatedAt: null, bestCount: 0, ...totalsById.get(s.id), clicks: clicksById.get(s.id) ?? 0 }))
+      .sort((a, b) => b.bestCount - a.bestCount || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   }
 
   // Solo categorías con algo disponible, para no mostrar filtros vacíos.
   function listCategories() {
-    return db.all(`
-      SELECT p.category AS name, COUNT(DISTINCT p.id) AS count
-      FROM products p JOIN offers o ON o.product_id = p.id AND o.in_stock = 1
-      GROUP BY p.category ORDER BY count DESC
-    `);
+    return stats('categories', () => db.all(
+      'SELECT category AS name, COUNT(*) AS count FROM product_best GROUP BY category ORDER BY count DESC',
+    ));
+  }
+
+  // Cuántos productos disponibles hay (en una categoría o en total), del resumen.
+  async function countProducts(category) {
+    const categories = await listCategories();
+    if (category) return categories.find((c) => c.name === category)?.count ?? 0;
+    return categories.reduce((sum, c) => sum + c.count, 0);
   }
 
   async function searchProducts({ q = '', category = '', sort = '', limit = 24, offset = 0 }) {
-    const join = 'FROM products p JOIN ranked r ON r.product_id = p.id AND r.rn = 1';
+    await ready();
     const terms = queryTerms(q);
 
     // Sin palabras (por ejemplo, una categoría): orden directo en la base.
     if (!terms.length) {
-      const whereSql = category ? 'WHERE p.category = ?' : '';
+      const whereSql = category ? 'WHERE b.category = ?' : '';
       const params = category ? [category] : [];
-      const [count, rows] = await Promise.all([
-        db.get(`${RANKED} SELECT COUNT(*) AS total ${join} ${whereSql}`, params),
+      const [total, rows] = await Promise.all([
+        countProducts(category),
         db.all(`
-          ${RANKED} SELECT ${BEST_OFFER_COLUMNS} ${join} ${whereSql}
+          SELECT ${BEST_OFFER_COLUMNS} ${BEST_JOIN} ${whereSql}
           ORDER BY ${SORTS[sort] ?? SORTS.relevancia} LIMIT ? OFFSET ?
         `, [...params, limit, offset]),
       ]);
-      return { total: count.total, approximate: false, items: rows.map(productSummary) };
+      return { total, approximate: false, items: rows.map(productSummary) };
     }
 
     // Con palabras: primero los productos que tienen todas (cada palabra o un
@@ -224,7 +252,7 @@ export function createApi(db) {
         where.push('p.category = ?');
         params.push(category);
       }
-      return db.all(`${RANKED} SELECT ${BEST_OFFER_COLUMNS} ${join} WHERE (${where.join(') AND (')}) LIMIT 5000`, params);
+      return db.all(`SELECT ${BEST_OFFER_COLUMNS} ${BEST_JOIN} WHERE (${where.join(') AND (')}) LIMIT 5000`, params);
     };
     let rows = await byWords(terms, ' AND ');
     let approximate = false;
@@ -241,11 +269,11 @@ export function createApi(db) {
 
   // Productos donde elegir bien la tienda ahorra más dinero.
   async function deals(limit = 8) {
+    await ready();
     const rows = await db.all(`
-      ${RANKED} SELECT ${BEST_OFFER_COLUMNS}
-      FROM products p JOIN ranked r ON r.product_id = p.id AND r.rn = 1
-      WHERE r.store_count > 1
-      ORDER BY (r.max_price - r.price) DESC LIMIT ?
+      SELECT ${BEST_OFFER_COLUMNS} ${BEST_JOIN}
+      WHERE b.store_count > 1
+      ORDER BY b.savings DESC LIMIT ?
     `, [limit]);
     return rows.map(productSummary);
   }
@@ -257,11 +285,11 @@ export function createApi(db) {
   // los de otras marcas que son lo mismo (otros «Arroz…»). En cada grupo, antes
   // el nombre más parecido, el tamaño más cercano y lo que se compara en más tiendas.
   async function similarProducts(p) {
+    await ready();
     const candidates = (where, args) => db.all(`
-      ${RANKED} SELECT ${BEST_OFFER_COLUMNS}
-      FROM products p JOIN ranked r ON r.product_id = p.id AND r.rn = 1
+      SELECT ${BEST_OFFER_COLUMNS} ${BEST_JOIN}
       WHERE p.id <> ? AND p.category = ? AND (${where})
-      ORDER BY r.store_count DESC LIMIT 400
+      ORDER BY b.store_count DESC LIMIT 400
     `, [p.id, p.category, ...args]);
     let brandLabel = p.brand;
     let brand = normalizeText(p.brand ?? '');
@@ -467,11 +495,12 @@ export function createApi(db) {
   // image_url viene de la tienda (bots); custom_image la sube el
   // administrador y tiene prioridad. La ingesta nunca toca custom_image.
   async function adminProducts() {
+    await ready();
     const rows = await db.all(`
       SELECT p.id, p.name, p.brand, p.size_label AS size, p.category,
         p.image_url AS storeImage, p.custom_image AS customImage,
-        (SELECT COUNT(*) FROM offers o WHERE o.product_id = p.id AND o.in_stock = 1) AS offers
-      FROM products p
+        COALESCE(b.store_count, 0) AS offers
+      FROM products p LEFT JOIN product_best b ON b.product_id = p.id
       ORDER BY p.name, p.brand
     `);
     return rows.map((p) => ({ ...p, image: p.customImage ?? p.storeImage ?? null }));
@@ -493,12 +522,9 @@ export function createApi(db) {
   }
 
   // Productos con algo disponible, para el mapa del sitio (sitemap.xml).
-  function sitemapEntries() {
-    return db.all(`
-      SELECT p.id, p.name, MAX(o.updated_at) AS updatedAt
-      FROM products p JOIN offers o ON o.product_id = p.id AND o.in_stock = 1
-      GROUP BY p.id ORDER BY p.id
-    `);
+  async function sitemapEntries() {
+    await ready();
+    return db.all('SELECT product_id AS id, name, updated_at AS updatedAt FROM product_best ORDER BY product_id');
   }
 
   return {

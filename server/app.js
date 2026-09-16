@@ -66,8 +66,13 @@ class HttpError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }
 
-function sendJson(res, status, body) {
-  res.writeHead(status, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
+// Lo que solo se lee se guarda en la red de Vercel: los precios cambian cuando corren los
+// bots, así que casi ninguna visita necesita tocar la base de datos (Turso cobra por filas
+// leídas). Vencido el plazo, sigue sirviendo la copia guardada mientras pide una nueva.
+const CACHE_READ = 'public, max-age=0, s-maxage=600, stale-while-revalidate=86400';
+
+function sendJson(res, status, body, cache = 'no-store') {
+  res.writeHead(status, { 'Content-Type': MIME['.json'], 'Cache-Control': cache });
   res.end(JSON.stringify(body));
 }
 
@@ -284,10 +289,10 @@ async function renderPage(req, res, pathname, searchParams) {
   const origin = siteOrigin(req);
   const meta = await pageMeta(pathname, searchParams, origin);
   const html = injectHead(await pageShell(), meta, origin);
-  // Vercel guarda la página 5 minutos en su red; los precios cambian cada pocas horas.
+  // La página también se guarda en la red de Vercel; los precios cambian cada pocas horas.
   res.writeHead(meta.status ?? 200, {
     'Content-Type': MIME['.html'],
-    'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=3600',
+    'Cache-Control': CACHE_READ,
   });
   res.end(html);
 }
@@ -306,7 +311,7 @@ async function sendSitemap(req, res, api) {
     '</urlset>',
     '',
   ].join('\n');
-  res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=0, s-maxage=3600' });
+  res.writeHead(200, { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=0, s-maxage=21600, stale-while-revalidate=86400' });
   res.end(body);
 }
 
@@ -341,11 +346,11 @@ async function route(req, res) {
   const api = await needApi();
   if (pathname.startsWith('/api/admin/')) return handleAdmin(req, res, pathname, api);
   if (get && pathname === '/api/meta') {
-    return sendJson(res, 200, { ...(await api.meta()), ads: adsConfig(), contact: contactInfo() });
+    return sendJson(res, 200, { ...(await api.meta()), ads: adsConfig(), contact: contactInfo() }, CACHE_READ);
   }
-  if (get && pathname === '/api/stores') return sendJson(res, 200, await api.listStores());
-  if (get && pathname === '/api/categories') return sendJson(res, 200, await api.listCategories());
-  if (get && pathname === '/api/deals') return sendJson(res, 200, await api.deals(intParam(searchParams.get('limit'), 1, 24, 8)));
+  if (get && pathname === '/api/stores') return sendJson(res, 200, await api.listStores(), CACHE_READ);
+  if (get && pathname === '/api/categories') return sendJson(res, 200, await api.listCategories(), CACHE_READ);
+  if (get && pathname === '/api/deals') return sendJson(res, 200, await api.deals(intParam(searchParams.get('limit'), 1, 24, 8)), CACHE_READ);
   if (get && pathname === '/api/products') {
     return sendJson(res, 200, await api.searchProducts({
       q: searchParams.get('q') ?? '',
@@ -353,11 +358,11 @@ async function route(req, res) {
       sort: searchParams.get('orden') ?? '', // la API elige: relevancia si hay palabras, nombre si no
       limit: intParam(searchParams.get('limit'), 1, 500, 24),
       offset: intParam(searchParams.get('offset'), 0, 1_000_000, 0),
-    }));
+    }), CACHE_READ);
   }
   if (get && (m = pathname.match(/^\/api\/products\/(\d+)$/))) {
     const product = await api.getProduct(Number(m[1]));
-    return product ? sendJson(res, 200, product) : sendJson(res, 404, { error: 'Producto no encontrado' });
+    return product ? sendJson(res, 200, product, CACHE_READ) : sendJson(res, 404, { error: 'Producto no encontrado' });
   }
   if (req.method === 'POST' && pathname === '/api/list/optimize') {
     const body = await readJsonBody(req);

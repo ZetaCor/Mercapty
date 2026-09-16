@@ -68,6 +68,34 @@ const SCHEMA = [
   )`,
   // Páginas de producto de las tiendas que se leen una por una (Súper 99):
   // cuándo se leyó cada una y qué pasó, para repartir la lectura entre corridas.
+  // Mejor oferta de cada producto, cuántas tiendas lo tienen y cuánto se ahorra:
+  // lo recalculan los bots al final de cada corrida (rebuildAggregates). Así la web no
+  // recorre todas las ofertas en cada visita, que es lo que cobra Turso.
+  `CREATE TABLE IF NOT EXISTS product_best (
+    product_id  INTEGER PRIMARY KEY REFERENCES products(id),
+    offer_id    INTEGER NOT NULL,
+    price       REAL NOT NULL,
+    list_price  REAL,
+    store_id    TEXT NOT NULL,
+    store_count INTEGER NOT NULL, -- en cuántas tiendas está disponible
+    max_price   REAL NOT NULL,
+    store_ids   TEXT NOT NULL,    -- todas las tiendas, de la más barata a la más cara
+    savings     REAL NOT NULL,    -- max_price - price
+    category    TEXT,             -- copiados de products para ordenar y filtrar sin unir tablas
+    name        TEXT NOT NULL,
+    updated_at  TEXT              -- la oferta disponible más reciente
+  )`,
+  'CREATE INDEX IF NOT EXISTS product_best_stores ON product_best(store_count DESC, name)',
+  'CREATE INDEX IF NOT EXISTS product_best_category ON product_best(category, store_count DESC, name)',
+  'CREATE INDEX IF NOT EXISTS product_best_category_price ON product_best(category, price, name)',
+  'CREATE INDEX IF NOT EXISTS product_best_savings ON product_best(savings DESC)',
+  'CREATE INDEX IF NOT EXISTS product_best_price ON product_best(price, name)',
+  // Totales de la portada, las categorías y las tiendas, en JSON: contarlos en cada
+  // visita cuesta recorrer las tablas enteras.
+  `CREATE TABLE IF NOT EXISTS stats (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS store_pages (
     store_id   TEXT NOT NULL,
     url        TEXT NOT NULL,
@@ -208,4 +236,75 @@ export async function countInStock(db, storeId) {
 export async function markUnseenOffersOutOfStock(db, storeId, runStartedAt) {
   const result = await db.run('UPDATE offers SET in_stock = 0 WHERE store_id = ? AND updated_at < ? AND in_stock = 1', [storeId, runStartedAt]);
   return result.rowsAffected;
+}
+
+// --- Resumen para la web (Turso cobra por filas leídas) ---
+
+// La mejor oferta de cada producto: rn = 1 es la más barata, con cuántas tiendas lo
+// tienen, el precio más alto y todas las tiendas de la más barata a la más cara.
+const BEST_ROWS = `
+  SELECT o.*,
+    ROW_NUMBER() OVER (PARTITION BY o.product_id ORDER BY o.price, o.store_id) AS rn,
+    COUNT(*)          OVER (PARTITION BY o.product_id) AS store_count,
+    MAX(o.price)      OVER (PARTITION BY o.product_id) AS max_price,
+    MAX(o.updated_at) OVER (PARTITION BY o.product_id) AS best_updated_at,
+    group_concat(o.store_id, ',') OVER (PARTITION BY o.product_id ORDER BY o.price, o.store_id
+      ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS store_ids
+  FROM offers o
+  WHERE o.in_stock = 1`;
+
+const STATS_UPSERT = 'INSERT INTO stats (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value';
+
+// Rehace product_best y stats: una sola pasada por las ofertas al final de cada corrida de
+// los bots, en vez de una por cada visita a la web. Solo se escriben las filas que cambiaron,
+// porque Turso también cobra por filas escritas; la fecha se guarda por día (es la que lleva
+// el mapa del sitio), así una corrida seguida de otra casi no escribe nada.
+export async function rebuildAggregates(db) {
+  // Productos que se quedaron sin oferta disponible.
+  await db.run(`
+    DELETE FROM product_best
+    WHERE product_id NOT IN (SELECT product_id FROM offers WHERE in_stock = 1)`);
+  const changed = await db.run(`
+    INSERT INTO product_best (product_id, offer_id, price, list_price, store_id, store_count,
+      max_price, store_ids, savings, category, name, updated_at)
+    SELECT r.product_id, r.id, r.price, r.list_price, r.store_id, r.store_count,
+      r.max_price, r.store_ids, r.max_price - r.price, p.category, p.name, substr(r.best_updated_at, 1, 10)
+    FROM (${BEST_ROWS}) r
+    JOIN products p ON p.id = r.product_id
+    WHERE r.rn = 1
+    ON CONFLICT(product_id) DO UPDATE SET
+      offer_id = excluded.offer_id, price = excluded.price, list_price = excluded.list_price,
+      store_id = excluded.store_id, store_count = excluded.store_count, max_price = excluded.max_price,
+      store_ids = excluded.store_ids, savings = excluded.savings, category = excluded.category,
+      name = excluded.name, updated_at = excluded.updated_at
+    WHERE product_best.offer_id IS NOT excluded.offer_id
+      OR product_best.price IS NOT excluded.price
+      OR product_best.list_price IS NOT excluded.list_price
+      OR product_best.store_count IS NOT excluded.store_count
+      OR product_best.max_price IS NOT excluded.max_price
+      OR product_best.store_ids IS NOT excluded.store_ids
+      OR product_best.category IS NOT excluded.category
+      OR product_best.name IS NOT excluded.name
+      OR product_best.updated_at IS NOT excluded.updated_at`);
+
+  const meta = await db.get(`
+    SELECT (SELECT COUNT(*) FROM products) AS products,
+      (SELECT COUNT(*) FROM offers WHERE in_stock = 1) AS offers,
+      (SELECT MAX(updated_at) FROM offers) AS updatedAt,
+      (SELECT COUNT(*) FROM stores WHERE source = 'demo') AS demoStores`);
+  const categories = await db.all(
+    'SELECT category AS name, COUNT(*) AS count FROM product_best GROUP BY category ORDER BY count DESC',
+  );
+  const stores = await db.all(`
+    SELECT s.id,
+      (SELECT COUNT(*) FROM offers o WHERE o.store_id = s.id AND o.in_stock = 1) AS offers,
+      (SELECT MAX(o.updated_at) FROM offers o WHERE o.store_id = s.id) AS updatedAt,
+      (SELECT COUNT(*) FROM product_best b WHERE b.store_id = s.id AND b.store_count > 1) AS bestCount
+    FROM stores s`);
+  await db.batch([
+    { sql: STATS_UPSERT, args: ['meta', JSON.stringify(meta)] },
+    { sql: STATS_UPSERT, args: ['categories', JSON.stringify(categories)] },
+    { sql: STATS_UPSERT, args: ['stores', JSON.stringify(stores)] },
+  ]);
+  return { products: meta.products, offers: meta.offers, changed: changed.rowsAffected };
 }

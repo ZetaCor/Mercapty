@@ -6,7 +6,7 @@
 // Súper 99 se lee producto por producto con su propio bot (scripts/super99.js).
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { openDb, upsertStore, upsertOffers, countInStock, markUnseenOffersOutOfStock, ROOT } from '../server/db.js';
+import { openDb, upsertStore, upsertOffers, countInStock, markUnseenOffersOutOfStock, rebuildAggregates, ROOT } from '../server/db.js';
 import { connectors } from '../connectors/index.js';
 import { normalizeOffer, loadMatcher, attachByName, recategorize } from './lib/pipeline.js';
 
@@ -67,9 +67,9 @@ for (const store of stores) {
 const moved = await recategorize(db);
 if (moved) console.log(`\n${moved} productos pasaron a la categoría que dice su nombre.`);
 
-const totals = await db.get(`
-  SELECT (SELECT COUNT(*) FROM products) AS products,
-    (SELECT COUNT(*) FROM offers WHERE in_stock = 1) AS offers`);
+// Deja calculado el resumen que usa la web (mejor precio de cada producto, totales por
+// categoría y por tienda): así ninguna visita tiene que recorrer todas las ofertas.
+const totals = await rebuildAggregates(db);
 console.log(`\nBase lista: ${totals.products} productos, ${totals.offers} ofertas disponibles.`);
 db.close();
 process.exitCode = failures ? 1 : 0;

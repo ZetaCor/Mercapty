@@ -63,6 +63,16 @@ con el café, y el que ya viene para tomar (té frío, con ml o litros), en Bebi
 van con la leche, en Lácteos y huevos, y la leche de coco, en Despensa. Al final de cada corrida de los bots, cada producto se reubica según su nombre (`recategorize` en
 `scripts/lib/pipeline.js`). Al ver una categoría, primero salen los productos que se comparan en más tiendas.
 
+**Lecturas de la base:** Turso cobra por filas leídas, así que la web no recorre las ofertas en cada
+visita. Al final de cada corrida, los bots dejan calculado en `product_best` el mejor precio de cada
+producto, en cuántas tiendas está, el precio más alto y cuánto se ahorra, y en `stats` los totales de la
+portada, de las categorías y de cada tienda (`rebuildAggregates` en `server/db.js`); solo se escriben las
+filas que cambiaron, porque las escrituras también se cobran. Con eso, la portada, los listados, las
+ofertas del día, el mapa del sitio y los «productos parecidos» leen decenas de filas en vez de recorrer
+toda la tabla. Además, las páginas y las respuestas de `/api/` se guardan diez minutos en la red de
+Vercel y se siguen sirviendo mientras se pide una copia nueva, así que casi ninguna visita llega a la
+base. Si `product_best` está vacío (base recién creada), el servidor lo calcula solo la primera vez.
+
 **Paquetes:** «946 ml (Pack de 12)», «6 pack», «Caja de 24» o «6 x 355 ml» se reconocen como
 paquetes. Un paquete nunca se une con la unidad, aunque la tienda use el mismo código de barras, y
 su precio por litro o por kilo se calcula sobre el total. Los códigos internos de productos pesados

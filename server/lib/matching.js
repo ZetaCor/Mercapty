@@ -16,6 +16,11 @@ const NOISE = new Set([
   'gal', 'galon', 'cc', 'ct',
 ]);
 
+// Busca una palabra en una tabla de palabras. Con el corchete pelado, «constructor» o
+// «toString» devolverían una función de JavaScript en vez de nada, y el nombre del producto
+// acabaría con una función dentro; pasó con un producto de ferretería de Rey.
+const enTabla = (tabla, palabra) => (Object.hasOwn(tabla, palabra) ? tabla[palabra] : undefined);
+
 // Abreviaturas de los nombres cortados que usan algunos súper.
 const ABBREVIATIONS = {
   c: 'con', d: 'de', p: 'para',
@@ -42,7 +47,7 @@ export function nameTokens(text) {
   const out = [];
   for (const raw of normalizeText(text).split(' ')) {
     if (!raw || /^\d/.test(raw)) continue;
-    const t = stem(ABBREVIATIONS[raw] ?? raw);
+    const t = stem(enTabla(ABBREVIATIONS, raw) ?? raw);
     if (!STOPWORDS.has(t) && !NOISE.has(t) && !out.includes(t)) out.push(t);
   }
   return out;

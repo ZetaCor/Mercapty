@@ -92,7 +92,12 @@ const PLAIN_FIRST = {
 // Cada palabra buscada con sus alternativas: [["soda", "refresco", "gaseosa"], ["coca"]].
 function queryTerms(q) {
   const words = [...new Set(normalizeText(q).split(' ').filter((t) => t && !SEARCH_STOPWORDS.has(t)).map(searchStem))];
-  return words.slice(0, 8).map((w) => [w, ...(SYNONYMS[w] ?? ENGLISH[w] ?? [])]);
+  // Con el corchete pelado, buscar «constructor» devolvía una función de JavaScript en vez
+  // de una lista de sinónimos y la búsqueda entera fallaba.
+  const sinonimos = (w) => (Object.hasOwn(SYNONYMS, w) && SYNONYMS[w])
+    || (Object.hasOwn(ENGLISH, w) && ENGLISH[w])
+    || [];
+  return words.slice(0, 8).map((w) => [w, ...sinonimos(w)]);
 }
 
 // Qué tan bien responde un producto a la búsqueda. Primero lo que ES el

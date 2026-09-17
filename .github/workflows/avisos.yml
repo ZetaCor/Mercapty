@@ -8,7 +8,18 @@ on:
   schedule:
     # 8:00 a. m. de Panamá (UTC-5): temprano, pero no de madrugada.
     - cron: '0 13 * * *'
-  workflow_dispatch:         # botón «Run workflow» para probarlo a mano
+  workflow_dispatch:         # botón «Run workflow» para mandarlos a mano
+    inputs:
+      tipo:
+        description: Qué avisar
+        type: choice
+        default: los de la mañana
+        options:
+          - los de la mañana
+          - prueba
+          - lista
+          - promos
+          - ofertas
 
 concurrency:
   group: avisos
@@ -28,13 +39,16 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # El día de descuento solo se avisa si hay alguno activo hoy en data/promos.json.
-      - run: npm run notify -- promos
+      # Por la mañana van los dos; a mano se puede elegir uno solo (o el de prueba).
+      # El día de descuento solo se avisa si hay alguno activo hoy en data/promos.json;
+      # las ofertas del día solo le llegan a quien encendió ese interruptor.
+      - if: inputs.tipo == '' || inputs.tipo == 'los de la mañana'
+        run: npm run notify -- promos && npm run notify -- ofertas
         env:
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
-      # Este solo le llega a quien encendió «Ofertas del día», que viene apagado.
-      - run: npm run notify -- ofertas
+      - if: inputs.tipo != '' && inputs.tipo != 'los de la mañana'
+        run: npm run notify -- ${{ inputs.tipo }}
         env:
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}

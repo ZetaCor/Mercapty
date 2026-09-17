@@ -10,11 +10,12 @@ import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { createContext, use, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Linking, Platform } from 'react-native';
 
 import { postJson } from './api';
 import { useI18n } from './i18n';
 import { useList } from './list';
+import { useOnboarding } from './onboarding';
 
 export type Prefs = { lista: boolean; promos: boolean; ofertas: boolean };
 
@@ -22,6 +23,11 @@ export type Prefs = { lista: boolean; promos: boolean; ofertas: boolean };
 // son las que más avisan y conviene que cada quien las prenda.
 const DEFAULT_PREFS: Prefs = { lista: true, promos: true, ofertas: false };
 const KEY = 'mercapty:notificaciones';
+const KEY_PEDIDO = 'mercapty:avisos-pedidos';
+
+// Cuánto espera el permiso después de abrir la app por primera vez: lo justo para que se vea
+// la portada detrás y el cuadro del sistema no caiga encima del cerdito del arranque.
+const ESPERA_PRIMERA_VEZ = 2000;
 
 export const CAN_NOTIFY = Platform.OS !== 'web' && Constants.executionEnvironment !== 'storeClient';
 
@@ -40,14 +46,19 @@ type Estado = 'cargando' | 'no-disponible' | 'sin-permiso' | 'negado' | 'activo'
 type NotificationsApi = {
   estado: Estado;
   prefs: Prefs;
+  // false cuando el teléfono ya no deja volver a preguntar: solo queda ir a sus ajustes.
+  sePuedePreguntar: boolean;
   activar(): Promise<void>;
+  abrirAjustesDelTelefono(): void;
   setPref(key: keyof Prefs, value: boolean): void;
 };
 
 const NotificationsContext = createContext<NotificationsApi>({
   estado: 'no-disponible',
   prefs: DEFAULT_PREFS,
+  sePuedePreguntar: false,
   activar: async () => {},
+  abrirAjustesDelTelefono: () => {},
   setPref: () => {},
 });
 
@@ -68,18 +79,46 @@ async function getToken() {
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { lang } = useI18n();
   const { items } = useList();
+  const { seen } = useOnboarding();
   const [estado, setEstado] = useState<Estado>(CAN_NOTIFY ? 'cargando' : 'no-disponible');
+  const [sePuedePreguntar, setSePuedePreguntar] = useState(true);
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const token = useRef<string | null>(null);
+  // Copias para los avisos que llegan tarde (el permiso que se pide a los dos segundos, o el
+  // regreso de los ajustes del teléfono): ahí ya no sirve lo que había al dibujar.
+  const prefsRef = useRef<Prefs>(DEFAULT_PREFS);
+  const idsRef = useRef<number[]>([]);
+  const ids = items.map((i) => i.productId);
+  const listaKey = ids.join(',');
+  useEffect(() => { idsRef.current = ids; }, [listaKey]);
 
   // Se guarda en el servidor el token con lo que quiere recibir y los productos que sigue.
-  const registrar = (next: Prefs, ids: number[]) => {
+  const registrar = (next: Prefs, productos = idsRef.current) => {
     if (!token.current) return;
     const nada = !next.lista && !next.promos && !next.ofertas;
     postJson('/api/devices', nada
       ? { token: token.current, remove: true }
-      : { token: token.current, platform: Platform.OS, lang, prefs: next, products: ids },
+      : { token: token.current, platform: Platform.OS, lang, prefs: next, products: productos },
     ).catch(() => {});
+  };
+
+  // Mira cómo quedó el permiso y, si está dado, saca el token. Se usa al abrir la app, al
+  // volver de los ajustes del teléfono y después de preguntar.
+  const revisarPermiso = async (status: Notifications.PermissionStatus, puedePreguntar: boolean) => {
+    setSePuedePreguntar(puedePreguntar);
+    if (status !== 'granted') {
+      setEstado(status === 'denied' ? 'negado' : 'sin-permiso');
+      return false;
+    }
+    token.current = await getToken().catch(() => null);
+    setEstado(token.current ? 'activo' : 'sin-permiso');
+    return Boolean(token.current);
+  };
+
+  const pedirPermiso = async () => {
+    const { status, canAskAgain } = await Notifications.requestPermissionsAsync();
+    AsyncStorage.setItem(KEY_PEDIDO, '1').catch(() => {});
+    if (await revisarPermiso(status, canAskAgain)) registrar(prefsRef.current);
   };
 
   // Al abrir: si ya se dio el permiso antes, se renueva el token en silencio.
@@ -90,38 +129,60 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       const guardadas = await AsyncStorage.getItem(KEY).catch(() => null);
       const prefsGuardadas: Prefs = guardadas ? { ...DEFAULT_PREFS, ...JSON.parse(guardadas) } : DEFAULT_PREFS;
       if (!vivo) return;
+      prefsRef.current = prefsGuardadas;
       setPrefs(prefsGuardadas);
-      const { status } = await Notifications.getPermissionsAsync();
+      const { status, canAskAgain } = await Notifications.getPermissionsAsync();
       if (!vivo) return;
-      if (status !== 'granted') return setEstado(status === 'denied' ? 'negado' : 'sin-permiso');
-      token.current = await getToken().catch(() => null);
-      if (!vivo) return;
-      setEstado(token.current ? 'activo' : 'sin-permiso');
+      await revisarPermiso(status, canAskAgain);
     })();
     return () => { vivo = false; };
   }, []);
 
-  // Cada vez que cambia «Mi lista», el servidor necesita saber qué productos seguir.
-  const listaKey = items.map((i) => i.productId).join(',');
+  // La primera vez que se abre la app, ya pasada la bienvenida, el permiso se pide solo: es
+  // cuando se entiende para qué sirve, y así nadie tiene que ir a buscarlo a Ajustes. Se
+  // pregunta una sola vez; si dice que no, no se insiste nunca más.
   useEffect(() => {
-    if (estado === 'activo' && prefs.lista) registrar(prefs, items.map((i) => i.productId));
+    if (!CAN_NOTIFY || !seen || estado !== 'sin-permiso') return;
+    let vivo = true;
+    let timer: ReturnType<typeof setTimeout>;
+    AsyncStorage.getItem(KEY_PEDIDO)
+      .then((pedido) => {
+        if (pedido || !vivo) return;
+        timer = setTimeout(() => { if (vivo) pedirPermiso(); }, ESPERA_PRIMERA_VEZ);
+      })
+      .catch(() => {});
+    return () => { vivo = false; clearTimeout(timer); };
+  }, [seen, estado]);
+
+  // Al volver de los ajustes del teléfono (o de donde sea), se vuelve a mirar el permiso: si
+  // lo acaba de dar, los avisos se encienden solos, sin tocar nada más en la app.
+  useEffect(() => {
+    if (!CAN_NOTIFY || estado === 'activo' || estado === 'cargando') return;
+    const sub = AppState.addEventListener('change', async (state) => {
+      if (state !== 'active') return;
+      const { status, canAskAgain } = await Notifications.getPermissionsAsync();
+      if (await revisarPermiso(status, canAskAgain)) registrar(prefsRef.current);
+    });
+    return () => sub.remove();
+  }, [estado]);
+
+  // Cada vez que cambia «Mi lista», el servidor necesita saber qué productos seguir.
+  useEffect(() => {
+    if (estado === 'activo' && prefs.lista) registrar(prefs, ids);
   }, [listaKey, estado]);
 
   const api: NotificationsApi = {
     estado,
     prefs,
-    activar: async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted') return setEstado('negado');
-      token.current = await getToken().catch(() => null);
-      setEstado(token.current ? 'activo' : 'sin-permiso');
-      registrar(prefs, items.map((i) => i.productId));
-    },
+    sePuedePreguntar,
+    activar: pedirPermiso,
+    abrirAjustesDelTelefono: () => { Linking.openSettings().catch(() => {}); },
     setPref: (key, value) => {
       const next = { ...prefs, [key]: value };
+      prefsRef.current = next;
       setPrefs(next);
       AsyncStorage.setItem(KEY, JSON.stringify(next)).catch(() => {});
-      registrar(next, items.map((i) => i.productId));
+      registrar(next, ids);
     },
   };
 

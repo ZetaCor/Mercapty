@@ -24,7 +24,7 @@ function Aviso({ etiqueta, valor, onChange }: { etiqueta: string; valor: boolean
 export default function Ajustes() {
   const { t } = useI18n();
   const { reset } = useOnboarding();
-  const { estado, prefs, activar, setPref } = useNotifications();
+  const { estado, prefs, sePuedePreguntar, activar, abrirAjustesDelTelefono, setPref } = useNotifications();
   const aviso = (key: keyof Prefs, etiqueta: string) => (
     <Aviso etiqueta={etiqueta} valor={prefs[key]} onChange={(v) => setPref(key, v)} />
   );
@@ -48,7 +48,21 @@ export default function Ajustes() {
             {aviso('ofertas', t('Ofertas del día'))}
           </>
         ) : estado === 'negado' ? (
-          <T size={13.5} color={C.muted}>{t('Dijiste que no a los avisos. Se vuelven a activar desde los ajustes del teléfono.')}</T>
+          // Si el teléfono todavía deja preguntar, se vuelve a preguntar desde aquí; si ya no
+          // (Android deja de preguntar tras dos negativas), el botón lleva directo a la
+          // pantalla de permisos de Mercapty, que es donde nadie sabe llegar solo. Al volver,
+          // los avisos se encienden sin tocar nada más.
+          <>
+            <T size={13.5} color={C.muted}>{t('Los avisos están apagados en los permisos del teléfono.')}</T>
+            {sePuedePreguntar ? (
+              <Button title={t('Activar avisos')} variant="primary" onPress={activar} />
+            ) : (
+              <>
+                <Button title={t('Abrir los permisos de Mercapty')} variant="primary" onPress={abrirAjustesDelTelefono} />
+                <T size={12.5} color={C.muted}>{t('Ahí: Notificaciones → Permitir. Al volver a la app quedan encendidos.')}</T>
+              </>
+            )}
+          </>
         ) : (
           <>
             <T size={13.5} color={C.muted}>{t('Te avisamos cuando baje de precio algo de tu lista o haya día de descuento en un súper.')}</T>

@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   card: {
     gap: 10,
     marginHorizontal: PAD,
-    marginTop: 24,
+    marginTop: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: '#ffd9e0',

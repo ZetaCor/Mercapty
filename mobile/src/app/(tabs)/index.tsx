@@ -16,7 +16,7 @@ import { ErrorState, Note, SectionHead } from '@/components/ui';
 import { C, PAD, R } from '@/constants/theme';
 import type { Category, Meta, ProductSummary, SearchResult } from '@/lib/api';
 import { categoryIcon, categoryTint } from '@/lib/categories';
-import { count, joinList, timeAgo } from '@/lib/format';
+import { count, timeAgo } from '@/lib/format';
 import { hlParts, useI18n } from '@/lib/i18n';
 import { useStores } from '@/lib/stores';
 import { useFetch } from '@/lib/use-fetch';
@@ -88,8 +88,9 @@ export default function Inicio() {
                 <Note tone="warn">{t('Modo demostración: los precios son de ejemplo.')}</Note>
               </View>
             )}
-            <Hero meta={meta.data} names={stores.active.map((s) => s.name)} />
+            {/* Si hoy hay día de descuento, es lo primero de la portada; si no, el saludo. */}
             <PromoStrip />
+            <Hero meta={meta.data} names={stores.active.map((s) => s.name)} />
 
             <View style={styles.section}>
               <SectionHead title={t('Supermercados que comparamos')} action={t('Ver tiendas')} onAction={() => router.navigate('/tiendas')} />
@@ -134,40 +135,37 @@ export default function Inicio() {
   );
 }
 
-// La primera diapositiva de la portada de la web. El número y los nombres salen de las
-// tiendas que hoy tienen precios, para no prometer más supermercados de los que se comparan.
+// En la app no va el discurso de venta de la portada de la web: quien la abre ya la
+// instaló, y la abre otra vez cada semana. Un saludo, en qué está la base hoy y los dos
+// atajos de siempre. El número de tiendas sale de las que hoy tienen precios, para no
+// prometer más supermercados de los que se comparan.
 function Hero({ meta, names }: { meta: Meta; names: string[] }) {
   const { t } = useI18n();
+  const hora = new Date().getHours();
+  const saludo = hora < 12 ? t('Buenos días') : hora < 19 ? t('Buenas tardes') : t('Buenas noches');
   const where = names.length === 1
     ? t('en 1 supermercado')
     : names.length ? t('en {n} supermercados a la vez', { n: names.length }) : t('en los supermercados de Panamá');
-  const list = names.length ? joinList(names, t) : t('los principales supermercados en línea de Panamá');
   return (
     <View style={styles.hero}>
       <View style={styles.eyebrow}>
-        <T w={600} size={13} color={C.brand}>{t('Canasta básica · Panamá')}</T>
+        <T w={600} size={13} color={C.brand}>{saludo}</T>
       </View>
       <T w={800} size={27} tight accessibilityRole="header">
-        {hlParts(t('El [precio más bajo] de tu canasta básica, {where}.', { where })).map((part, i) => (
+        {hlParts(t('¿Qué vas a [comprar hoy]?')).map((part, i) => (
           <T key={i} w={800} size={27} tight color={part.hl ? C.brand : C.text}>{part.text}</T>
         ))}
       </T>
       <T size={15.5} color={C.text2} style={{ lineHeight: 23 }}>
-        {t('Mercapty compara arroz, pollo, huevos, leche y miles de productos en {list}. Arma tu canasta y te decimos exactamente dónde te costará menos.', { list })}
+        {t('Hoy comparamos {p} productos y {o} precios {where}. Arma tu canasta y te decimos dónde te costará menos.', {
+          p: count(meta.products),
+          o: count(meta.offers),
+          where,
+        })}
       </T>
       <View style={styles.actions}>
         <Button title={t('Arma tu canasta')} variant="primary" size="lg" onPress={() => search()} />
         <Button title={t('Ver dónde se ahorra más')} size="lg" onPress={() => search({ orden: 'ahorro' })} />
-      </View>
-      <View style={styles.stats}>
-        <View>
-          <T w={800} size={24} tight>{count(meta.products)}</T>
-          <T size={13} color={C.muted}>{t('productos')}</T>
-        </View>
-        <View>
-          <T w={800} size={24} tight>{count(meta.offers)}</T>
-          <T size={13} color={C.muted}>{t('precios comparados')}</T>
-        </View>
       </View>
       <T size={12.5} color={C.muted}>{t('Precios actualizados {ago}', { ago: timeAgo(meta.updatedAt, t) })}</T>
     </View>
@@ -212,7 +210,6 @@ const styles = StyleSheet.create({
   },
   eyebrow: { alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: C.brandSoft },
   actions: { gap: 10, marginTop: 4 },
-  stats: { flexDirection: 'row', gap: 32, marginTop: 4 },
   section: { marginTop: 32 },
   cats: { gap: 12, paddingHorizontal: PAD, paddingVertical: 2 },
   cat: {

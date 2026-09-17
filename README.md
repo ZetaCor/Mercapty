@@ -300,6 +300,9 @@ App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
 - **Bienvenida («Get started»):** solo la primera vez. Tres páginas que se deslizan: el precio más bajo (con
   ofertas reales de `/api/deals`), la canasta y el cerdito alcancía con los logos de los súper. «Saltar» o
   «Empezar a ahorrar» la cierran; «Ver la bienvenida otra vez», al final de Tiendas, la vuelve a mostrar.
+- **Portada:** un saludo según la hora («Buenos días · ¿Qué vas a comprar hoy?») en vez del discurso de venta
+  de la web, que sobra en una app que ya se instaló. Si hoy hay día de descuento, su franja va antes del saludo:
+  es lo que hay que ver ese día.
 - **Pestañas nativas:** Inicio, Buscar, Mi lista (con la cantidad de productos) y Tiendas; la ficha de producto se
   abre encima y se puede compartir con su dirección de la web. «Comprar en…» pasa por `/go/:id` (cuenta la
   visita) y abre la tienda en el navegador dentro de la app.
@@ -320,6 +323,14 @@ App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
   se avisa una sola vez), y `promos` y `ofertas` cada mañana (`.github/workflows/avisos.yml`). Para probar sin enviar
   nada: `NOTIFY_DRY=1 npm run notify -- lista`. En Android hace falta subir a EAS una clave de servicio de Firebase
   (FCM V1) y tener `google-services.json` en `mobile/`.
+- **El permiso se pide solo**, dos segundos después de abrir la app por primera vez (ya pasada la bienvenida), que
+  es cuando se entiende para qué sirve. Se pregunta una sola vez: si dice que no, no se insiste. Desde Ajustes se
+  puede volver a intentar, y cuando el teléfono ya no deja preguntar (Android deja de hacerlo tras dos negativas),
+  el botón abre directo los permisos de Mercapty. Al volver a la app se revisa el permiso otra vez, así que los
+  avisos quedan encendidos sin tocar nada más.
+- **Para probar que llegan:** `npm run notify -- prueba` manda un aviso de prueba a todos los teléfonos
+  registrados, sin mirar preferencias. Desde GitHub: Actions → «Avisos de la mañana» → *Run workflow*, y ahí se
+  elige cuál mandar.
 - **Los avisos necesitan una compilación nueva, no una actualización.** `expo-notifications` es código nativo: una
   app ya instalada no lo tiene y no lo puede descargar. Por eso, al añadirlos, la versión de `mobile/app.json` sube
   a 1.1.0: como `runtimeVersion` sigue a la versión, las actualizaciones nuevas ya no le llegan a la app 1.0.0 (que

@@ -4,6 +4,7 @@
 //   npm run notify -- lista     lo que bajó de precio desde la corrida anterior
 //   npm run notify -- promos    el día de descuento de hoy («Martes de frutas y verduras»)
 //   npm run notify -- ofertas   la rebaja más grande del día
+//   npm run notify -- prueba    un aviso de prueba a todos los teléfonos registrados
 //
 // Con NOTIFY_DRY=1 no envía nada: solo imprime lo que mandaría, para probar.
 // Lo corre GitHub Actions: «lista» después de cada corrida de los bots y los otros dos por
@@ -36,6 +37,10 @@ const TEXTS = {
       title: 'Hoy ahorras eligiendo bien',
       body: `${item.name}: ${money(item.price)} en ${store}, ${money(item.savings)} menos que en otra tienda`,
     }),
+    test: () => ({
+      title: 'Aviso de prueba',
+      body: 'Si ves esto, los avisos de Mercapty funcionan en este teléfono.',
+    }),
   },
   en: {
     dropOne: (d, store) => ({
@@ -54,6 +59,10 @@ const TEXTS = {
     deal: (item, store) => ({
       title: 'Today you save by choosing well',
       body: `${item.name}: ${money(item.price)} at ${store}, ${money(item.savings)} less than at another store`,
+    }),
+    test: () => ({
+      title: 'Test alert',
+      body: 'If you can read this, Mercapty alerts work on this phone.',
     }),
   },
 };
@@ -130,6 +139,11 @@ async function fromDeals(db, devices) {
     }));
 }
 
+// La prueba no mira preferencias: sirve para comprobar que el aviso llega al teléfono.
+async function fromTest(db, devices) {
+  return devices.map((device) => ({ to: device.token, ...texts(device.lang).test(), data: { path: '/ajustes' } }));
+}
+
 const storeNames = async (db) => new Map((await db.all('SELECT id, name FROM stores')).map((s) => [s.id, s.name]));
 
 // --- Envío ---
@@ -164,15 +178,15 @@ async function send(db, messages) {
 // --- Programa ---
 
 const kind = process.argv[2] ?? 'lista';
-if (!['lista', 'promos', 'ofertas'].includes(kind)) {
-  console.error('Uso: npm run notify -- lista | promos | ofertas');
+if (!['lista', 'promos', 'ofertas', 'prueba'].includes(kind)) {
+  console.error('Uso: npm run notify -- lista | promos | ofertas | prueba');
   process.exit(1);
 }
 
 const db = await openDb();
 const devices = (await db.all('SELECT token, lang, prefs, products FROM devices')).map(parseDevice);
 const messages = devices.length
-  ? await ({ lista: fromDrops, promos: fromPromos, ofertas: fromDeals })[kind](db, devices)
+  ? await ({ lista: fromDrops, promos: fromPromos, ofertas: fromDeals, prueba: fromTest })[kind](db, devices)
   : [];
 
 // Lo que bajó ya se avisó: no se repite en la próxima corrida, la siga quien la siga.

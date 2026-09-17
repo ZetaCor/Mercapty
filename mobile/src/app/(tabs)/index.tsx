@@ -7,6 +7,7 @@ import { Button } from '@/components/button';
 import { Icon } from '@/components/icons';
 
 import { Brand } from '@/components/logo';
+import { PiggyHello } from '@/components/piggy-hello';
 import { ProductGrid } from '@/components/product-card';
 import { PromoStrip } from '@/components/promo-strip';
 import { LoadingPiggy } from '@/components/splash-overlay';
@@ -17,7 +18,7 @@ import { C, PAD, R } from '@/constants/theme';
 import type { Category, Meta, ProductSummary, SearchResult } from '@/lib/api';
 import { categoryIcon, categoryTint } from '@/lib/categories';
 import { count, timeAgo } from '@/lib/format';
-import { hlParts, useI18n } from '@/lib/i18n';
+import { useI18n } from '@/lib/i18n';
 import { useStores } from '@/lib/stores';
 import { useFetch } from '@/lib/use-fetch';
 
@@ -142,20 +143,19 @@ export default function Inicio() {
 function Hero({ meta, names }: { meta: Meta; names: string[] }) {
   const { t } = useI18n();
   const hora = new Date().getHours();
-  const saludo = hora < 12 ? t('Buenos días') : hora < 19 ? t('Buenas tardes') : t('Buenas noches');
+  const saludo = hora < 12 ? t('Hola, buenos días') : hora < 19 ? t('Hola, buenas tardes') : t('Hola, buenas noches');
   const where = names.length === 1
     ? t('en 1 supermercado')
     : names.length ? t('en {n} supermercados a la vez', { n: names.length }) : t('en los supermercados de Panamá');
   return (
     <View style={styles.hero}>
-      <View style={styles.eyebrow}>
-        <T w={600} size={13} color={C.brand}>{saludo}</T>
+      <View style={styles.saludo}>
+        <PiggyHello size={72} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <T w={800} size={24} tight accessibilityRole="header">{saludo}</T>
+          <T w={700} size={16} color={C.brand}>{t('¿Qué vas a comprar hoy?')}</T>
+        </View>
       </View>
-      <T w={800} size={27} tight accessibilityRole="header">
-        {hlParts(t('¿Qué vas a [comprar hoy]?')).map((part, i) => (
-          <T key={i} w={800} size={27} tight color={part.hl ? C.brand : C.text}>{part.text}</T>
-        ))}
-      </T>
       <T size={15.5} color={C.text2} style={{ lineHeight: 23 }}>
         {t('Hoy comparamos {p} productos y {o} precios {where}. Arma tu canasta y te decimos dónde te costará menos.', {
           p: count(meta.products),
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     experimental_backgroundImage:
       'radial-gradient(circle at 100% 0%, #e8efff 0%, rgba(232, 239, 255, 0) 60%), radial-gradient(circle at 0% 100%, #eafaf2 0%, rgba(234, 250, 242, 0) 55%)',
   },
-  eyebrow: { alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: C.brandSoft },
+  saludo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   actions: { gap: 10, marginTop: 4 },
   section: { marginTop: 32 },
   cats: { gap: 12, paddingHorizontal: PAD, paddingVertical: 2 },

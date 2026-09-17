@@ -288,6 +288,16 @@ sus movimientos en CSS, sin librerías, y se queda quieto si el equipo pide meno
 (cuerpo, patas, cola, oreja, billete, alas, piso) es un grupo con su clase; la app la rehace igual en
 `mobile/src/components/piggy-loader.tsx`.
 
+**El cerdito que saluda** (`public/piggy-hello.svg`): el mismo del logo, de pie, con una moneda de oro en una
+mano y saludando con la otra. Abre la portada de la app, junto al «Hola, buenos días», y sale en la pantalla del
+teléfono que enseña la página `/app`. Misma técnica que la animación de carga: un SVG con el saludo en CSS,
+rehecho para la app en `mobile/src/components/piggy-hello.tsx`.
+
+**El teléfono de la portada y de `/app`** (`phoneVisual` en `public/js/views/hero.js`) enseña la app de verdad:
+el mismo saludo con el cerdito, las mismas tarjetas de precio y las mismas pestañas. Está dibujado con HTML y no
+es una captura, así que se ve nítido en cualquier pantalla, no pesa nada y habla los dos idiomas. Si cambia la
+app, hay que cambiarlo aquí también.
+
 ### App para iPhone y Android (`mobile/`)
 
 App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
@@ -300,9 +310,9 @@ App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
 - **Bienvenida («Get started»):** solo la primera vez. Tres páginas que se deslizan: el precio más bajo (con
   ofertas reales de `/api/deals`), la canasta y el cerdito alcancía con los logos de los súper. «Saltar» o
   «Empezar a ahorrar» la cierran; «Ver la bienvenida otra vez», al final de Tiendas, la vuelve a mostrar.
-- **Portada:** un saludo según la hora («Buenos días · ¿Qué vas a comprar hoy?») en vez del discurso de venta
-  de la web, que sobra en una app que ya se instaló. Si hoy hay día de descuento, su franja va antes del saludo:
-  es lo que hay que ver ese día.
+- **Portada:** el cerdito del logo saluda con una moneda en la mano y, según la hora, dice «Hola, buenos días»,
+  «Hola, buenas tardes» o «Hola, buenas noches», en vez del discurso de venta de la web, que sobra en una app que
+  ya se instaló. Si hoy hay día de descuento, su franja va antes del saludo: es lo que hay que ver ese día.
 - **Pestañas nativas:** Inicio, Buscar, Mi lista (con la cantidad de productos) y Tiendas; la ficha de producto se
   abre encima y se puede compartir con su dirección de la web. «Comprar en…» pasa por `/go/:id` (cuenta la
   visita) y abre la tienda en el navegador dentro de la app.

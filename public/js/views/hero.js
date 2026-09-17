@@ -50,16 +50,40 @@ function basketVisual() {
     </div>`;
 }
 
+// El teléfono de la portada enseña la app de verdad: el mismo saludo con el cerdito, la
+// misma búsqueda y las mismas tarjetas de precio. Está dibujado con HTML, no con una
+// captura, así se queda nítido en cualquier pantalla, pesa nada y habla los dos idiomas.
 export function phoneVisual() {
+  const hora = new Date().getHours();
+  const saludo = hora < 12 ? t('Hola, buenos días') : hora < 19 ? t('Hola, buenas tardes') : t('Hola, buenas noches');
+  const card = (emoji, name, price, store, saving) => html`
+    <div class="phone-card">
+      <span>${emoji}</span>
+      <div>
+        <b>${price}</b>
+        <i>${name}</i>
+        <small>${t('en {store}', { store })}${saving ? html` · <em>${t('Ahorra {amount}', { amount: saving })}</em>` : ''}</small>
+      </div>
+    </div>`;
   return html`
     <div class="phone" aria-hidden="true">
       <div class="phone-notch"></div>
       <div class="phone-screen">
         <div class="phone-brand">Merca<b>pty</b></div>
         <div class="phone-search">${t('Busca leche, arroz…')}</div>
-        <div class="phone-card"><span>🥛</span><div><b>${t('Leche entera')}</b><small>${t('Bajó de precio')}</small></div></div>
-        <div class="phone-card"><span>🍚</span><div><b>${t('Arroz 5 lb')}</b><small>${t('Más barato hoy')}</small></div></div>
+        <div class="phone-hello">
+          <img src="/piggy-hello.svg" alt="" width="44" height="44" loading="lazy">
+          <div>
+            <b>${saludo}</b>
+            <small>${t('¿Qué vas a comprar hoy?')}</small>
+          </div>
+        </div>
+        ${card('🥛', t('Leche entera'), '$1.19', 'Super Xtra', '$0.30')}
+        ${card('🍚', t('Arroz 5 lb'), '$3.45', 'El Machetazo', '')}
         <div class="phone-scan">${t('Escanear código de barras')}</div>
+        <div class="phone-tabs">
+          <span class="on">${t('Inicio')}</span><span>${t('Buscar')}</span><span>${t('Mi lista')}</span><span>${t('Tiendas')}</span>
+        </div>
       </div>
     </div>`;
 }

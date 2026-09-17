@@ -312,7 +312,9 @@ App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
   «Empezar a ahorrar» la cierran; «Ver la bienvenida otra vez», al final de Tiendas, la vuelve a mostrar.
 - **Portada:** el cerdito del logo saluda con una moneda en la mano y, según la hora, dice «Hola, buenos días»,
   «Hola, buenas tardes» o «Hola, buenas noches», en vez del discurso de venta de la web, que sobra en una app que
-  ya se instaló. Si hoy hay día de descuento, su franja va antes del saludo: es lo que hay que ver ese día.
+  ya se instaló. A la derecha del saludo hay un sol de 6 de la mañana a 6 de la tarde y una luna el resto del día
+  (de madrugada también, que es cuando saluda con «buenas noches»). Si hoy hay día de descuento, su franja va
+  antes del saludo: es lo que hay que ver ese día.
 - **Pestañas nativas:** Inicio, Buscar, Mi lista (con la cantidad de productos) y Tiendas; la ficha de producto se
   abre encima y se puede compartir con su dirección de la web. «Comprar en…» pasa por `/go/:id` (cuenta la
   visita) y abre la tienda en el navegador dentro de la app.

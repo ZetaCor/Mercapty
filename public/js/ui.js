@@ -46,6 +46,8 @@ export const icons = {
   whatsapp: icon('<path d="M20.5 11.8a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.3-4.4a8.5 8.5 0 1 1 15.7-4.3z"/><path d="M9 8.6c0 3.2 2.9 6.3 6.3 6.4l1.2-1.4-1.9-.9-.9.8a4.4 4.4 0 0 1-2.6-2.6l.8-.9-.9-1.9z"/>'),
   instagram: icon('<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.2 6.8h.01"/>'),
   facebook: icon('<path d="M14.5 8.5H17V5h-2.5A3.5 3.5 0 0 0 11 8.5V11H8.5v3.5H11V21h3.5v-6.5H17l.5-3.5h-3V9a.5.5 0 0 1 .5-.5z"/>'),
+  sun: icon('<circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.4M12 19v2.4M4.4 4.4l1.7 1.7M17.9 17.9l1.7 1.7M2.6 12H5M19 12h2.4M4.4 19.6l1.7-1.7M17.9 6.1l1.7-1.7"/>'),
+  moon: icon('<path d="M20 14.2A8.4 8.4 0 0 1 9.8 4a8.4 8.4 0 1 0 10.2 10.2z"/>'),
 };
 
 // Contacto y redes: vienen de /api/meta y se configuran en server/contact.js.

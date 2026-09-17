@@ -143,26 +143,37 @@ export default function Inicio() {
 function Hero({ meta, names }: { meta: Meta; names: string[] }) {
   const { t } = useI18n();
   const hora = new Date().getHours();
-  const saludo = hora < 12 ? t('Hola, buenos días') : hora < 19 ? t('Hola, buenas tardes') : t('Hola, buenas noches');
+  // De 6 de la mañana a 6 de la tarde es de día: sale el sol y se saluda con «días» o
+  // «tardes». El resto es de noche, luna y «buenas noches» (también de madrugada).
+  const dia = hora >= 6 && hora < 18;
+  const saludo = !dia
+    ? t('Hola, buenas noches')
+    : hora < 12 ? t('Hola, buenos días') : t('Hola, buenas tardes');
   const where = names.length === 1
     ? t('en 1 supermercado')
     : names.length ? t('en {n} supermercados a la vez', { n: names.length }) : t('en los supermercados de Panamá');
   return (
     <View style={styles.hero}>
-      <View style={styles.saludo}>
-        <PiggyHello size={72} />
-        <View style={{ flex: 1, gap: 2 }}>
-          <T w={800} size={24} tight accessibilityRole="header">{saludo}</T>
-          <T w={700} size={16} color={C.brand}>{t('¿Qué vas a comprar hoy?')}</T>
+      {/* El saludo va solo en su línea, con el sol o la luna a la derecha: así cabe entero */}
+      <View style={styles.saludoFila}>
+        <T w={800} size={24} tight numberOfLines={1} style={{ flex: 1 }} accessibilityRole="header">{saludo}</T>
+        <View style={[styles.cielo, { backgroundColor: dia ? C.warnSoft : C.brandSoft }]}>
+          <Icon name={dia ? 'sun' : 'moon'} size={20} color={dia ? '#d97706' : '#4f46e5'} />
         </View>
       </View>
-      <T size={15.5} color={C.text2} style={{ lineHeight: 23 }}>
-        {t('Hoy comparamos {p} productos y {o} precios {where}. Arma tu canasta y te decimos dónde te costará menos.', {
-          p: count(meta.products),
-          o: count(meta.offers),
-          where,
-        })}
-      </T>
+      <View style={styles.saludo}>
+        <PiggyHello size={62} />
+        <View style={{ flex: 1, gap: 4 }}>
+          <T w={700} size={16} color={C.brand}>{t('¿Qué vas a comprar hoy?')}</T>
+          <T size={15} color={C.text2} style={{ lineHeight: 22 }}>
+            {t('Hoy comparamos {p} productos y {o} precios {where}. Arma tu canasta y te decimos dónde te costará menos.', {
+              p: count(meta.products),
+              o: count(meta.offers),
+              where,
+            })}
+          </T>
+        </View>
+      </View>
       <View style={styles.actions}>
         <Button title={t('Arma tu canasta')} variant="primary" size="lg" onPress={() => search()} />
         <Button title={t('Ver dónde se ahorra más')} size="lg" onPress={() => search({ orden: 'ahorro' })} />
@@ -208,7 +219,9 @@ const styles = StyleSheet.create({
     experimental_backgroundImage:
       'radial-gradient(circle at 100% 0%, #e8efff 0%, rgba(232, 239, 255, 0) 60%), radial-gradient(circle at 0% 100%, #eafaf2 0%, rgba(234, 250, 242, 0) 55%)',
   },
+  saludoFila: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   saludo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  cielo: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   actions: { gap: 10, marginTop: 4 },
   section: { marginTop: 32 },
   cats: { gap: 12, paddingHorizontal: PAD, paddingVertical: 2 },

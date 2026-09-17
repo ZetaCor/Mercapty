@@ -217,6 +217,11 @@ select, .input {
 .phone-search { padding: .45rem .7rem; border-radius: 999px; background: var(--soft); color: var(--muted); font-size: .68rem; }
 .phone-hello { display: flex; align-items: center; gap: .45rem; padding: .45rem .5rem; border: 1px solid var(--border); border-radius: 14px; }
 .phone-hello img { flex: none; }
+.phone-hello > div { flex: 1; }
+.phone-sky { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 999px; }
+.phone-sky svg { width: 13px; height: 13px; }
+.phone-sky.day { background: #fffbeb; color: #d97706; }
+.phone-sky.night { background: #eef3ff; color: #4f46e5; }
 .phone-hello b { display: block; font-size: .74rem; line-height: 1.2; letter-spacing: -.01em; }
 .phone-hello small { display: block; color: var(--brand); font-weight: 700; font-size: .58rem; line-height: 1.3; }
 .phone-card { display: flex; align-items: center; gap: .45rem; padding: .4rem .5rem; border: 1px solid var(--border); border-radius: 12px; line-height: 1.25; }

@@ -55,7 +55,9 @@ function basketVisual() {
 // captura, así se queda nítido en cualquier pantalla, pesa nada y habla los dos idiomas.
 export function phoneVisual() {
   const hora = new Date().getHours();
-  const saludo = hora < 12 ? t('Hola, buenos días') : hora < 19 ? t('Hola, buenas tardes') : t('Hola, buenas noches');
+  // Igual que la app: de 6 de la mañana a 6 de la tarde, sol; el resto, luna.
+  const dia = hora >= 6 && hora < 18;
+  const saludo = !dia ? t('Hola, buenas noches') : hora < 12 ? t('Hola, buenos días') : t('Hola, buenas tardes');
   const card = (emoji, name, price, store, saving) => html`
     <div class="phone-card">
       <span>${emoji}</span>
@@ -77,6 +79,7 @@ export function phoneVisual() {
             <b>${saludo}</b>
             <small>${t('¿Qué vas a comprar hoy?')}</small>
           </div>
+          <span class="phone-sky ${dia ? 'day' : 'night'}">${dia ? icons.sun : icons.moon}</span>
         </div>
         ${card('🥛', t('Leche entera'), '$1.19', 'Super Xtra', '$0.30')}
         ${card('🍚', t('Arroz 5 lb'), '$3.45', 'El Machetazo', '')}

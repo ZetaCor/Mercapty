@@ -1,4 +1,4 @@
-import { canonicalCategory, categoryFromHead, nameHead, normalizeText, parsePack, parseSize, productPath, unitPrice } from './lib/normalize.js';
+import { canonicalCategory, categoryFromHead, nameHead, normalizeText, parsePack, parseSize, productPath, unitPrice, OWN_CATEGORIES } from './lib/normalize.js';
 import { isComparable } from './lib/compare.js';
 import { nameSimilarity } from './lib/matching.js';
 import { createSchema, rebuildAggregates } from './db.js';
@@ -311,14 +311,18 @@ export function createApi(db) {
     return { total: pool.length, approximate, items: pool.slice(offset, offset + limit).map((s) => productSummary(s.row)) };
   }
 
-  // Productos donde elegir bien la tienda ahorra más dinero.
-  async function deals(limit = 8) {
+  // Productos donde elegir bien la tienda ahorra más dinero. Sin electrodomésticos: una
+  // estufa de $534 de diferencia tapa todo lo del súper, que es lo que se compra cada semana.
+  // Esos se ven en su propia categoría, y con `vertical` se piden aparte.
+  async function deals(limit = 8, { vertical = false } = {}) {
     await ready();
+    const propias = [...OWN_CATEGORIES.values()];
+    const huecos = propias.map(() => '?').join(', ');
     const rows = await db.all(`
       SELECT ${BEST_OFFER_COLUMNS} ${BEST_JOIN}
-      WHERE b.store_count > 1
+      WHERE b.store_count > 1 AND b.category ${vertical ? 'IN' : 'NOT IN'} (${huecos})
       ORDER BY b.savings DESC LIMIT ?
-    `, [limit]);
+    `, [...propias, limit]);
     return rows.map(productSummary);
   }
 

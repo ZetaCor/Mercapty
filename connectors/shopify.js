@@ -11,6 +11,9 @@ export async function fetchOffers(store, { log = console.log } = {}) {
   const cfg = store.connector;
   const origin = new URL(store.homepage).origin;
   const aliases = cfg.vendorAliases ?? {}; // "MELO Alimentos" -> "Melo"
+  // Las tiendas que venden una sola cosa (Multimax, Rodelag: electrónica y línea blanca)
+  // traen su categoría en la configuración: sus propios tipos son un desorden («SMART»,
+  // «OLLAS ELECTRICAS») y el nombre del producto no siempre lo dice.
   const offers = [];
   for (let page = 1; page <= (cfg.maxPages ?? 40); page++) {
     const res = await fetch(`${origin}/products.json?limit=${PAGE_SIZE}&page=${page}`, {
@@ -28,7 +31,7 @@ export async function fetchOffers(store, { log = console.log } = {}) {
           title: name,
           name,
           brand: aliases[p.vendor] ?? p.vendor,
-          category: p.product_type ?? '',
+          category: cfg.category ?? p.product_type ?? '',
           size: null, // se deduce del nombre
           price: v.price,
           listPrice: v.compare_at_price,

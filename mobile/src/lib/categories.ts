@@ -12,6 +12,8 @@ const CATEGORY_STYLE: Record<string, [string, string]> = {
   'Frutas y verduras': ['🥬', '#ebf7e6'],
   Congelados: ['🧊', '#e7f3fb'],
   Mascotas: ['🐾', '#f4efe8'],
+  Electrodomésticos: ['🔌', '#eef2ff'],
+  'Ferretería y hogar': ['🔧', '#f1f5f9'],
 };
 const style = (category?: string | null) => CATEGORY_STYLE[category ?? ''] ?? ['🛒', '#f1f4f8'];
 

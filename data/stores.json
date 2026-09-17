@@ -12,12 +12,30 @@
       "type": "vtex",
       "mode": "categories",
       "departments": [
-        { "id": 1, "name": "Supermercado" },
-        { "id": 2, "name": "Licor, Cerveza y Vino" },
-        { "id": 4, "name": "Limpieza del Hogar y Ropa" },
-        { "id": 3, "name": "Cuidado Personal y Belleza" },
-        { "id": 7, "name": "Bebes" },
-        { "id": 6, "name": "Mascotas" }
+        {
+          "id": 1,
+          "name": "Supermercado"
+        },
+        {
+          "id": 2,
+          "name": "Licor, Cerveza y Vino"
+        },
+        {
+          "id": 4,
+          "name": "Limpieza del Hogar y Ropa"
+        },
+        {
+          "id": 3,
+          "name": "Cuidado Personal y Belleza"
+        },
+        {
+          "id": 7,
+          "name": "Bebes"
+        },
+        {
+          "id": 6,
+          "name": "Mascotas"
+        }
       ]
     }
   },
@@ -34,8 +52,14 @@
       "type": "vtex",
       "mode": "categories",
       "departments": [
-        { "id": 7, "name": "Supermercado" },
-        { "id": 28, "name": "Bebes" }
+        {
+          "id": 7,
+          "name": "Supermercado"
+        },
+        {
+          "id": 28,
+          "name": "Bebes"
+        }
       ]
     }
   },
@@ -49,7 +73,9 @@
     "logo": "https://superunico.com/wp-content/uploads/superunicologo.png",
     "logoBg": "#0f172a",
     "icon": "https://superunico.com/wp-content/uploads/cropped-favicon-2-192x192.png",
-    "connector": { "type": "woocommerce" }
+    "connector": {
+      "type": "woocommerce"
+    }
   },
   {
     "id": "super99",
@@ -66,9 +92,18 @@
       "sitemap": "https://www.super99.com/media/sitemap/sitemap.xml",
       "minutes": 320,
       "departments": [
-        "Despensa", "Lácteos y huevos", "Bebidas no alcohólicas", "Cervezas, vinos y licores",
-        "Congelados y refrigerados", "Productos frescos", "Panes y dulces", "Comidas preparadas",
-        "Aseo del hogar", "Higiene y belleza", "Cuidado de bebés", "Mascotas"
+        "Despensa",
+        "Lácteos y huevos",
+        "Bebidas no alcohólicas",
+        "Cervezas, vinos y licores",
+        "Congelados y refrigerados",
+        "Productos frescos",
+        "Panes y dulces",
+        "Comidas preparadas",
+        "Aseo del hogar",
+        "Higiene y belleza",
+        "Cuidado de bebés",
+        "Mascotas"
       ]
     }
   },
@@ -81,7 +116,10 @@
     "color": "#2a9d4b",
     "logo": "https://www.ribasmith.com/imgs/logors1.png",
     "icon": "https://www.ribasmith.com/favicon.ico",
-    "connector": { "type": "ribasmith", "maxPages": 4 }
+    "connector": {
+      "type": "ribasmith",
+      "maxPages": 4
+    }
   },
   {
     "id": "rey",
@@ -92,7 +130,12 @@
     "color": "#c8102e",
     "logo": "https://instaleap-data-client.s3.amazonaws.com/GRUPO_REY/REY_LOGO_NUEVO.png",
     "icon": "https://www.smrey.com/favicon.ico",
-    "connector": { "type": "instaleap", "clientId": "GRUPO_REY", "storeReference": "1038", "maxPages": 4 }
+    "connector": {
+      "type": "instaleap",
+      "clientId": "GRUPO_REY",
+      "storeReference": "1038",
+      "maxPages": 4
+    }
   },
   {
     "id": "supercarnes",
@@ -108,8 +151,14 @@
       "baseUrl": "https://supercarnes.com/albrook",
       "sitemap": "https://supercarnes.com/sitemap.xml",
       "departments": [
-        "despensa", "lacteos-y-congelados", "alimentos-frescos", "bebidas",
-        "cuidado-del-hogar", "cuidado-personal", "bebe", "mascotas"
+        "despensa",
+        "lacteos-y-congelados",
+        "alimentos-frescos",
+        "bebidas",
+        "cuidado-del-hogar",
+        "cuidado-personal",
+        "bebe",
+        "mascotas"
       ]
     }
   },
@@ -122,7 +171,12 @@
     "color": "#d7262e",
     "logo": "https://alimentosmelo.com/cdn/shop/files/melo-logo.svg",
     "icon": "https://alimentosmelo.com/cdn/shop/files/melo-alimentos_favicon.png?crop=center&height=192&width=192",
-    "connector": { "type": "shopify", "vendorAliases": { "MELO Alimentos": "Melo" } }
+    "connector": {
+      "type": "shopify",
+      "vendorAliases": {
+        "MELO Alimentos": "Melo"
+      }
+    }
   },
   {
     "id": "metroplus",
@@ -163,5 +217,122 @@
     "color": "#f59e0b",
     "enabled": false,
     "note": "no vende en línea: su web solo tiene sucursales y un PDF de ofertas (es del Grupo Rey)"
+  },
+  {
+    "id": "panafoto",
+    "name": "Panafoto",
+    "homepage": "https://www.panafoto.com",
+    "searchUrl": "https://www.panafoto.com/catalogsearch/result/?q={q}",
+    "platform": "Magento",
+    "color": "#e2231a",
+    "icon": "https://www.panafoto.com/media/favicon/stores/20/logo_panafoto_copy.png",
+    "connector": {
+      "type": "magento",
+      "mode": "api",
+      "baseUrl": "https://www.panafoto.com",
+      "departments": [
+        {
+          "path": "linea-blanca",
+          "category": "Electrodomésticos"
+        },
+        {
+          "path": "electrodomesticos",
+          "category": "Electrodomésticos"
+        },
+        {
+          "path": "tv-y-video",
+          "category": "Electrodomésticos"
+        },
+        {
+          "path": "audio",
+          "category": "Electrodomésticos"
+        },
+        {
+          "path": "celulares-y-tablets",
+          "category": "Electrodomésticos"
+        },
+        {
+          "path": "computo",
+          "category": "Electrodomésticos"
+        }
+      ]
+    }
+  },
+  {
+    "id": "rodelag",
+    "name": "Rodelag",
+    "homepage": "https://www.rodelag.com",
+    "searchUrl": "https://www.rodelag.com/search?q={q}",
+    "platform": "Shopify",
+    "color": "#d81e05",
+    "connector": {
+      "type": "shopify",
+      "category": "Electrodomésticos",
+      "maxPages": 40
+    }
+  },
+  {
+    "id": "multimax",
+    "name": "Multimax",
+    "homepage": "https://www.multimax.net",
+    "searchUrl": "https://www.multimax.net/search?q={q}",
+    "platform": "Shopify",
+    "color": "#0057b8",
+    "connector": {
+      "type": "shopify",
+      "category": "Electrodomésticos",
+      "maxPages": 40
+    }
+  },
+  {
+    "id": "doitcenter",
+    "name": "Do It Center",
+    "homepage": "https://www.doitcenter.com.pa",
+    "searchUrl": "https://www.doitcenter.com.pa/catalogsearch/result/?q={q}",
+    "platform": "Magento",
+    "color": "#ef7d00",
+    "icon": "https://www.doitcenter.com.pa/meta-icons/android-chrome-192x192.png",
+    "connector": {
+      "type": "magento",
+      "mode": "api",
+      "baseUrl": "https://www.doitcenter.com.pa",
+      "brandField": "marca_text",
+      "departments": [
+        {
+          "path": "linea-blanca",
+          "category": "Electrodomésticos"
+        },
+        {
+          "path": "electronica",
+          "category": "Electrodomésticos"
+        },
+        {
+          "path": "abanicos",
+          "category": "Electrodomésticos"
+        }
+      ]
+    },
+    "enabled": false,
+    "note": "su robots.txt autoriza /graphql y el catálogo se lee bien, pero su CDN responde 403 a cualquier bot identificado y solo deja pasar a quien se hace pasar por navegador; hay que pedirles permiso o un feed en vez de disfrazar al bot"
+  },
+  {
+    "id": "arrocha",
+    "name": "Arrocha",
+    "homepage": "https://www.arrocha.com",
+    "searchUrl": "https://www.arrocha.com/catalogsearch/result/?q={q}",
+    "platform": "Magento",
+    "color": "#0a9b49",
+    "enabled": false,
+    "note": "farmacia y cuidado personal, la que más falta hace; su Magento no abre /graphql y el buscador no sirve para leerlo, así que necesita un bot propio como el de Súper 99"
+  },
+  {
+    "id": "sysco",
+    "name": "Sysco Panamá",
+    "homepage": "https://www.syscopanama.com",
+    "searchUrl": null,
+    "platform": "Magento",
+    "color": "#0072ce",
+    "enabled": false,
+    "note": "vende al por mayor a restaurantes: su catálogo se ve, pero los precios llegan vacíos si no se inicia sesión, así que no hay nada que comparar"
   }
 ]

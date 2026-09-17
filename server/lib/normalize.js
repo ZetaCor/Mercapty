@@ -200,6 +200,11 @@ export function categoryFromName(name = '') {
 // y, si no hay, el resto del nombre. El orden importa: la primera regla que
 // coincide gana. «Refrigerados» no cuenta: ahí las tiendas meten de todo.
 const CATEGORY_RULES = [
+  // Las dos primeras son de las tiendas que no son súper (Panafoto, Do It Center). Llevan
+  // solo palabras que jamás aparecen en el nombre de un producto de supermercado: un
+  // «aceite de cocina» no puede acabar en Ferretería por decir «cocina».
+  ['Electrodomésticos', /\b(electrodomestico|linea blanca|televisor|refrigeradora|nevera|lavadora|lavasecadora|secadora|microonda|licuadora|aires? acondicionado|abanico|celular|tablet|laptop|computadora|impresora|audifono|parlante|bocina|monitor|estufa|congelador|lavavajilla|consola)(e?s)?\b/],
+  ['Ferretería y hogar', /\b(ferreteria|herramienta|herramientas|taladro|taladros|plomeria|destornillador|destornilladores|martillo|martillos|jardineria|soldadura)\b/],
   ['Bebé', /\b(bebe|bebes|panal|panales|toallitas|infantil|formula infantil)\b/],
   ['Mascotas', /\b(mascota|mascotas|perro|perros|gato|gatos)\b/],
   ['Frutas y verduras', /\b(fruta|frutas|verdura|verduras|vegetales|hortalizas)\b/],
@@ -214,7 +219,18 @@ const CATEGORY_RULES = [
   ['Despensa', /\b(despensa|abarrotes|arroz|frijol|frijoles|aceite|aceites|azucar|pasta|pastas|enlatado|enlatados|condimento|condimentos|salsa|salsas|harina|granos|cafe|sopa|sopas|atun|reposteria|hornear|desayuno|desayunos|cereal|cereales|avena|avenas|granola|gelatina|gelatinas|postre|postres|mermelada|mermeladas|bicarbonato|pancake|pancakes|glaseado)\b/],
 ];
 
+// Categorías que no salen del árbol de una tienda, sino de la configuración del bot (las
+// que no son súper: Panafoto y compañía). Esas son de fiar y le ganan al nombre del
+// producto: sin esto un «Lavaplatos LG QuadWash» de $900 acaba en Limpieza junto al jabón de
+// platos, y una «barra de sonido» en Panadería.
+export const OWN_CATEGORIES = new Map([
+  ['electrodomesticos', 'Electrodomésticos'],
+  ['ferreteria y hogar', 'Ferretería y hogar'],
+]);
+
 export function canonicalCategory(categoryText = '', name = '') {
+  const propia = OWN_CATEGORIES.get(normalizeText(categoryText));
+  if (propia) return propia;
   const fromName = categoryFromName(name);
   if (fromName) return fromName;
   const category = normalizeText(categoryText);

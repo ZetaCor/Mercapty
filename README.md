@@ -112,6 +112,15 @@ su precio por litro o por kilo se calcula sobre el total. Los códigos internos 
 (prefijos 2, 02 y 04) se descartan porque cada tienda inventa los suyos. También se descartan los códigos
 cuyo dígito verificador no cuadra (SKU internos que parecen códigos de barras).
 
+**Emparejamiento por modelo** (`modelCode` en `server/lib/matching.js`): los electrodomésticos no traen
+código de barras, pero sí número de modelo, y «Whirlpool WP3040S» es la misma estufa en las tres tiendas
+aunque cada una la nombre distinto. Un modelo es una palabra de cinco o más con letras y números mezclados;
+se descarta lo que lo parece y no lo es: clases de wifi (AC1200, AX5400), voltajes (100-240V), medidas
+(12000BTU) y español pegado a un número («3Velocidades»), que siempre trae una racha larga de letras. El
+modelo no basta por sí solo: los nombres además tienen que parecerse y la capacidad coincidir, porque el
+mismo «Kingston XS1000» viene de 1 TB y de 2 TB. Con esto las comparaciones de electrodomésticos pasaron de
+8 a 227.
+
 **Emparejamiento por nombre** (`server/lib/matching.js`): los productos sin código de barras (los
 internos de Riba Smith, por ejemplo), o con uno que ninguna otra tienda usa, se unen con el mismo
 producto de otra tienda solo si se cumplen todas estas reglas:
@@ -128,7 +137,7 @@ Sin marca o sin tamaño no se une: compararlo con un producto concreto engañar�
 productos aparecen en «Productos parecidos». Cada producto de otra tienda se une con uno solo.
 Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 
-## Supermercados (septiembre 2026)
+## Tiendas (septiembre 2026)
 
 | Súper | Plataforma | Estado |
 |---|---|---|
@@ -144,6 +153,19 @@ Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 | Super Carnes | Magento | ✅ Bot activo: lee sus 529 subcategorías de súper (hasta 160 productos por página, con código de barras): unos 3 800 productos en ~24 min |
 | Alimentos Melo | Shopify | ✅ Bot activo: su catálogo público de Shopify (unos 80 productos de pollo, cerdo, embutidos, jugos…) en una consulta. Sin código de barras: se une por nombre, marca y tamaño |
 | Mr Precio | WordPress | ⛔ No vende en línea: su web solo tiene sucursales y un PDF de ofertas (es del Grupo Rey) |
+
+**Electrodomésticos y electrónica.** Es la primera categoría que no es de súper. Se compara entre tres
+tiendas que venden lo mismo; sin al menos dos no hay nada que comparar y la categoría no valdría la pena.
+
+| Tienda | Plataforma | Estado |
+|---|---|---|
+| Panafoto | Magento | ✅ Bot activo por su API de catálogo (`/graphql`): línea blanca, electrodomésticos, TV, audio, celulares y cómputo, unos 3 400 productos |
+| Multimax | Shopify | ✅ Bot activo (catálogo público de Shopify), unos 2 900 productos con marca |
+| Rodelag | Shopify | ✅ Bot activo (catálogo público de Shopify), unos 3 400 productos con marca |
+| Do It Center | Magento | ⛔ Su robots.txt autoriza `/graphql` y el catálogo se lee bien, pero su CDN responde 403 a todo bot que se identifique y solo deja pasar a quien se hace pasar por navegador. No se disfraza el bot: hace falta pedirles permiso o un feed |
+| Novey | Magento | ⛔ Igual que Do It Center: 403 al bot identificado |
+| Arrocha | Magento | ⏳ Farmacia y cuidado personal, la que más falta hace: su Magento no abre `/graphql` y su buscador no sirve para leerlo, así que necesita un bot propio como el de Súper 99 |
+| Sysco Panamá | Magento | ⛔ Vende al por mayor a restaurantes: su catálogo se ve, pero los precios llegan vacíos si no se inicia sesión. Sin precio no hay comparación |
 
 La portada y el pie de página muestran automáticamente cuántos y cuáles supermercados tienen precios hoy.
 

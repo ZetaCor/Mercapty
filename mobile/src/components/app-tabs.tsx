@@ -34,6 +34,11 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Badge hidden={count === 0}>{String(count)}</NativeTabs.Trigger.Badge>
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name="juego">
+        <NativeTabs.Trigger.Label>{t('Juego')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'gamecontroller', selected: 'gamecontroller.fill' }} md="sports_esports" />
+      </NativeTabs.Trigger>
+
       <NativeTabs.Trigger name="tiendas">
         <NativeTabs.Trigger.Label>{t('Tiendas')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: 'storefront', selected: 'storefront.fill' }} md="storefront" />

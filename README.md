@@ -341,6 +341,15 @@ App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
   abre encima y se puede compartir con su dirección de la web. «Comprar en…» pasa por `/go/:id` (cuenta la
   visita) y abre la tienda en el navegador dentro de la app.
 - **Mi lista** se guarda en el teléfono (AsyncStorage), con la misma forma que en la web.
+- **Juego** (`src/app/(tabs)/juego.tsx`): «tiro al chanchito». El cerdito del logo cruza la cancha con su
+  moneda; se arrastra el dedo hacia abajo para tensar el arco —la flecha no se sale de la cancha, para poder
+  apuntar— y se suelta: sale en dirección contraria al arrastre y cae por su peso, así que hay que adelantarse
+  al blanco. Cinco flechas por ronda y el cerdito corre más rápido con cada acierto; el récord se guarda en el
+  teléfono. **El cerdito hace trampa:** cuando la flecha va a darle, la ve venir y salta; solo una de cada diez
+  veces no llega a tiempo. El salto es de verdad —la flecha le pasa por debajo—, no un resultado inventado. La
+  fuerza del tiro se calcula con el tamaño de la cancha, para que se sienta igual en cualquier teléfono. Está
+  hecho solo con `Animated` y `PanResponder` de React Native más el SVG del logo: no agrega código nativo, así
+  que viaja como una actualización normal.
 - **Escanear** (botón de código de barras en Inicio y en Buscar, `src/app/escanear.tsx`): la cámara lee EAN, UPC
   y QR con un enlace de Mercapty. Si el código es de un solo producto abre su ficha; si hay varias presentaciones
   (unidad y paquete), la búsqueda. Usa la búsqueda por código de la API y funciona en Expo Go.

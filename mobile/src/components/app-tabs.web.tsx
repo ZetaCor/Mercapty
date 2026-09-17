@@ -27,6 +27,9 @@ export default function AppTabs() {
         <TabTrigger name="lista" href="/lista" asChild>
           <TabButton icon="basket" label={t('Mi lista')} badge={count} />
         </TabTrigger>
+        <TabTrigger name="juego" href="/juego" asChild>
+          <TabButton icon="game" label={t('Juego')} />
+        </TabTrigger>
         <TabTrigger name="tiendas" href="/tiendas" asChild>
           <TabButton icon="store" label={t('Tiendas')} />
         </TabTrigger>

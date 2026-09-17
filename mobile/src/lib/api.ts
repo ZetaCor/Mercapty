@@ -22,6 +22,7 @@ export type Promo = {
   to: string | null;
   categories: string[];
   keywords: string[];
+  terms: string;          // condición de la tienda: «Con el Programa 99+»
   source: string | null;
 };
 

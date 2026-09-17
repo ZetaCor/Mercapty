@@ -61,6 +61,7 @@ function promoStrip(promos, stores) {
             <div class="promo-text">
               <b>${p.name}</b>
               <span>${p.discount ? t('Hoy −{n}% en {store}', { n: p.discount, store: name }) : t('Hoy en {store}', { store: name })}</span>
+              ${p.terms ? html`<small>${t(p.terms)}</small>` : ''}
             </div>
             ${p.categories.length === 1
               ? html`<a class="btn btn-sm" href="${searchHref({ categoria: p.categories[0] })}">${t('Ver productos')}</a>`

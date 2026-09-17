@@ -10,6 +10,7 @@
 //   categories         - a qué categorías de Mercapty aplica.
 //   keywords           - palabras del nombre que también cuentan, para afinar dentro de una
 //                        categoría (la farmacia y los cosméticos comparten «Cuidado personal»).
+//   terms              - la condición que pone la tienda («Con el Programa 99+»), a la vista.
 //   source, note       - dónde lo anuncia la tienda y notas nuestras.
 //   enabled            - false mientras no esté confirmada: no se muestra a nadie.
 import { readFileSync } from 'node:fs';
@@ -47,6 +48,7 @@ function load() {
       to: p.to ?? null,
       categories: Array.isArray(p.categories) ? p.categories.filter(Boolean) : [],
       keywords: (Array.isArray(p.keywords) ? p.keywords : []).map(clean).filter(Boolean),
+      terms: String(p.terms ?? '').trim(),
       source: p.source || null,
     }))
     // Sin día ni fechas no se sabe cuándo aplica.
@@ -70,10 +72,12 @@ export function panamaToday(now = new Date()) {
   };
 }
 
-// Promociones que aplican hoy en Panamá.
+// Promociones que aplican hoy en Panamá: dentro de las fechas, si las tiene, y en el día de la
+// semana que toca, si se repite por días. Los súper anuncian sus días con una fecha de
+// vencimiento («válido del 1 de julio al 30 de septiembre»), así que hacen falta las dos cosas.
 export function activePromos(now = new Date()) {
   const { date, weekday } = panamaToday(now);
-  return load().filter((p) => (p.from || p.to
-    ? (!p.from || date >= p.from) && (!p.to || date <= p.to)
-    : p.weekdays.includes(weekday)));
+  return load().filter((p) => (!p.from || date >= p.from)
+    && (!p.to || date <= p.to)
+    && (!p.weekdays.length || p.weekdays.includes(weekday)));
 }

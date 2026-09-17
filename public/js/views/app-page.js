@@ -5,11 +5,13 @@ import { t } from '../i18n.js';
 import { phoneVisual } from './hero.js';
 import { canInstall, isStandalone, promptInstall } from '../install.js';
 
+// El último dato dice dónde funciona: en la web instalable («web») o solo en la app de
+// Android, que lleva cámara y avisos («android»).
 const FEATURES = [
-  ['🔎', 'Compara al instante', 'Busca cualquier producto y mira su precio en cada supermercado.', true],
-  ['🛒', 'Tu lista siempre contigo', 'Arma la canasta en casa y revísala en el pasillo del súper.', true],
-  ['📷', 'Escanea el código de barras', 'Apunta la cámara a un producto y mira dónde está más barato.', false],
-  ['🔔', 'Alertas de precio', 'Te avisamos cuando baje lo que siempre compras.', false],
+  ['🔎', 'Compara al instante', 'Busca cualquier producto y mira su precio en cada supermercado.', 'web'],
+  ['🛒', 'Tu lista siempre contigo', 'Arma la canasta en casa y revísala en el pasillo del súper.', 'web'],
+  ['📷', 'Escanea el código de barras', 'Apunta la cámara a un producto y mira dónde está más barato.', 'android'],
+  ['🔔', 'Avisos de precio', 'Te avisamos cuando baja algo de tu lista y en los días de descuento de los súper.', 'android'],
 ];
 
 export async function renderAppPage() {
@@ -38,14 +40,16 @@ export async function renderAppPage() {
         <section class="section">
           <div class="section-head"><h2>${t('Lo que puedes hacer con la app')}</h2></div>
           <div class="feature-grid">
-            ${FEATURES.map(([emoji, title, text, ready]) => html`
+            ${FEATURES.map(([emoji, title, text, where]) => html`
               <article class="feature">
                 <span class="feature-icon" aria-hidden="true">${emoji}</span>
                 <h3>${t(title)}</h3>
                 <p>${t(text)}</p>
-                <span class="tag ${ready ? 'good' : ''}">${ready ? t('Disponible') : t('Próximamente')}</span>
+                <span class="tag ${where === 'web' ? 'good' : 'promo'}">${
+                  where === 'web' ? t('Disponible') : t('En la app de Android')}</span>
               </article>`)}
           </div>
+          <p class="meta">${t('La cámara y los avisos son de la app de Android, que estará pronto en Google Play. Lo demás funciona hoy mismo instalando Mercapty desde el navegador.')}</p>
         </section>
 
         <section class="section" id="instalar">

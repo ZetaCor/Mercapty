@@ -32,6 +32,7 @@ export function PromoStrip() {
                   ? t('Hoy −{n}% en {store}', { n: promo.discount, store: name })
                   : t('Hoy en {store}', { store: name })}
               </T>
+              {promo.terms ? <T size={12} color={C.muted}>{t(promo.terms)}</T> : null}
             </View>
             {promo.categories.length === 1 && (
               <Button

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "588969107404",
+    "project_id": "mercapty-c",
+    "storage_bucket": "mercapty-c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:588969107404:android:d202282e10e6de22648769",
+        "android_client_info": {
+          "package_name": "com.mercapty.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuTBU_72KcePgojonE97-iMu09_gXdCPQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

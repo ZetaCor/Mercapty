@@ -1,0 +1,40 @@
+# Avisos de la mañana a los celulares: el día de descuento de hoy y la rebaja más grande.
+# Lo que baja de precio se avisa aparte, al final de cada corrida de los bots
+# (precios.yml y super99.yml). Los envía scripts/notify.js por el servicio de Expo.
+# Necesita los mismos secretos TURSO_DATABASE_URL y TURSO_AUTH_TOKEN.
+name: Avisos de la mañana
+
+on:
+  schedule:
+    # 8:00 a. m. de Panamá (UTC-5): temprano, pero no de madrugada.
+    - cron: '0 13 * * *'
+  workflow_dispatch:         # botón «Run workflow» para probarlo a mano
+
+concurrency:
+  group: avisos
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  avisos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # El día de descuento solo se avisa si hay alguno activo hoy en data/promos.json.
+      - run: npm run notify -- promos
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+      # Este solo le llega a quien encendió «Ofertas del día», que viene apagado.
+      - run: npm run notify -- ofertas
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}

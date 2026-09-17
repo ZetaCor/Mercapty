@@ -40,7 +40,7 @@ const SCHEMA = [
     search_text  TEXT NOT NULL
   )`,
   'CREATE INDEX IF NOT EXISTS products_category ON products(category)',
-  // Para buscar por código de barras (el escáner de la app) sin recorrer la tabla.
+  // Para buscar por codigo de barras (el escaner de la app) sin recorrer la tabla.
   'CREATE INDEX IF NOT EXISTS products_gtin ON products(gtin)',
   // El precio de un producto en una tienda concreta.
   `CREATE TABLE IF NOT EXISTS offers (
@@ -102,6 +102,16 @@ const SCHEMA = [
     prefs      TEXT NOT NULL, -- JSON: qué avisos quiere
     products   TEXT NOT NULL, -- JSON: ids de «Mi lista»
     updated_at TEXT NOT NULL
+  )`,
+  // Bajadas de precio desde la corrida anterior, para avisar a los celulares que siguen ese
+  // producto en «Mi lista» (scripts/notify.js). Se limpia sola a los siete días.
+  `CREATE TABLE IF NOT EXISTS price_drops (
+    product_id INTEGER PRIMARY KEY REFERENCES products(id),
+    old_price  REAL NOT NULL,
+    new_price  REAL NOT NULL,
+    store_id   TEXT,
+    seen_at    TEXT NOT NULL,
+    notified   INTEGER NOT NULL DEFAULT 0
   )`,
   // Totales de la portada, las categorías y las tiendas, en JSON: contarlos en cada
   // visita cuesta recorrer las tablas enteras.
@@ -329,6 +339,20 @@ export async function rebuildAggregates(db) {
   await db.run(`
     DELETE FROM product_best
     WHERE product_id NOT IN (SELECT product_id FROM offers WHERE in_stock = 1)`);
+  // Lo que bajó de precio se anota antes de actualizar el resumen, que es cuando todavía se
+  // puede comparar con el precio anterior. Si vuelve a bajar antes de que se avise, se
+  // conserva el precio más viejo, que es el que hace justicia a la rebaja.
+  await db.run(`
+    INSERT INTO price_drops (product_id, old_price, new_price, store_id, seen_at, notified)
+    SELECT b.product_id, b.price, r.price, r.store_id, ?, 0
+    FROM (${BEST_ROWS}) r
+    JOIN product_best b ON b.product_id = r.product_id
+    WHERE r.rn = 1 AND r.price < b.price - 0.009
+    ON CONFLICT(product_id) DO UPDATE SET
+      old_price = CASE WHEN price_drops.notified = 0 THEN price_drops.old_price ELSE excluded.old_price END,
+      new_price = excluded.new_price, store_id = excluded.store_id,
+      seen_at = excluded.seen_at, notified = 0`, [new Date().toISOString()]);
+
   const changed = await db.run(`
     INSERT INTO product_best (product_id, offer_id, price, list_price, store_id, store_count,
       max_price, store_ids, savings, category, name, updated_at)

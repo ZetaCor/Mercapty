@@ -90,13 +90,21 @@ como antes y todo sigue funcionando igual.
 El servidor web tampoco crea las tablas al arrancar, porque en Vercel eso lo pagaría cada arranque
 en frío: de eso se encargan los bots (`createSchema`), y si faltaran, la API las crea al vuelo.
 
-**Días de descuento:** los súper anuncian días fijos («Martes de frutas y verduras», «Lunes de farmacia») y
-fechas sueltas (Black Friday). Como ninguno los publica en un formato que un bot pueda leer, se escriben a mano en
-`data/promos.json`: de qué tienda es, el descuento, los días (`weekdays`) o el rango de fechas (`from` y `to`), a qué
-categorías aplica y, si hay que afinar dentro de una categoría, unas `keywords` del nombre (la farmacia y los
-cosméticos comparten «Cuidado personal»). Con `enabled` en `false` no se muestra a nadie: así no se anuncia un
-descuento sin confirmar. `/api/promos` devuelve las de hoy según la hora de Panamá (no la del servidor), la portada
-las muestra en una franja y cada producto al que le aplica lleva «Hoy −25% en …».
+**Días de descuento:** los súper anuncian días fijos («Martes de frutas y vegetales») y fechas sueltas (Black
+Friday). Como ninguno los publica en un formato que un bot pueda leer, se escriben a mano en `data/promos.json`:
+de qué tienda es, el descuento, los días (`weekdays`), el rango de fechas (`from` y `to`), a qué categorías aplica,
+unas `keywords` del nombre si hay que afinar dentro de una categoría (los cosméticos y la dermocosmética comparten
+«Cuidado personal»), y `terms` con la condición que pone la tienda («Con el Programa 99+»), que sale a la vista.
+Los días y las fechas se combinan: un día de descuento casi siempre viene con fecha de vencimiento, y al pasarse
+deja de mostrarse solo. Con `enabled` en `false` no se muestra a nadie: así no se anuncia un descuento sin
+confirmar. `/api/promos` devuelve las de hoy según la hora de Panamá (no la del servidor), la portada las muestra
+en una franja y cada producto al que le aplica lleva «Hoy −20% en …».
+
+Los de Súper 99 salen de su [Programa 99+](https://www.super99.com/programa-99) (confirmados el 17-09-2026):
+martes 20% en frutas y vegetales, miércoles 20% en mascotas, viernes 25% en cosméticos y 30% en dermocosmética.
+**Vencen el 30-09-2026**; cuando Súper 99 publique los del trimestre siguiente hay que actualizar las fechas, que
+si no, la franja desaparece sola. Los de «todos los días» (25% en medicamentos, 30% en Toyland) están apagados:
+una franja fija todos los días cansa y los bots casi no traen farmacia ni juguetería.
 
 **Paquetes:** «946 ml (Pack de 12)», «6 pack», «Caja de 24» o «6 x 355 ml» se reconocen como
 paquetes. Un paquete nunca se une con la unidad, aunque la tienda use el mismo código de barras, y
@@ -307,8 +315,16 @@ App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
 - **Avisos (notificaciones):** en Ajustes se activan y se elige qué recibir: cuando baja de precio algo de «Mi
   lista», el día de descuento de un súper, o las ofertas del día (esta última apagada). El teléfono se guarda en la
   tabla `devices` con su token de Expo, lo que quiere recibir y los ids de su lista; no hay cuentas ni datos
-  personales, y al apagar todos los avisos se borra la fila. En Android hace falta subir a EAS una clave de servicio
-  de Firebase (FCM V1) para que los avisos se entreguen.
+  personales, y al apagar todos los avisos se borra la fila. Los envía `scripts/notify.js` por el servicio de Expo:
+  `lista` al final de cada corrida de los bots (lo que bajó queda anotado en `price_drops` al recalcular el resumen y
+  se avisa una sola vez), y `promos` y `ofertas` cada mañana (`.github/workflows/avisos.yml`). Para probar sin enviar
+  nada: `NOTIFY_DRY=1 npm run notify -- lista`. En Android hace falta subir a EAS una clave de servicio de Firebase
+  (FCM V1) y tener `google-services.json` en `mobile/`.
+- **Los avisos necesitan una compilación nueva, no una actualización.** `expo-notifications` es código nativo: una
+  app ya instalada no lo tiene y no lo puede descargar. Por eso, al añadirlos, la versión de `mobile/app.json` sube
+  a 1.1.0: como `runtimeVersion` sigue a la versión, las actualizaciones nuevas ya no le llegan a la app 1.0.0 (que
+  se rompería al abrirlas) y sí a la que se compile a partir de ahora. Siempre que se agregue una librería nativa,
+  hay que subir la versión antes de publicar la actualización.
 - Íconos y splash (`mobile/assets/images/`) salen de `public/icon.svg` y `public/loader.svg`.
 
 Probarla en tu celular, sin emulador:

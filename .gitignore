@@ -5,3 +5,7 @@ data/images/
 data/admin-key.txt
 .env*
 .vercel
+
+# Clave secreta de Firebase para enviar notificaciones (se sube a EAS, nunca aquí).
+*firebase-adminsdk*.json
+*service-account*.json

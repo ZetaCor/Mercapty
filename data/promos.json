@@ -1,37 +1,132 @@
 [
   {
-    "id": "super99-martes-verduras",
+    "id": "super99-martes-frutas",
     "storeId": "super99",
-    "name": "Martes de frutas y verduras",
+    "name": "Martes de frutas y vegetales",
+    "discount": 20,
+    "weekdays": [
+      "martes"
+    ],
+    "from": "2026-07-01",
+    "to": "2026-09-30",
+    "categories": [
+      "Frutas y verduras"
+    ],
+    "terms": "Con el Programa 99+",
+    "source": "https://www.super99.com/programa-99",
+    "note": "Confirmado en la página del Programa 99+ el 17-09-2026. Vence el 30-09-2026: hay que revisar si lo renuevan.",
+    "enabled": true
+  },
+  {
+    "id": "super99-miercoles-mascotas",
+    "storeId": "super99",
+    "name": "Miércoles de mascotas",
+    "discount": 20,
+    "weekdays": [
+      "miercoles"
+    ],
+    "from": "2026-07-01",
+    "to": "2026-09-30",
+    "categories": [
+      "Mascotas"
+    ],
+    "terms": "Con el Programa 99+. No aplica a productos de higiene",
+    "source": "https://www.super99.com/programa-99",
+    "note": "Alimentos y accesorios, marcas seleccionadas. Vence el 30-09-2026.",
+    "enabled": true
+  },
+  {
+    "id": "super99-viernes-cosmeticos",
+    "storeId": "super99",
+    "name": "Viernes de cosméticos",
     "discount": 25,
-    "weekdays": ["martes"],
-    "categories": ["Frutas y verduras"],
-    "source": "",
-    "note": "Sin confirmar: falta el enlace donde Súper 99 lo anuncia.",
-    "enabled": false
+    "weekdays": [
+      "viernes"
+    ],
+    "from": "2026-07-01",
+    "to": "2026-09-30",
+    "categories": [
+      "Cuidado personal"
+    ],
+    "keywords": [
+      "labial",
+      "rimel",
+      "mascara de pesta",
+      "maquillaje",
+      "base liquida",
+      "polvo compacto",
+      "sombra",
+      "delineador",
+      "corrector",
+      "rubor",
+      "esmalte",
+      "pestanas",
+      "cejas"
+    ],
+    "terms": "Con el Programa 99+",
+    "source": "https://www.super99.com/programa-99",
+    "note": "Cosméticos: se afina por palabras porque Mercapty no separa maquillaje de cuidado personal. Vence el 30-09-2026.",
+    "enabled": true
   },
   {
-    "id": "super99-lunes-farmacia",
+    "id": "super99-viernes-dermocosmetica",
     "storeId": "super99",
-    "name": "Lunes de farmacia",
-    "discount": null,
-    "weekdays": ["lunes"],
-    "categories": ["Cuidado personal"],
-    "keywords": ["vitamina", "vitaminas", "pastilla", "pastillas", "jarabe", "analgesico", "alcohol", "gasa", "curita", "suplemento"],
-    "source": "",
-    "note": "Sin confirmar: falta el descuento exacto y el enlace.",
-    "enabled": false
+    "name": "Viernes de dermocosmética",
+    "discount": 30,
+    "weekdays": [
+      "viernes"
+    ],
+    "from": "2026-07-01",
+    "to": "2026-09-30",
+    "categories": [
+      "Cuidado personal"
+    ],
+    "keywords": [
+      "la roche",
+      "eucerin",
+      "acm ",
+      "siegfried",
+      "sesderma",
+      "martiderm",
+      "uresim",
+      "bioderma",
+      "medihealth",
+      "babe ",
+      "uriage",
+      "vichy",
+      "cerave",
+      "sebamed",
+      "mussvital",
+      "isis pharma"
+    ],
+    "terms": "Con el Programa 99+. Solo las marcas de la lista",
+    "source": "https://www.super99.com/programa-99",
+    "note": "Marcas que nombra Súper 99. Vence el 30-09-2026.",
+    "enabled": true
   },
   {
-    "id": "super99-miercoles-cosmeticos",
+    "id": "super99-medicamentos",
     "storeId": "super99",
-    "name": "Miércoles de cosméticos",
-    "discount": null,
-    "weekdays": ["miercoles"],
-    "categories": ["Cuidado personal"],
-    "keywords": ["labial", "mascara", "rimel", "base", "corrector", "esmalte", "rubor", "sombra", "perfume", "colonia", "crema facial"],
-    "source": "",
-    "note": "Sin confirmar: falta el descuento exacto y el enlace.",
+    "name": "25% en medicamentos",
+    "discount": 25,
+    "weekdays": [],
+    "from": "2026-07-01",
+    "to": "2026-09-30",
+    "categories": [
+      "Cuidado personal"
+    ],
+    "keywords": [
+      "acetaminofen",
+      "ibuprofeno",
+      "aspirina",
+      "jarabe",
+      "antigripal",
+      "analgesico",
+      "antiacido"
+    ],
+    "terms": "Con el Programa 99+",
+    "source": "https://www.super99.com/programa-99",
+    "note": "Es todos los días, no un día de la semana: apagado para no poner una franja fija en la portada. Los bots casi no traen farmacia.",
     "enabled": false
   },
   {
@@ -39,11 +134,13 @@
     "storeId": "super99",
     "name": "Black Friday",
     "discount": null,
+    "weekdays": [],
     "from": "2026-11-27",
     "to": "2026-11-29",
     "categories": [],
+    "terms": "",
     "source": "",
-    "note": "Ejemplo del formato por fechas: revisar cuando el súper lo anuncie.",
+    "note": "Ejemplo de evento con fechas. Sin confirmar: falta el anuncio de la tienda.",
     "enabled": false
   }
 ]

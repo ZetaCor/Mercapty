@@ -103,6 +103,11 @@ const CATEGORY_STYLE = {
   Mascotas: ['🐾', '#f4efe8'],
   Electrodomésticos: ['🔌', '#eef2ff'],
   'Ferretería y hogar': ['🔧', '#f1f5f9'],
+  Farmacia: ['💊', '#ecfeff'],
+  'Juguetería y deportes': ['🧸', '#fef2f8'],
+  'Escolar y oficina': ['✏️', '#fffbeb'],
+  'Ropa y calzado': ['👕', '#f5f3ff'],
+  'Comida preparada': ['🍽️', '#fff7ed'],
 };
 const categoryStyle = (category) => CATEGORY_STYLE[category] ?? ['🛒', '#f1f4f8'];
 export const categoryIcon = (category) => categoryStyle(category)[0];

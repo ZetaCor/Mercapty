@@ -141,18 +141,25 @@ Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 
 | Súper | Plataforma | Estado |
 |---|---|---|
-| Super Xtra | VTEX | ✅ Bot activo: recorre completos sus departamentos de súper (API pública de catálogo) |
-| El Machetazo | VTEX | ✅ Bot activo: recorre completos Supermercado y Bebés (API pública de catálogo) |
+| Super Xtra | VTEX | ✅ Bot activo: recorre **sus 12 departamentos completos** (API pública de catálogo), no solo los de súper |
+| El Machetazo | VTEX | ✅ Bot activo: recorre **sus 11 departamentos completos** (API pública de catálogo): súper, farmacia, tecnología, hogar, ferretería, juguetería, deportes, escolar, sedería y fiestas |
 | Superunico | WooCommerce | ✅ Bot activo (Store API pública) |
 | Súper 99 | Magento | ✅ Bot propio: lee sus páginas de producto una por una (traen código de barras), unas 5 000 cada noche |
-| Riba Smith | Next.js | ✅ Bot activo (busca los términos de canasta básica en su web). Publica el código de barras sin el dígito verificador: se completa; lo que no tiene código se une por nombre, tamaño y marca |
-| Supermercados Rey | Instaleap | ✅ Bot activo (API de catálogo de Instaleap) |
+| Riba Smith | Next.js | ✅ Bot activo: busca los términos de canasta básica en su web, ahora hasta 30 páginas por término. Publica el código de barras sin el dígito verificador: se completa; lo que no tiene código se une por nombre, tamaño y marca |
+| Supermercados Rey | Instaleap | ✅ Bot activo: **recorre su árbol de categorías completo** (`getCategory` + `getProductsByCategory`, 100 productos por página) |
 | Metro Plus | Tipti | ⏳ Vende en línea por Tipti, cuya API exige iniciar sesión: hace falta un acuerdo o un feed |
 | PriceSmart | Nuxt + Bloomreach | ⛔ Su robots.txt bloquea expresamente a los bots que copian datos: solo con acuerdo o feed |
 | Super Kosher | Self-Point | ⛔ Su robots.txt lo permite, pero Cloudflare bloquea a los bots en su API de productos: solo con acuerdo o feed |
 | Super Carnes | Magento | ✅ Bot activo: lee sus 529 subcategorías de súper (hasta 160 productos por página, con código de barras): unos 3 800 productos en ~24 min |
 | Alimentos Melo | Shopify | ✅ Bot activo: su catálogo público de Shopify (unos 80 productos de pollo, cerdo, embutidos, jugos…) en una consulta. Sin código de barras: se une por nombre, marca y tamaño |
 | Mr Precio | WordPress | ⛔ No vende en línea: su web solo tiene sucursales y un PDF de ofertas (es del Grupo Rey) |
+
+**Cobertura: todo el catálogo, no una muestra.** Un comparador que no tiene el producto que la persona busca no
+sirve, así que cada bot recorre el catálogo entero de su tienda y no una selección. Antes no era así y se notaba:
+Rey buscaba 101 términos y se quedaba con las primeras 4 páginas de cada uno —de los 1.150 productos que publica
+para «pollo» tomaba 200, un 29 % de lo que hay—, y de El Machetazo solo se leían 2 de sus 12 departamentos. Ahora
+Rey se recorre por su árbol de categorías y las dos tiendas VTEX por todos sus departamentos. La contrapartida es
+que una corrida tarda más; con el repositorio público los minutos de GitHub Actions no se cobran.
 
 **Electrodomésticos y electrónica.** Es la primera categoría que no es de súper. Se compara entre tres
 tiendas que venden lo mismo; sin al menos dos no hay nada que comparar y la categoría no valdría la pena.
@@ -342,14 +349,14 @@ App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
   visita) y abre la tienda en el navegador dentro de la app.
 - **Mi lista** se guarda en el teléfono (AsyncStorage), con la misma forma que en la web.
 - **Juego** (`src/app/(tabs)/juego.tsx`): «tiro al chanchito». El cerdito del logo cruza la cancha con su
-  moneda; se arrastra el dedo hacia abajo para tensar el arco —la flecha no se sale de la cancha, para poder
-  apuntar— y se suelta: sale en dirección contraria al arrastre y cae por su peso, así que hay que adelantarse
-  al blanco. Cinco flechas por ronda y el cerdito corre más rápido con cada acierto; el récord se guarda en el
-  teléfono. **El cerdito hace trampa:** cuando la flecha va a darle, la ve venir y salta; solo una de cada diez
-  veces no llega a tiempo. El salto es de verdad —la flecha le pasa por debajo—, no un resultado inventado. La
-  fuerza del tiro se calcula con el tamaño de la cancha, para que se sienta igual en cualquier teléfono. Está
-  hecho solo con `Animated` y `PanResponder` de React Native más el SVG del logo: no agrega código nativo, así
-  que viaja como una actualización normal.
+  moneda; se arrastra el dedo hacia abajo para tensar la flecha y se suelta para dispararla, en dirección
+  contraria al arrastre y con su peso encima, así que hay que adelantarse al blanco. Cinco flechas por ronda y
+  el cerdito corre más rápido con cada acierto; el récord se guarda en el teléfono. La fuerza del tiro se calcula
+  con el tamaño de la cancha (con el 45 % del estirón la flecha llega justo a la altura del cerdito), para que se
+  sienta igual en un teléfono grande y en uno chico. Está hecho solo con `Animated` y `PanResponder` de React
+  Native más el SVG del logo: no agrega código nativo, así que viaja como una actualización normal. Las cuentas
+  van en un ref y se empujan a los valores animados cuadro a cuadro; React no se redibuja mientras la flecha
+  vuela, y el bucle se detiene al salir de la pestaña.
 - **Escanear** (botón de código de barras en Inicio y en Buscar, `src/app/escanear.tsx`): la cámara lee EAN, UPC
   y QR con un enlace de Mercapty. Si el código es de un solo producto abre su ficha; si hay varias presentaciones
   (unidad y paquete), la búsqueda. Usa la búsqueda por código de la API y funciona en Expo Go.

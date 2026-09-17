@@ -21,20 +21,44 @@
           "name": "Licor, Cerveza y Vino"
         },
         {
+          "id": 3,
+          "name": "Cuidado Personal y Belleza"
+        },
+        {
           "id": 4,
           "name": "Limpieza del Hogar y Ropa"
         },
         {
-          "id": 3,
-          "name": "Cuidado Personal y Belleza"
+          "id": 6,
+          "name": "Mascotas"
         },
         {
           "id": 7,
           "name": "Bebes"
         },
         {
-          "id": 6,
-          "name": "Mascotas"
+          "id": 9,
+          "name": "Línea Blanca y Electrodomésticos"
+        },
+        {
+          "id": 11,
+          "name": "Hogar, Jardín y Ferretería"
+        },
+        {
+          "id": 13,
+          "name": "Juguetería, Recreación y Deportes"
+        },
+        {
+          "id": 14,
+          "name": "Xtra Farmacia"
+        },
+        {
+          "id": 15,
+          "name": "Escolar y Oficina"
+        },
+        {
+          "id": 16,
+          "name": "Chef Café"
         }
       ]
     }
@@ -57,8 +81,44 @@
           "name": "Supermercado"
         },
         {
+          "id": 1,
+          "name": "Farmacia"
+        },
+        {
           "id": 28,
           "name": "Bebes"
+        },
+        {
+          "id": 23,
+          "name": "Tecnología"
+        },
+        {
+          "id": 24,
+          "name": "Hogar"
+        },
+        {
+          "id": 29,
+          "name": "Ferretería"
+        },
+        {
+          "id": 27,
+          "name": "Juguetería"
+        },
+        {
+          "id": 25,
+          "name": "Deportes y Bicicletas"
+        },
+        {
+          "id": 26,
+          "name": "Escolar"
+        },
+        {
+          "id": 30,
+          "name": "Sedería"
+        },
+        {
+          "id": 31,
+          "name": "Fiestas"
         }
       ]
     }
@@ -118,7 +178,7 @@
     "icon": "https://www.ribasmith.com/favicon.ico",
     "connector": {
       "type": "ribasmith",
-      "maxPages": 4
+      "maxPages": 30
     }
   },
   {
@@ -132,9 +192,9 @@
     "icon": "https://www.smrey.com/favicon.ico",
     "connector": {
       "type": "instaleap",
+      "mode": "categories",
       "clientId": "GRUPO_REY",
-      "storeReference": "1038",
-      "maxPages": 4
+      "storeReference": "1038"
     }
   },
   {

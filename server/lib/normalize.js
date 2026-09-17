@@ -203,8 +203,13 @@ const CATEGORY_RULES = [
   // Las dos primeras son de las tiendas que no son súper (Panafoto, Do It Center). Llevan
   // solo palabras que jamás aparecen en el nombre de un producto de supermercado: un
   // «aceite de cocina» no puede acabar en Ferretería por decir «cocina».
-  ['Electrodomésticos', /\b(electrodomestico|linea blanca|televisor|refrigeradora|nevera|lavadora|lavasecadora|secadora|microonda|licuadora|aires? acondicionado|abanico|celular|tablet|laptop|computadora|impresora|audifono|parlante|bocina|monitor|estufa|congelador|lavavajilla|consola)(e?s)?\b/],
-  ['Ferretería y hogar', /\b(ferreteria|herramienta|herramientas|taladro|taladros|plomeria|destornillador|destornilladores|martillo|martillos|jardineria|soldadura)\b/],
+  ['Electrodomésticos', /\b(electrodomestico|linea blanca|tecnologia|televisor|refrigeradora|nevera|lavadora|lavasecadora|secadora|microonda|licuadora|aires? acondicionado|abanico|celular|tablet|laptop|computadora|impresora|audifono|parlante|bocina|monitor|estufa|congelador|lavavajilla|consola)(e?s)?\b/],
+  ['Ferretería y hogar', /\b(ferreteria|hogar|herramienta|taladro|plomeria|destornillador|martillo|jardin|jardineria|soldadura|cerrajeria|automotriz|mueble|decoracion|equipaje|utensilio)(e?s)?\b/],
+  ['Farmacia', /\b(farmacia|medicamento|botiquin|primeros auxilios|analgesico|antigripal|jarabe|pastilla|bienestar|vitaminas y suplementos)(e?s)?\b/],
+  ['Ropa y calzado', /\b(moda|calzado|zapato|zapatilla|sandalia|camisa|camiseta|pantalon|vestido|blusa|ropa interior|medias|gorra)(e?s)?\b/],
+  ['Comida preparada', /\b(comida preparada|rotiseria|chef cafe|deli caliente)\b/],
+  ['Juguetería y deportes', /\b(jugueteria|juguete|bicicleta|deportes|recreacion|entretenimiento|fiestas|coleccionable|montable)(e?s)?\b/],
+  ['Escolar y oficina', /\b(escolar|oficina|papeleria|util(es)? escolar|mochila|sederia|manualidad|costura|bordado|escritura|libreta|cuaderno)(e?s)?\b/],
   ['Bebé', /\b(bebe|bebes|panal|panales|toallitas|infantil|formula infantil)\b/],
   ['Mascotas', /\b(mascota|mascotas|perro|perros|gato|gatos)\b/],
   ['Frutas y verduras', /\b(fruta|frutas|verdura|verduras|vegetales|hortalizas)\b/],
@@ -213,8 +218,8 @@ const CATEGORY_RULES = [
   ['Congelados', /\b(congelado|congelados|helado|helados)\b/],
   ['Panadería y snacks', /\b(pan|panes|panaderia|galleta|galletas|snack|snacks|golosina|golosinas|dulces|chocolate|chocolates|arepa|arepas|tortilla|tortillas|bollo|bollos|barra|barras)\b/],
   ['Bebidas', /\b(bebida|bebidas|agua|jugo|jugos|refresco|refrescos|soda|sodas|gaseosa|gaseosas|cola|malta|energizante|energizantes|energetica|energeticas|isotonica|cerveza|cervezas|vino|vinos|licor|licores|ron|whisky)\b/],
-  ['Limpieza', /\b(limpieza|detergente|detergentes|cloro|desinfectante|lavaplatos|suavizante|lavanderia|hogar)\b/],
-  ['Cuidado personal', /\b(cuidado personal|higiene|shampoo|champu|jabon|desodorante|dental|belleza|farmacia|papel higienico)\b/],
+  ['Limpieza', /\b(limpieza|detergente|detergentes|cloro|desinfectante|lavaplatos|suavizante|lavanderia)\b/],
+  ['Cuidado personal', /\b(cuidado personal|higiene|shampoo|champu|jabon|desodorante|dental|belleza|perfume|perfumes|fragancia|fragancias|papel higienico)\b/],
   // «Repostería» es harina, azúcar, bicarbonato y mezclas: despensa, no panadería.
   ['Despensa', /\b(despensa|abarrotes|arroz|frijol|frijoles|aceite|aceites|azucar|pasta|pastas|enlatado|enlatados|condimento|condimentos|salsa|salsas|harina|granos|cafe|sopa|sopas|atun|reposteria|hornear|desayuno|desayunos|cereal|cereales|avena|avenas|granola|gelatina|gelatinas|postre|postres|mermelada|mermeladas|bicarbonato|pancake|pancakes|glaseado)\b/],
 ];
@@ -226,6 +231,11 @@ const CATEGORY_RULES = [
 export const OWN_CATEGORIES = new Map([
   ['electrodomesticos', 'Electrodomésticos'],
   ['ferreteria y hogar', 'Ferretería y hogar'],
+  ['farmacia', 'Farmacia'],
+  ['jugueteria y deportes', 'Juguetería y deportes'],
+  ['escolar y oficina', 'Escolar y oficina'],
+  ['ropa y calzado', 'Ropa y calzado'],
+  ['comida preparada', 'Comida preparada'],
 ]);
 
 export function canonicalCategory(categoryText = '', name = '') {

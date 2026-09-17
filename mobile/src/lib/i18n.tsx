@@ -138,6 +138,7 @@ const EN: Record<string, string> = {
   'Más barato hoy': 'Cheapest today',
   'Bajó de precio': 'Price dropped',
   'Mejor precio': 'Best price',
+  'Otra presentación': 'Different package',
   Arroz: 'Rice',
   Pollo: 'Chicken',
   Leche: 'Milk',

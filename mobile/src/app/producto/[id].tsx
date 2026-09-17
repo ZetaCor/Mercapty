@@ -143,6 +143,7 @@ function OfferRow({ offer, first }: { offer: Offer; first: boolean }) {
           {offer.isBest && <Tag tone="good">{t('Mejor precio')}</Tag>}
           {offer.listPrice && offer.inStock ? <Tag tone="promo">{t('Oferta')}</Tag> : null}
           {offer.storeSource === 'demo' && <Tag tone="demo">demo</Tag>}
+          {offer.comparable === false && <Tag tone="warn">{t('Otra presentación')}</Tag>}
         </View>
         <T size={12.5} color={C.muted}>
           {offer.inStock ? t('Disponible') : t('Agotado')} · {t('actualizado {ago}', { ago: timeAgo(offer.updatedAt, t) })}

@@ -1,4 +1,5 @@
 import { canonicalCategory, categoryFromHead, nameHead, normalizeText, parsePack, parseSize, productPath, unitPrice } from './lib/normalize.js';
+import { isComparable } from './lib/compare.js';
 import { nameSimilarity } from './lib/matching.js';
 import { createSchema, rebuildAggregates } from './db.js';
 
@@ -19,6 +20,9 @@ const SORTS = {
   precio: 'b.price ASC, b.name', // con el mismo precio, por nombre: el orden no cambia entre corridas
   ahorro: 'b.savings DESC, b.price ASC',
 };
+
+// Una búsqueda de solo dígitos es un código de barras, no palabras.
+const BARCODE = /^\d{8,14}$/;
 
 // --- Búsqueda por relevancia ---
 
@@ -242,6 +246,19 @@ export function createApi(db) {
 
   async function searchProducts({ q = '', category = '', sort = '', limit = 24, offset = 0 }) {
     await ready();
+    const code = q.trim();
+
+    // El código de barras se busca entero, no por palabras: en la base se guarda a 14
+    // dígitos («00012157901260») y el lector manda los que vienen impresos en el paquete
+    // («12157901260»), así que se rellena con ceros antes de comparar. El mismo código
+    // puede tener varias presentaciones (unidad y paquete): salen todas.
+    if (BARCODE.test(code)) {
+      const rows = await db.all(`SELECT ${BEST_OFFER_COLUMNS} ${BEST_JOIN} WHERE p.gtin = ?`, [code.padStart(14, '0')]);
+      if (rows.length) {
+        return { total: rows.length, approximate: false, items: rows.slice(offset, offset + limit).map(productSummary) };
+      }
+    }
+
     const terms = queryTerms(q);
 
     // Sin palabras (por ejemplo, una categoría): orden directo en la base.
@@ -381,7 +398,10 @@ export function createApi(db) {
     const similar = await similarProducts(p);
     const available = offers.filter((o) => o.in_stock);
     const best = available[0];
-    const worst = available.at(-1);
+    // Las ofertas vienen de la más barata a la más cara; la que se sale de rango no cuenta
+    // para el ahorro ni para la diferencia, porque casi siempre es otra presentación.
+    const comparable = best ? available.filter((o) => isComparable(o.price, best.price)) : [];
+    const worst = comparable.at(-1);
     return {
       id: p.id,
       path: productPath(p.id, p.name),
@@ -407,7 +427,8 @@ export function createApi(db) {
         updatedAt: o.updated_at,
         unitPrice: unitPrice(o.price, p.size_value, p.size_unit),
         isBest: o === best,
-        diff: best && o.in_stock ? round2(o.price - best.price) : null,
+        comparable: !o.in_stock || comparable.includes(o),
+        diff: best && o.in_stock && comparable.includes(o) ? round2(o.price - best.price) : null,
       })),
       history,
       similar,

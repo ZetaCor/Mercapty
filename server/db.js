@@ -4,6 +4,7 @@
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { OUTLIER_MIN_GAP, OUTLIER_RATIO } from './lib/compare.js';
 import { normalizeText, matchKey } from './lib/normalize.js';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -39,6 +40,8 @@ const SCHEMA = [
     search_text  TEXT NOT NULL
   )`,
   'CREATE INDEX IF NOT EXISTS products_category ON products(category)',
+  // Para buscar por código de barras (el escáner de la app) sin recorrer la tabla.
+  'CREATE INDEX IF NOT EXISTS products_gtin ON products(gtin)',
   // El precio de un producto en una tienda concreta.
   `CREATE TABLE IF NOT EXISTS offers (
     id         INTEGER PRIMARY KEY,
@@ -295,6 +298,16 @@ export async function markUnseenOffersOutOfStock(db, storeId, runStartedAt) {
 
 // La mejor oferta de cada producto: rn = 1 es la más barata, con cuántas tiendas lo
 // tienen, el precio más alto y todas las tiendas de la más barata a la más cara.
+// Las ofertas que se pueden comparar entre sí: se aparta la que se sale de rango porque
+// la tienda publicó otra presentación con el mismo código de barras (server/lib/compare.js).
+const COMPARABLE_OFFERS = `
+  SELECT * FROM (
+    SELECT o.*, MIN(o.price) OVER (PARTITION BY o.product_id) AS low
+    FROM offers o
+    WHERE o.in_stock = 1
+  )
+  WHERE price <= low * ${OUTLIER_RATIO} OR price - low < ${OUTLIER_MIN_GAP}`;
+
 const BEST_ROWS = `
   SELECT o.*,
     ROW_NUMBER() OVER (PARTITION BY o.product_id ORDER BY o.price, o.store_id) AS rn,
@@ -303,8 +316,7 @@ const BEST_ROWS = `
     MAX(o.updated_at) OVER (PARTITION BY o.product_id) AS best_updated_at,
     group_concat(o.store_id, ',') OVER (PARTITION BY o.product_id ORDER BY o.price, o.store_id
       ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS store_ids
-  FROM offers o
-  WHERE o.in_stock = 1`;
+  FROM (${COMPARABLE_OFFERS}) o`;
 
 const STATS_UPSERT = 'INSERT INTO stats (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value';
 

@@ -25,6 +25,7 @@ const MIME = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.webp': 'image/webp',
+  '.ico': 'image/x-icon',
 };
 
 // La base se abre una vez por proceso (en Vercel, por instancia de la función).

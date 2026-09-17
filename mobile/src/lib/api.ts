@@ -79,6 +79,7 @@ export type Offer = {
   updatedAt: string;
   unitPrice: UnitPrice | null;
   isBest: boolean;
+  comparable: boolean; // false: la tienda publicó otra presentación con el mismo código
   diff: number | null;
 };
 

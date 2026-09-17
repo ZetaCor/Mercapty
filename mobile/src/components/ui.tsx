@@ -34,6 +34,7 @@ const TONES = {
   good: [C.goodSoft, C.good],
   promo: [C.promoSoft, C.promo],
   demo: [C.warnSoft, C.warn],
+  warn: [C.warnSoft, C.warn],
 } as const;
 
 export function Tag({ children, tone = 'default' }: { children: ReactNode; tone?: keyof typeof TONES }) {

@@ -298,6 +298,7 @@ select, .input {
 .promo-row .btn { margin-left: auto; }
 .promo-day .meta { margin: 0; }
 .tag.demo { background: var(--warn-soft); color: var(--warn); }
+.tag.warn { background: var(--warn-soft); color: var(--warn); }
 
 .avatar {
   flex: none; display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;

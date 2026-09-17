@@ -192,6 +192,8 @@ const EN = {
   'Más de {brand}': 'More from {brand}',
   'Otras marcas': 'Other brands',
   'Mejor precio': 'Best price',
+  'Otra presentación': 'Different package',
+  'Esta tienda publicó otra presentación con el mismo código de barras, así que su precio no se compara.': 'This store listed another package under the same barcode, so its price is not compared.',
   Disponible: 'In stock',
   Agotado: 'Out of stock',
   'actualizado {ago}': 'updated {ago}',

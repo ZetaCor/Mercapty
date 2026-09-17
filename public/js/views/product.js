@@ -34,6 +34,7 @@ function offerRow(offer) {
           ${offer.isBest ? html`<span class="tag good">${t('Mejor precio')}</span>` : ''}
           ${offer.listPrice && offer.inStock ? html`<span class="tag promo">${t('Oferta')}</span>` : ''}
           ${offer.storeSource === 'demo' ? html`<span class="tag demo">demo</span>` : ''}
+          ${offer.comparable ? '' : html`<span class="tag warn" title="${t('Esta tienda publicó otra presentación con el mismo código de barras, así que su precio no se compara.')}">${t('Otra presentación')}</span>`}
         </div>
         <div class="offer-sub">${offer.inStock ? t('Disponible') : t('Agotado')} · ${t('actualizado {ago}', { ago: timeAgo(offer.updatedAt) })}</div>
       </div>

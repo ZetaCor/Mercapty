@@ -49,6 +49,18 @@ unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`).
 más completo: si una tienda guardó «Ron Claro» y otra trae «Ron Carta Vieja 750 Ml Claro» (con tamaño o
 marca), se cambia por ese.
 
+**Comparaciones malas:** algunas tiendas publican la caja o el paquete de varias unidades con el código de
+barras de la unidad suelta, y sin defensa aparecen «ahorros» de $14.56 en una lata de soda de $0.56. Una oferta
+que cuesta más de 2,5 veces la más barata (y al menos $1.50 más) se aparta de la comparación:
+no cuenta para el ahorro, ni para el «en N tiendas», ni para los avisos, y en la ficha del producto sale
+marcada como «Otra presentación», con su precio a la vista pero sin compararlo. La regla está en
+`server/lib/compare.js` y se aplica una sola vez, al armar `product_best`, así que vale igual para la web y para
+la app.
+
+**Buscar por código de barras:** una búsqueda de solo dígitos (el escáner de la app, o alguien que teclea el
+código) se resuelve por el código exacto, rellenando con ceros hasta 14, no por palabras: el índice de texto
+busca palabras completas y nunca encontraría `12157901260` dentro de `00012157901260`.
+
 **Categorías:** primero decide cómo empieza el nombre del producto («Aceite Pam» → Despensa, «Arepa de maíz»
 → Panadería y snacks, «Pasta dental» → Cuidado personal; `categoryFromName`), porque cada súper mete cosas
 distintas en secciones como «Refrigerados». Si el nombre no lo dice («Doritos Queso»), decide la categoría de
@@ -370,6 +382,9 @@ ven como recuadros punteados; en la web no aparecen hasta que configures AdSense
 - Para que Google y Bing comprueben que el sitio es tuyo, define en Vercel `GOOGLE_SITE_VERIFICATION` y
   `BING_SITE_VERIFICATION` con el código que te den (solo el valor del `content`), o verifícalo por DNS en
   Hostinger y no hace falta tocar nada.
+- El logo que sale junto al resultado en Google es `/favicon.ico` (16, 32 y 48 px, cuadrado, generado a partir
+  de `public/icon.svg`): Google no acepta cualquier tamaño y tarda en volver a pasar, así que después de
+  publicarlo hay que esperar unos días o pedir el rastreo de la portada en Search Console.
 - La portada lleva los datos del sitio (`WebSite` y `Organization`, con el logo, el correo y las redes) y la
   acción de búsqueda, para que Google pueda mostrar una caja de búsqueda de Mercapty en sus resultados.
 - El servidor entrega cada página con su título, descripción, dirección canónica, vista previa para redes

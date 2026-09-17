@@ -7,6 +7,9 @@ import { t } from './i18n.js';
 let config = null;
 const isLocal = () => ['localhost', '127.0.0.1'].includes(location.hostname);
 
+// El script de AdSense ya viene en el HTML que entrega el servidor (adsenseTags en
+// server/app.js). Aquí solo se guarda la configuración; si por lo que sea no estuviera, se
+// carga desde aquí.
 export function setAdsConfig(ads) {
   config = ads ?? null;
   if (!config || document.getElementById('adsbygoogle-js')) return;

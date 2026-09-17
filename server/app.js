@@ -274,6 +274,21 @@ async function pageShell() {
 // Códigos con los que Google Search Console y Bing comprueban que el sitio es tuyo. Se
 // definen en Vercel (GOOGLE_SITE_VERIFICATION y BING_SITE_VERIFICATION) y, si no están,
 // no se escribe nada. También se puede verificar por DNS, sin tocar esto.
+// AdSense quiere encontrar su script en el HTML que llega, no puesto después por
+// JavaScript: así lo ve su revisor cuando pides la cuenta y su robot cuando rastrea. La
+// etiqueta «google-adsense-account» es la que usan hoy para comprobar que el sitio es tuyo.
+// Lleva el id de adsbygoogle-js para que public/js/ads.js no lo cargue dos veces.
+function adsenseTags() {
+  const { client } = adsConfig() ?? {};
+  if (!client) return [];
+  const id = escapeHtml(client);
+  return [
+    `<meta name="google-adsense-account" content="${id}">`,
+    `<script async id="adsbygoogle-js" crossorigin="anonymous"`
+      + ` src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(client)}"></script>`,
+  ];
+}
+
 function verificationTags() {
   return [
     ['google-site-verification', process.env.GOOGLE_SITE_VERIFICATION],
@@ -337,6 +352,7 @@ function injectHead(shell, meta, origin) {
     '<meta name="twitter:card" content="summary">',
     '<meta property="og:locale" content="es_PA">',
     ...verificationTags(),
+    ...adsenseTags(),
     meta.jsonLd && `<script type="application/ld+json">${JSON.stringify(meta.jsonLd).replaceAll('<', '\\u003c')}</script>`,
   ].filter(Boolean).join('\n  ');
   return shell.replace(/<title>[^<]*<\/title>\s*<meta name="description"[^>]*>/, tags);

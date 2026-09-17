@@ -441,8 +441,11 @@ español. Para un texto nuevo, escríbelo con `t('…')` y agrega su traducción
 
 ## Anuncios (Google AdSense)
 
-Los espacios ya están colocados en la portada, la búsqueda y la ficha de producto. En tu computadora se
-ven como recuadros punteados; en la web no aparecen hasta que configures AdSense.
+Los espacios ya están colocados en la portada, la búsqueda y la ficha de producto, cada uno con su etiqueta
+«Publicidad». En tu computadora se ven como recuadros punteados; en la web no aparece nada —ni el script de
+Google— hasta que configures `ADSENSE_CLIENT`. Cuando lo configuras, el servidor entrega en la cabecera la
+etiqueta `google-adsense-account` y el script de AdSense: tienen que venir en el HTML, porque el revisor de
+Google y su robot no ejecutan el JavaScript de la página.
 
 1. Compra el dominio y conéctalo en Vercel (**Settings** → **Domains**).
 2. La política de privacidad (`public/privacidad.html`) ya tiene el correo de contacto: AdSense exige esa página.
@@ -451,6 +454,14 @@ ven como recuadros punteados; en la web no aparecen hasta que configures AdSense
    `/ads.txt` se genera solo.
 4. Opcional: crea bloques de anuncios en AdSense y agrega sus números en `ADSENSE_SLOT_HOME`,
    `ADSENSE_SLOT_SEARCH` y `ADSENSE_SLOT_PRODUCT`. Sin bloques, puedes usar los anuncios automáticos de AdSense.
+5. En AdSense → **Privacidad y mensajes**, activa el mensaje de consentimiento (GDPR). Hace falta si alguien de
+   Europa abre la web, y se configura desde su panel: no lleva código.
+
+**Sobre la aprobación.** Google rechaza sitios que son solo datos de otros («contenido de poco valor»), así que
+no está garantizada. A favor juegan las páginas con texto propio (portada, tiendas, app, privacidad) y que cada
+ficha de producto compara precios entre tiendas y enseña su historial, que es trabajo propio y no una copia. Si
+llega un rechazo, el camino conocido es sumar contenido que solo Mercapty pueda escribir —el súper más barato de
+la semana, el índice de la canasta básica— y volver a pedirlo.
 
 ## Google (SEO)
 

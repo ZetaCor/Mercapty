@@ -1,14 +1,23 @@
-# Bots de precios: recorren los súper dos veces al día y actualizan la base en Turso.
+# Bots de precios: recorren las tiendas dos veces al día y actualizan la base en Turso.
 # (Súper 99 tiene su propio trabajo: .github/workflows/super99.yml.)
+#
+# Cada tienda corre en su propio trabajo, en paralelo. Antes iban todas seguidas en uno solo y,
+# desde que los bots recorren el catálogo completo, no cabían en el tiempo: las corridas se
+# cancelaban a los 90 minutos sin terminar. Así, además, si una tienda falla o bloquea al bot,
+# las demás terminan igual.
+#
+# El resumen que usa la web (mejor precio de cada producto y totales) se rehace una sola vez al
+# final, cuando ya están todas: por eso los bots lo saltan con INGEST_SIN_RESUMEN.
+#
 # Necesita los secretos TURSO_DATABASE_URL y TURSO_AUTH_TOKEN en
 # Settings -> Secrets and variables -> Actions del repositorio.
 name: Actualizar precios
 
 on:
   schedule:
-    # 5:17 a. m. y 5:17 p. m. de Panamá (UTC-5). Una corrida tarda unos 35 min; con el
-    # repositorio público los minutos no tienen límite. Si vuelve a ser privado (2 000 min
-    # gratis al mes), dejar una sola: '17 10 * * *'.
+    # 5:17 a. m. y 5:17 p. m. de Panamá (UTC-5). Con el repositorio público los minutos de
+    # GitHub Actions no se cobran. Si vuelve a ser privado (2 000 min gratis al mes), dejar
+    # una sola corrida: '17 10 * * *'.
     - cron: '17 10,22 * * *'
   workflow_dispatch:         # botón «Run workflow» para correrlo a mano
 
@@ -20,9 +29,28 @@ permissions:
   contents: read
 
 jobs:
-  bots:
+  # Qué tiendas hay que recorrer, leídas de data/stores.json: así no hay que tocar este
+  # archivo cada vez que se agrega una. Súper 99 queda fuera (tiene su propio bot).
+  tiendas:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 5
+    outputs:
+      lista: ${{ steps.leer.outputs.lista }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: leer
+        run: echo "lista=$(node scripts/tiendas.js)" >> "$GITHUB_OUTPUT"
+      - run: echo "Tiendas por recorrer: ${{ steps.leer.outputs.lista }}"
+
+  bots:
+    needs: tiendas
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false      # que una tienda caída no cancele a las demás
+      max-parallel: 4       # para no saturar la base ni las tiendas
+      matrix:
+        tienda: ${{ fromJson(needs.tiendas.outputs.lista) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,11 +58,30 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run ingest
+      - run: npm run ingest -- ${{ matrix.tienda }}
+        env:
+          INGEST_SIN_RESUMEN: '1'
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+
+  # Cuando todas terminan (aunque alguna haya fallado), se rehace el resumen y se avisa a los
+  # celulares lo que bajó de precio.
+  resumen:
+    needs: bots
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run resumen
         env:
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
-      # Avisa a los celulares lo que bajó de precio en esta corrida.
       - run: npm run notify -- lista
         env:
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}

@@ -217,13 +217,20 @@ los bots y el servidor usan Turso. Prueba rápida de los bots:
 
 ## Los bots
 
+**Cada tienda corre en su propio trabajo, en paralelo** (`.github/workflows/precios.yml`). Al principio iban
+todas seguidas en uno solo y, desde que recorren el catálogo completo, dejaron de caber: las corridas se
+cancelaban a los 90 minutos sin terminar y no entraba nada nuevo. Ahora un primer trabajo lee
+`data/stores.json` (`node scripts/tiendas.js`) y monta un trabajo por tienda, de cuatro en cuatro; si una
+tienda falla o bloquea al bot, las demás acaban igual. El resumen que usa la web se rehace una sola vez al
+final, con `npm run resumen`, cuando ya están todas: por eso los bots lo saltan con `INGEST_SIN_RESUMEN=1`.
+
 - **VTEX** (`connectors/vtex.js`): con `"mode": "categories"` recorre completos, con la API pública de
   catálogo, los departamentos de `departments` (`{ "id", "name" }`). Así no se escapa ningún producto
   (antes faltaban el ron Flor de Caña o la Coca-Cola normal porque ninguna palabra los buscaba). VTEX no
   pagina más allá de 2 500 productos por consulta: si un departamento tiene más, se parte por rangos de
   precio. Solo se leen productos con precio desde $0.01: VTEX pone precio 0 a lo agotado (en el súper de
-  Super Xtra son casi 2 900). Super Xtra: Supermercado, Licores, Limpieza, Cuidado personal, Bebés y Mascotas (quedan fuera
-  farmacia, ferretería y electrodomésticos). El Machetazo: Supermercado y Bebés (queda fuera su almacén).
+  Super Xtra son casi 2 900). Super Xtra y El Machetazo se recorren enteros, con todos sus departamentos (súper, farmacia,
+  tecnología, hogar, ferretería, juguetería, deportes y escolar).
   Trae código de barras, precio, precio regular, disponibilidad, foto y enlace. Si la tienda responde 429
   o 5xx, o se corta la red, espera y reintenta. Sin ese modo, busca los términos de `GROCERY_QUERIES`.
   El id de cada departamento aparece en el campo `categoriesIds` de cualquier producto

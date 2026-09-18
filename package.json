@@ -9,7 +9,8 @@
     "super99": "node scripts/super99.js",
     "notify": "node scripts/notify.js",
     "start": "node server/index.js",
-    "dev": "node --watch server/index.js"
+    "dev": "node --watch server/index.js",
+    "resumen": "node scripts/resumen.js"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

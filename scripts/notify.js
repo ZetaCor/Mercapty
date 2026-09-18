@@ -91,8 +91,11 @@ function parseDevice(row) {
 
 async function fromDrops(db, devices) {
   const drops = await db.all(`
-    SELECT d.product_id AS id, d.old_price, d.new_price, d.store_id, b.name
-    FROM price_drops d JOIN product_best b ON b.product_id = d.product_id
+    SELECT d.product_id AS id, d.old_price, d.new_price, d.store_id, b.name,
+      COALESCE(p.custom_image, p.image_url) AS imagen
+    FROM price_drops d
+    JOIN product_best b ON b.product_id = d.product_id
+    JOIN products p ON p.id = d.product_id
     WHERE d.notified = 0`);
   if (!drops.length) return [];
 
@@ -106,7 +109,9 @@ async function fromDrops(db, devices) {
       ? texts(device.lang).dropOne(mine[0], stores.get(mine[0].store_id) ?? mine[0].store_id)
       : texts(device.lang).dropMany(mine);
     const path = mine.length === 1 ? productPath(mine[0].id, mine[0].name) : '/lista';
-    messages.push({ to: device.token, ...text, data: { path } });
+    // Con un solo producto se ve su foto; con varios no hay una sola que valga.
+    const foto = mine.length === 1 ? conFoto(mine[0].imagen) : {};
+    messages.push({ to: device.token, ...text, ...foto, data: { path } });
   }
   return messages;
 }
@@ -149,7 +154,8 @@ async function fromDeals(db, devices) {
       AND d.old_price - d.new_price >= 0.25
       AND d.new_price >= d.old_price * 0.2`;
   const bajadas = await db.all(`
-    SELECT d.product_id AS id, b.name, d.old_price, d.new_price, d.store_id
+    SELECT d.product_id AS id, b.name, d.old_price, d.new_price, d.store_id,
+      (SELECT COALESCE(p.custom_image, p.image_url) FROM products p WHERE p.id = d.product_id) AS imagen
     ${DE_HOY}
     ORDER BY (d.old_price - d.new_price) / d.old_price DESC LIMIT 30`);
   const item = alAzar(bajadas.filter((x) => !evitar.has(x.id)));
@@ -161,20 +167,24 @@ async function fromDeals(db, devices) {
     return quienes.map((device) => ({
       to: device.token,
       ...texts(device.lang).today(item, store, cuantas - 1),
+      ...conFoto(item.imagen),
       data: { path: productPath(item.id, item.name) },
     }));
   }
 
   const comparaciones = await db.all(`
-    SELECT product_id AS id, name, price, savings, store_id
-    FROM product_best WHERE store_count > 1 AND savings >= 0.5
-    ORDER BY savings / price DESC LIMIT 30`);
+    SELECT b.product_id AS id, b.name, b.price, b.savings, b.store_id,
+      COALESCE(p.custom_image, p.image_url) AS imagen
+    FROM product_best b JOIN products p ON p.id = b.product_id
+    WHERE b.store_count > 1 AND b.savings >= 0.5
+    ORDER BY b.savings / b.price DESC LIMIT 30`);
   const otro = alAzar(comparaciones.filter((x) => !evitar.has(x.id)));
   if (!otro) return [];
   await anotarAvisado(db, otro.id);
   return quienes.map((device) => ({
     to: device.token,
     ...texts(device.lang).deal(otro, stores.get(otro.store_id) ?? otro.store_id),
+    ...conFoto(otro.imagen),
     data: { path: productPath(otro.id, otro.name) },
   }));
 }
@@ -185,6 +195,11 @@ async function fromTest(db, devices) {
 }
 
 const storeNames = async (db) => new Map((await db.all('SELECT id, name FROM stores')).map((s) => [s.id, s.name]));
+
+// La foto del producto, a todo color, dentro del aviso desplegado. El ícono pequeño de la
+// barra lo pone Android en blanco y negro por norma suya, pero esto sí se ve como es. Si el
+// producto no tiene foto, el aviso va sin ella y ya.
+const conFoto = (imagen) => (imagen ? { richContent: { image: imagen } } : {});
 
 // Lo ya avisado, para no mandar el mismo producto un día tras otro. Se guardan los últimos
 // cuarenta en la tabla stats, que ya existe para los totales de la web.
@@ -265,7 +280,10 @@ if (!messages.length) {
   console.log(`Nada que avisar (${kind}): ${devices.length} teléfonos registrados.`);
 } else if (DRY) {
   console.log(`Prueba (${kind}): ${messages.length} avisos, no se envió nada.`);
-  for (const m of messages.slice(0, 5)) console.log(`  → ${m.to}\n    ${m.title}\n    ${m.body}\n    ${m.data.path}`);
+  for (const m of messages.slice(0, 5)) {
+    const foto = m.richContent?.image ? `\n    foto: ${m.richContent.image}` : '\n    (sin foto)';
+    console.log(`  → ${m.to}\n    ${m.title}\n    ${m.body}\n    ${m.data.path}${foto}`);
+  }
 } else {
   const ok = await send(db, messages);
   console.log(`Avisos enviados (${kind}): ${ok} de ${messages.length}.`);

@@ -64,6 +64,15 @@ for (const store of stores) {
   console.log(`✓ ${store.name} (${store.connector.type}): ${offers.length} ofertas en ${seconds}s${notes.length ? `, ${notes.join(', ')}` : ''}`);
 }
 
+// Con una tienda por trabajo (.github/workflows/precios.yml), el resumen lo rehace
+// scripts/resumen.js cuando todas han terminado: si lo hiciera cada bot, se repetiría el
+// trabajo diez veces y con datos a medias.
+if (process.env.INGEST_SIN_RESUMEN === '1') {
+  db.close();
+  process.exitCode = failures ? 1 : 0;
+  process.exit();
+}
+
 const moved = await recategorize(db);
 if (moved) console.log(`\n${moved} productos pasaron a la categoría que dice su nombre.`);
 

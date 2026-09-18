@@ -25,6 +25,10 @@ on:
         description: 'Solo rehacer el resumen (las tiendas ya se recorrieron)'
         type: boolean
         default: false
+      tiendas:
+        description: 'Solo estas tiendas, separadas por comas (vacío = todas)'
+        type: string
+        default: ''
 
 concurrency:
   group: actualizar-precios
@@ -44,7 +48,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - id: leer
-        run: echo "lista=$(node scripts/tiendas.js)" >> "$GITHUB_OUTPUT"
+        # El valor va por variable de entorno, no pegado al comando: así lo que se escriba en
+        # el campo no puede colarse como parte de la orden.
+        env:
+          TIENDAS: ${{ inputs.tiendas }}
+        run: echo "lista=$(node scripts/tiendas.js "$TIENDAS")" >> "$GITHUB_OUTPUT"
       - run: 'echo "Tiendas por recorrer: ${{ steps.leer.outputs.lista }}"'
 
   bots:

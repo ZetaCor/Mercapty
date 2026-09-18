@@ -253,6 +253,32 @@
     }
   },
   {
+    "id": "elfuerte",
+    "name": "El Fuerte",
+    "homepage": "https://elfuerte.com.pa",
+    "searchUrl": "https://elfuerte.com.pa/search?q={q}",
+    "platform": "Shopify",
+    "color": "#df040b",
+    "logo": "https://elfuerte.com.pa/cdn/shop/files/el-fuerte_logo_c32a49d7-8f19-411f-8bfc-dbb579ee48dd.svg?v=1762353042&width=600",
+    "connector": {
+      "type": "shopify",
+      "maxPages": 60,
+      "categoryMap": {
+        "ELECTRO": "Electrodomésticos",
+        "COLCHONES": "Ferretería y hogar",
+        "AUTOMOTRIZ": "Ferretería y hogar",
+        "DEPORTE": "Juguetería y deportes",
+        "DAMA": "Ropa y calzado",
+        "DAMAS": "Ropa y calzado",
+        "CABALLEROS": "Ropa y calzado",
+        "NIÑA": "Ropa y calzado",
+        "NINAS": "Ropa y calzado",
+        "NIÑO": "Ropa y calzado",
+        "NINOS": "Ropa y calzado"
+      }
+    }
+  },
+  {
     "id": "metroplus",
     "name": "Metro Plus",
     "homepage": "https://metroplus.com.pa",

@@ -11,6 +11,10 @@ export async function fetchOffers(store, { log = console.log } = {}) {
   const cfg = store.connector;
   const origin = new URL(store.homepage).origin;
   const aliases = cfg.vendorAliases ?? {}; // "MELO Alimentos" -> "Melo"
+  // Tiendas que guardan todo en cajones propios ("ELECTRO", "DAMAS", "COLCHONES"): el mapa
+  // los traduce a nuestras categorías. Vale solo para esa tienda, porque esas palabras en el
+  // nombre de un producto significan otra cosa.
+  const porTipo = cfg.categoryMap ?? {};
   // Las tiendas que venden una sola cosa (Multimax, Rodelag: electrónica y línea blanca)
   // traen su categoría en la configuración: sus propios tipos son un desorden («SMART»,
   // «OLLAS ELECTRICAS») y el nombre del producto no siempre lo dice.
@@ -31,7 +35,7 @@ export async function fetchOffers(store, { log = console.log } = {}) {
           title: name,
           name,
           brand: aliases[p.vendor] ?? p.vendor,
-          category: cfg.category ?? p.product_type ?? '',
+          category: cfg.category ?? porTipo[p.product_type] ?? p.product_type ?? '',
           size: null, // se deduce del nombre
           price: v.price,
           listPrice: v.compare_at_price,

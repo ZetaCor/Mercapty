@@ -1,5 +1,5 @@
 import { getJson } from '../api.js';
-import { html, productGrid, categoryIcon, categoryTint, storeAvatar } from '../ui.js';
+import { html, productGrid, categoryIcon, categoryTint, storeAvatar, icons } from '../ui.js';
 import { t, category } from '../i18n.js';
 import { renderHero, bindHero } from './hero.js';
 import { storeMarquee } from './store-marquee.js';
@@ -48,28 +48,36 @@ function categoryChips(categories, current) {
 }
 
 // Lo que hoy tiene descuento por el día en algún súper («Martes de frutas y verduras»).
+// Los días de descuento de hoy, agrupados por tienda: cuando un súper tiene dos el mismo día
+// (los viernes de Súper 99 son cosméticos y dermocosmética) se veía su nombre y su logo
+// repetidos dentro del mismo cuadro, como si estuviera duplicado. Ahora la tienda se nombra
+// una vez y debajo van sus descuentos, cada uno con su porcentaje y su enlace.
 function promoStrip(promos, stores) {
   if (!promos?.length) return '';
-  return html`
-    <section class="promo-day">
-      ${promos.map((p) => {
-        const store = stores.get(p.storeId);
-        const name = store?.name ?? p.storeId;
-        return html`
-          <div class="promo-row">
-            ${storeAvatar(name, store?.color)}
-            <div class="promo-text">
-              <b>${p.name}</b>
-              <span>${p.discount ? t('Hoy −{n}% en {store}', { n: p.discount, store: name }) : t('Hoy en {store}', { store: name })}</span>
+  const porTienda = new Map();
+  for (const p of promos) porTienda.set(p.storeId, [...(porTienda.get(p.storeId) ?? []), p]);
+
+  return html`${[...porTienda].map(([storeId, suyas]) => {
+    const store = stores.get(storeId);
+    const name = store?.name ?? storeId;
+    return html`
+      <section class="promo-day">
+        <div class="promo-head">
+          ${storeAvatar(name, store?.color, 'lg')}
+          <b>${t('Hoy en {store}', { store: name })}</b>
+        </div>
+        ${suyas.map((p) => html`
+          <a class="promo-item" href="${searchHref(p.categories.length === 1 ? { categoria: p.categories[0] } : {})}">
+            <span class="promo-off">${p.discount ? `−${p.discount}%` : t('Hoy')}</span>
+            <span class="promo-name">
+              ${p.name}
               ${p.terms ? html`<small>${t(p.terms)}</small>` : ''}
-            </div>
-            ${p.categories.length === 1
-              ? html`<a class="btn btn-sm" href="${searchHref({ categoria: p.categories[0] })}">${t('Ver productos')}</a>`
-              : ''}
-          </div>`;
-      })}
-      <p class="meta">${t('Lo anuncia la tienda: confirma el descuento al pagar.')}</p>
-    </section>`;
+            </span>
+            ${icons.next}
+          </a>`)}
+        <p class="meta">${t('Lo anuncia la tienda: confirma el descuento al pagar.')}</p>
+      </section>`;
+  })}`;
 }
 
 export async function renderHome({ stores, promos }) {

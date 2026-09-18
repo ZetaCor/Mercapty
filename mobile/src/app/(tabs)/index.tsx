@@ -158,7 +158,7 @@ function Hero({ meta, names }: { meta: Meta; names: string[] }) {
       <View style={styles.saludoFila}>
         <T w={800} size={24} tight numberOfLines={1} style={{ flex: 1 }} accessibilityRole="header">{saludo}</T>
         <View style={[styles.cielo, { backgroundColor: dia ? C.warnSoft : C.brandSoft }]}>
-          <Icon name={dia ? 'sun' : 'moon'} size={20} color={dia ? '#d97706' : '#4f46e5'} />
+          <T size={24} style={{ lineHeight: 30 }}>{dia ? '☀️' : '🌙'}</T>
         </View>
       </View>
       <View style={styles.saludo}>
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   },
   saludoFila: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   saludo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  cielo: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  cielo: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   actions: { gap: 10, marginTop: 4 },
   section: { marginTop: 32 },
   cats: { gap: 12, paddingHorizontal: PAD, paddingVertical: 2 },

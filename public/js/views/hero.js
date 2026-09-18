@@ -79,7 +79,7 @@ export function phoneVisual() {
             <b>${saludo}</b>
             <small>${t('¿Qué vas a comprar hoy?')}</small>
           </div>
-          <span class="phone-sky ${dia ? 'day' : 'night'}">${dia ? icons.sun : icons.moon}</span>
+          <span class="phone-sky ${dia ? 'day' : 'night'}">${dia ? '☀️' : '🌙'}</span>
         </div>
         ${card('🥛', t('Leche entera'), '$1.19', 'Super Xtra', '$0.30')}
         ${card('🍚', t('Arroz 5 lb'), '$3.45', 'El Machetazo', '')}

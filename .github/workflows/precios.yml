@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: leer
         run: echo "lista=$(node scripts/tiendas.js)" >> "$GITHUB_OUTPUT"
-      - run: echo "Tiendas por recorrer: ${{ steps.leer.outputs.lista }}"
+      - run: 'echo "Tiendas por recorrer: ${{ steps.leer.outputs.lista }}"'
 
   bots:
     needs: tiendas

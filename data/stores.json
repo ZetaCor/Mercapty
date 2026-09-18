@@ -239,6 +239,20 @@
     }
   },
   {
+    "id": "superbaru",
+    "name": "Super Barú",
+    "homepage": "https://www.superbaru.com",
+    "searchUrl": "https://www.superbaru.com/search?q={q}",
+    "platform": "Shopify",
+    "color": "#2d2a6e",
+    "logo": "https://superbaru.com/cdn/shop/files/logo_400x.png?v=1706811848",
+    "icon": "https://superbaru.com/cdn/shop/files/favicon_152x.png?v=1706820202",
+    "connector": {
+      "type": "shopify",
+      "maxPages": 60
+    }
+  },
+  {
     "id": "metroplus",
     "name": "Metro Plus",
     "homepage": "https://metroplus.com.pa",
@@ -294,28 +308,52 @@
       "baseUrl": "https://www.panafoto.com",
       "departments": [
         {
-          "path": "linea-blanca",
+          "path": "categorias/hogar",
           "category": "Electrodomésticos"
         },
         {
-          "path": "electrodomesticos",
+          "path": "categorias/tv-y-video",
           "category": "Electrodomésticos"
         },
         {
-          "path": "tv-y-video",
+          "path": "categorias/audio",
           "category": "Electrodomésticos"
         },
         {
-          "path": "audio",
+          "path": "categorias/celulares-y-tablets",
           "category": "Electrodomésticos"
         },
         {
-          "path": "celulares-y-tablets",
+          "path": "categorias/computo",
           "category": "Electrodomésticos"
         },
         {
-          "path": "computo",
+          "path": "categorias/smartwatches",
           "category": "Electrodomésticos"
+        },
+        {
+          "path": "categorias/camaras-y-lentes",
+          "category": "Electrodomésticos"
+        },
+        {
+          "path": "categorias/hogar-inteligente",
+          "category": "Electrodomésticos"
+        },
+        {
+          "path": "categorias/consolas-y-videojuegos",
+          "category": "Juguetería y deportes"
+        },
+        {
+          "path": "categorias/salud-y-cuidado-personal",
+          "category": "Cuidado personal"
+        },
+        {
+          "path": "categorias/maletas-y-mochilas",
+          "category": "Escolar y oficina"
+        },
+        {
+          "path": "categorias/herramientas-y-jardin",
+          "category": "Ferretería y hogar"
         }
       ]
     }
@@ -380,6 +418,33 @@
     },
     "enabled": false,
     "note": "su robots.txt autoriza /graphql y el catálogo se lee bien, pero su CDN responde 403 a cualquier bot identificado y solo deja pasar a quien se hace pasar por navegador; hay que pedirles permiso o un feed en vez de disfrazar al bot"
+  },
+  {
+    "id": "romero",
+    "name": "Supermercados Romero",
+    "homepage": "https://romero.com.pa",
+    "platform": "WordPress",
+    "color": "#e30613",
+    "enabled": false,
+    "note": "no vende en línea: su web es informativa y las ofertas están dentro de un catálogo en flipbook (imágenes), sin precios legibles"
+  },
+  {
+    "id": "lacuracao",
+    "name": "La Curacao",
+    "homepage": "https://www.lacuracaonline.com",
+    "platform": "Magento",
+    "color": "#e30613",
+    "enabled": false,
+    "note": "electrodomésticos; su robots.txt no autoriza /graphql y además su CDN responde 403 a los bots identificados, así que haría falta permiso o un feed"
+  },
+  {
+    "id": "cochez",
+    "name": "Cochez y Cía",
+    "homepage": "https://www.cochezycia.com",
+    "platform": "Magento",
+    "color": "#f7a600",
+    "enabled": false,
+    "note": "ferretería y hogar; su robots.txt sí autoriza /graphql, pero su CDN responde 403 a cualquier bot identificado, igual que Do It Center y Novey"
   },
   {
     "id": "arrocha",

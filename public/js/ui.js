@@ -171,18 +171,23 @@ export function promoTag(item, stores) {
   return html`<span class="tag promo" title="${promo.name}">${text}</span>`;
 }
 
+// Cuándo bajar la imagen. En una franja que se desliza sola no sirve esperar a que la
+// imagen entre en pantalla: para cuando el navegador se da cuenta, el logo ya pasó de largo
+// y se ven cuadros vacíos. Ahí se piden de una, con prioridad baja para no estorbar al hero.
+const cuandoCargar = (eager) => (eager ? html`loading="eager" fetchpriority="low"` : html`loading="lazy"`);
+
 // Ícono de la tienda sobre sus iniciales: si el ícono no carga, quedan las iniciales.
-export function storeAvatar(name, color, size = '') {
+export function storeAvatar(name, color, size = '', { eager = false } = {}) {
   const icon = storeInfo.get(name)?.icon;
   return html`<span class="avatar ${size}" style="--c:${safeColor(color)}" aria-hidden="true">${initials(name)}${
-    icon ? html`<img src="${icon}" alt="" loading="lazy" data-store-img>` : ''}</span>`;
+    icon ? html`<img src="${icon}" alt="" ${cuandoCargar(eager)} decoding="async" data-store-img>` : ''}</span>`;
 }
 
 // Logo horizontal de la tienda; sin logo, su ícono y su nombre.
-export function storeLogo(store, className = 'store-logo') {
-  if (!store.logo) return html`<span class="${className} is-text">${storeAvatar(store.name, store.color)}<span>${store.name}</span></span>`;
+export function storeLogo(store, className = 'store-logo', { eager = false } = {}) {
+  if (!store.logo) return html`<span class="${className} is-text">${storeAvatar(store.name, store.color, '', { eager })}<span>${store.name}</span></span>`;
   const bg = store.logoBg ? `--logo-bg:${safeColor(store.logoBg)}` : '';
-  return html`<span class="${className}" style="${bg}"><img src="${store.logo}" alt="${store.name}" loading="lazy" data-store-img data-name="${store.name}"></span>`;
+  return html`<span class="${className}" style="${bg}"><img src="${store.logo}" alt="${store.name}" ${cuandoCargar(eager)} decoding="async" data-store-img data-name="${store.name}"></span>`;
 }
 
 export const productLabel = (p) => [p.name, p.brand, p.size].filter(Boolean).join(' · ');

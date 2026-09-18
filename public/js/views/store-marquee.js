@@ -16,7 +16,7 @@ export function storeMarquee(stores) {
     <ul class="marquee-group" ${copy ? html`aria-hidden="true"` : ''}>
       ${items.map((s, i) => html`
         <li><a class="marquee-item" href="/tiendas" title="${s.name}"
-          ${copy || i >= active.length ? html`tabindex="-1" aria-hidden="true"` : ''}>${storeLogo(s)}</a></li>`)}
+          ${copy || i >= active.length ? html`tabindex="-1" aria-hidden="true"` : ''}>${storeLogo(s, 'store-logo', { eager: true })}</a></li>`)}
     </ul>`;
   return html`
     <section class="section" aria-labelledby="store-strip-title">

@@ -3,7 +3,7 @@
 // página): nombre, marca, tipo, presentación, precio, precio anterior,
 // existencias, foto y enlace. Ese catálogo no trae el código de barras, así que
 // estos productos se unen con las otras tiendas por nombre, marca y tamaño.
-import { BOT_HEADERS, sleep } from './util.js';
+import { BOT_HEADERS, fetchText, sleep } from './util.js';
 
 const PAGE_SIZE = 250;
 
@@ -16,11 +16,11 @@ export async function fetchOffers(store, { log = console.log } = {}) {
   // «OLLAS ELECTRICAS») y el nombre del producto no siempre lo dice.
   const offers = [];
   for (let page = 1; page <= (cfg.maxPages ?? 40); page++) {
-    const res = await fetch(`${origin}/products.json?limit=${PAGE_SIZE}&page=${page}`, {
-      headers: BOT_HEADERS, signal: AbortSignal.timeout(45000),
-    });
-    if (!res.ok) throw new Error(`su catálogo (/products.json) respondió ${res.status}`);
-    const { products = [] } = await res.json();
+    // Con reintentos: Shopify corta con 429 a quien pide rápido, y un corte no debe
+    // costar la tienda entera.
+    const res = await fetchText(`${origin}/products.json?limit=${PAGE_SIZE}&page=${page}`, BOT_HEADERS);
+    if (res.status !== 'ok') throw new Error(`su catálogo (/products.json) respondió ${res.problem ?? res.status}`);
+    const { products = [] } = JSON.parse(res.text);
     for (const p of products) {
       for (const v of p.variants ?? []) {
         // Cuando hay varias presentaciones, la variante dice cuál es ("Bolsa de 3 lbs").

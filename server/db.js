@@ -314,7 +314,7 @@ const COMPARABLE_OFFERS = `
   SELECT * FROM (
     SELECT o.*, MIN(o.price) OVER (PARTITION BY o.product_id) AS low
     FROM offers o
-    WHERE o.in_stock = 1
+    WHERE o.in_stock = 1 AND o.product_id BETWEEN ? AND ?
   )
   WHERE price <= low * ${OUTLIER_RATIO} OR price - low < ${OUTLIER_MIN_GAP}`;
 
@@ -330,70 +330,101 @@ const BEST_ROWS = `
 
 const STATS_UPSERT = 'INSERT INTO stats (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value';
 
+// Turso no tiene la base al lado: cada sentencia es una petición HTTP y el cliente deja de
+// esperar a los cinco minutos. Recorrer las ofertas de todas las tiendas de una sola vez
+// pasaba de ahí y tumbaba el resumen entero, así que se rehace por tandas de productos:
+// `offers` tiene índice por product_id (UNIQUE product_id, store_id), de modo que cada tanda
+// es un trozo del índice y tarda segundos.
+const TANDA = 5000;
+const REINTENTOS = 3;
+
+// Un tropiezo de red no debe costar la corrida entera. Las sentencias del resumen se pueden
+// repetir sin hacer daño —vuelven a dejar la misma fila—, así que se reintentan con pausa.
+async function conReintentos(fn) {
+  for (let intento = 1; ; intento += 1) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (intento === REINTENTOS) throw err;
+      console.warn(`Reintento ${intento} de ${REINTENTOS}: ${err.message}`);
+      await new Promise((listo) => setTimeout(listo, intento * 5000));
+    }
+  }
+}
+
 // Rehace product_best y stats: una sola pasada por las ofertas al final de cada corrida de
 // los bots, en vez de una por cada visita a la web. Solo se escriben las filas que cambiaron,
 // porque Turso también cobra por filas escritas; la fecha se guarda por día (es la que lleva
 // el mapa del sitio), así una corrida seguida de otra casi no escribe nada.
 export async function rebuildAggregates(db) {
   // Productos que se quedaron sin oferta disponible.
-  await db.run(`
+  await conReintentos(() => db.run(`
     DELETE FROM product_best
-    WHERE product_id NOT IN (SELECT product_id FROM offers WHERE in_stock = 1)`);
-  // Lo que bajó de precio se anota antes de actualizar el resumen, que es cuando todavía se
-  // puede comparar con el precio anterior. Si vuelve a bajar antes de que se avise, se
-  // conserva el precio más viejo, que es el que hace justicia a la rebaja.
-  await db.run(`
-    INSERT INTO price_drops (product_id, old_price, new_price, store_id, seen_at, notified)
-    SELECT b.product_id, b.price, r.price, r.store_id, ?, 0
-    FROM (${BEST_ROWS}) r
-    JOIN product_best b ON b.product_id = r.product_id
-    WHERE r.rn = 1 AND r.price < b.price - 0.009
-    ON CONFLICT(product_id) DO UPDATE SET
-      old_price = CASE WHEN price_drops.notified = 0 THEN price_drops.old_price ELSE excluded.old_price END,
-      new_price = excluded.new_price, store_id = excluded.store_id,
-      seen_at = excluded.seen_at, notified = 0`, [new Date().toISOString()]);
+    WHERE product_id NOT IN (SELECT product_id FROM offers WHERE in_stock = 1)`));
 
-  const changed = await db.run(`
-    INSERT INTO product_best (product_id, offer_id, price, list_price, store_id, store_count,
-      max_price, store_ids, savings, category, name, updated_at)
-    SELECT r.product_id, r.id, r.price, r.list_price, r.store_id, r.store_count,
-      r.max_price, r.store_ids, r.max_price - r.price, p.category, p.name, substr(r.best_updated_at, 1, 10)
-    FROM (${BEST_ROWS}) r
-    JOIN products p ON p.id = r.product_id
-    WHERE r.rn = 1
-    ON CONFLICT(product_id) DO UPDATE SET
-      offer_id = excluded.offer_id, price = excluded.price, list_price = excluded.list_price,
-      store_id = excluded.store_id, store_count = excluded.store_count, max_price = excluded.max_price,
-      store_ids = excluded.store_ids, savings = excluded.savings, category = excluded.category,
-      name = excluded.name, updated_at = excluded.updated_at
-    WHERE product_best.offer_id IS NOT excluded.offer_id
-      OR product_best.price IS NOT excluded.price
-      OR product_best.list_price IS NOT excluded.list_price
-      OR product_best.store_count IS NOT excluded.store_count
-      OR product_best.max_price IS NOT excluded.max_price
-      OR product_best.store_ids IS NOT excluded.store_ids
-      OR product_best.category IS NOT excluded.category
-      OR product_best.name IS NOT excluded.name
-      OR product_best.updated_at IS NOT excluded.updated_at`);
+  const visto = new Date().toISOString();
+  const { tope } = await db.get('SELECT COALESCE(MAX(product_id), 0) AS tope FROM offers');
+  let cambiadas = 0;
+  for (let primero = 1; primero <= tope; primero += TANDA) {
+    const tanda = [primero, primero + TANDA - 1];
 
-  const meta = await db.get(`
+    // Lo que bajó de precio se anota antes de actualizar el resumen, que es cuando todavía se
+    // puede comparar con el precio anterior. Si vuelve a bajar antes de que se avise, se
+    // conserva el precio más viejo, que es el que hace justicia a la rebaja.
+    await conReintentos(() => db.run(`
+      INSERT INTO price_drops (product_id, old_price, new_price, store_id, seen_at, notified)
+      SELECT b.product_id, b.price, r.price, r.store_id, ?, 0
+      FROM (${BEST_ROWS}) r
+      JOIN product_best b ON b.product_id = r.product_id
+      WHERE r.rn = 1 AND r.price < b.price - 0.009
+      ON CONFLICT(product_id) DO UPDATE SET
+        old_price = CASE WHEN price_drops.notified = 0 THEN price_drops.old_price ELSE excluded.old_price END,
+        new_price = excluded.new_price, store_id = excluded.store_id,
+        seen_at = excluded.seen_at, notified = 0`, [visto, ...tanda]));
+
+    const hecho = await conReintentos(() => db.run(`
+      INSERT INTO product_best (product_id, offer_id, price, list_price, store_id, store_count,
+        max_price, store_ids, savings, category, name, updated_at)
+      SELECT r.product_id, r.id, r.price, r.list_price, r.store_id, r.store_count,
+        r.max_price, r.store_ids, r.max_price - r.price, p.category, p.name, substr(r.best_updated_at, 1, 10)
+      FROM (${BEST_ROWS}) r
+      JOIN products p ON p.id = r.product_id
+      WHERE r.rn = 1
+      ON CONFLICT(product_id) DO UPDATE SET
+        offer_id = excluded.offer_id, price = excluded.price, list_price = excluded.list_price,
+        store_id = excluded.store_id, store_count = excluded.store_count, max_price = excluded.max_price,
+        store_ids = excluded.store_ids, savings = excluded.savings, category = excluded.category,
+        name = excluded.name, updated_at = excluded.updated_at
+      WHERE product_best.offer_id IS NOT excluded.offer_id
+        OR product_best.price IS NOT excluded.price
+        OR product_best.list_price IS NOT excluded.list_price
+        OR product_best.store_count IS NOT excluded.store_count
+        OR product_best.max_price IS NOT excluded.max_price
+        OR product_best.store_ids IS NOT excluded.store_ids
+        OR product_best.category IS NOT excluded.category
+        OR product_best.name IS NOT excluded.name
+        OR product_best.updated_at IS NOT excluded.updated_at`, tanda));
+    cambiadas += hecho.rowsAffected ?? 0;
+  }
+
+  const meta = await conReintentos(() => db.get(`
     SELECT (SELECT COUNT(*) FROM products) AS products,
       (SELECT COUNT(*) FROM offers WHERE in_stock = 1) AS offers,
       (SELECT MAX(updated_at) FROM offers) AS updatedAt,
-      (SELECT COUNT(*) FROM stores WHERE source = 'demo') AS demoStores`);
-  const categories = await db.all(
+      (SELECT COUNT(*) FROM stores WHERE source = 'demo') AS demoStores`));
+  const categories = await conReintentos(() => db.all(
     'SELECT category AS name, COUNT(*) AS count FROM product_best GROUP BY category ORDER BY count DESC',
-  );
-  const stores = await db.all(`
+  ));
+  const stores = await conReintentos(() => db.all(`
     SELECT s.id,
       (SELECT COUNT(*) FROM offers o WHERE o.store_id = s.id AND o.in_stock = 1) AS offers,
       (SELECT MAX(o.updated_at) FROM offers o WHERE o.store_id = s.id) AS updatedAt,
       (SELECT COUNT(*) FROM product_best b WHERE b.store_id = s.id AND b.store_count > 1) AS bestCount
-    FROM stores s`);
-  await db.batch([
+    FROM stores s`));
+  await conReintentos(() => db.batch([
     { sql: STATS_UPSERT, args: ['meta', JSON.stringify(meta)] },
     { sql: STATS_UPSERT, args: ['categories', JSON.stringify(categories)] },
     { sql: STATS_UPSERT, args: ['stores', JSON.stringify(stores)] },
-  ]);
-  return { products: meta.products, offers: meta.offers, changed: changed.rowsAffected };
+  ]));
+  return { products: meta.products, offers: meta.offers, changed: cambiadas };
 }

@@ -20,6 +20,11 @@ on:
     # una sola corrida: '17 10 * * *'.
     - cron: '17 10,22 * * *'
   workflow_dispatch:         # botón «Run workflow» para correrlo a mano
+    inputs:
+      solo_resumen:
+        description: 'Solo rehacer el resumen (las tiendas ya se recorrieron)'
+        type: boolean
+        default: false
 
 concurrency:
   group: actualizar-precios
@@ -44,6 +49,9 @@ jobs:
 
   bots:
     needs: tiendas
+    # Marcando «solo_resumen» se salta el recorrido: sirve cuando los bots ya terminaron y lo
+    # único que falló fue el resumen, para no volver a raspar media hora por gusto.
+    if: ${{ !inputs.solo_resumen }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
     strategy:

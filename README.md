@@ -49,6 +49,13 @@ unifican en una lista común (`canonicalCategory` en `server/lib/normalize.js`).
 más completo: si una tienda guardó «Ron Claro» y otra trae «Ron Carta Vieja 750 Ml Claro» (con tamaño o
 marca), se cambia por ese.
 
+**Licores:** tienen su propia categoría, separada de Bebidas, y **no salen en la vitrina de la portada ni en
+la bienvenida de la app**. Son caros, así que sus diferencias entre tiendas son de $20 a $70 y ganaban siempre
+el ranking del ahorro: un comparador de canasta básica abría con tres botellas de whisky. Se reconocen por la
+sección de la tienda («Licor, Cerveza y Vino» en Xtra, «Licores» en Rey), por el nombre (ron, cerveza, vino,
+cabernet, brut…) y por una lista corta de marcas que no dicen qué son, como Chivas o Buchanan. Se siguen
+buscando y comparando igual que todo lo demás.
+
 **Comparaciones malas:** algunas tiendas publican la caja o el paquete de varias unidades con el código de
 barras de la unidad suelta, y sin defensa aparecen «ahorros» de $14.56 en una lata de soda de $0.56. Una oferta
 que cuesta más de 2,5 veces la más barata (y al menos $1.50 más) se aparta de la comparación:

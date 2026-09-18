@@ -1,4 +1,4 @@
-import { canonicalCategory, categoryFromHead, nameHead, normalizeText, parsePack, parseSize, productPath, unitPrice, OWN_CATEGORIES } from './lib/normalize.js';
+import { canonicalCategory, categoryFromHead, isAlcohol, nameHead, normalizeText, parsePack, parseSize, productPath, unitPrice, OWN_CATEGORIES } from './lib/normalize.js';
 import { isComparable } from './lib/compare.js';
 import { nameSimilarity } from './lib/matching.js';
 import { createSchema, rebuildAggregates } from './db.js';
@@ -318,17 +318,19 @@ export function createApi(db) {
 
   // Productos donde elegir bien la tienda ahorra más dinero. Sin electrodomésticos: una
   // estufa de $534 de diferencia tapa todo lo del súper, que es lo que se compra cada semana.
-  // Esos se ven en su propia categoría, y con `vertical` se piden aparte.
+  // Esos se ven en su propia categoría, y con `vertical` se piden aparte. Tampoco salen
+  // licores: son caros, ganaban siempre el ranking y la portada abría con tres whiskys.
   async function deals(limit = 8, { vertical = false } = {}) {
     await ready();
-    const propias = [...OWN_CATEGORIES.values()];
+    const propias = [...OWN_CATEGORIES.values(), 'Licores'];
     const huecos = propias.map(() => '?').join(', ');
+    // Se piden de más porque después se apartan los licores.
     const rows = await db.all(`
       SELECT ${BEST_OFFER_COLUMNS} ${BEST_JOIN}
       WHERE b.store_count > 1 AND b.category ${vertical ? 'IN' : 'NOT IN'} (${huecos})
       ORDER BY b.savings DESC LIMIT ?
-    `, [...propias, limit]);
-    return rows.map(productSummary);
+    `, [...propias, limit * 4]);
+    return rows.filter((r) => !isAlcohol(r.name)).slice(0, limit).map(productSummary);
   }
 
   // Productos de otras tiendas que se parecen pero no se unieron (otro nombre u

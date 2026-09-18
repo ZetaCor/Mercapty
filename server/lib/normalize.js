@@ -113,7 +113,8 @@ const NAME_HEADS = {
   Despensa: 'mantequilla de mani|leche de coco|leche coco|crema para cafe|nescafe|maizena|fecula|chicheme|aceite|aceites|arroz|frijol|frijoles|lenteja|lentejas|garbanzo|garbanzos|poroto|porotos|arveja|arvejas|azucar|sal|harina|pasta|pastas|spaghetti|espagueti|fideo|fideos|macarrones|coditos|tallarines|salsa|salsas|ketchup|mayonesa|mostaza|vinagre|aderezo|dip|sopa|sopas|consome|caldo|atun|sardina|sardinas|ajo|ajos|adobo|condimento|sazonador|sazon|pimienta|oregano|comino|canela|achiote|curry|cafe|avena|maicena|gelatina|flan|pudin|mermelada|jalea|miel|maiz|pure|levadura|polvo de hornear|polvo para hornear|bicarbonato|mezcla para|mezcla pancake|mezcla de pancake|mezcla de pancakes|glaseado|pancake|pancakes|panqueque|panqueques|sirope para pancake|sirope de arce|sirope de maple|sirope de chocolate|cake mix|brownie mix|muffin mix|frosting|cereal|cereales|granola|muesli|corn flakes|hojuelas|cheerios|zucaritas|froot loops|corn pops|choco krispis|all bran|cap n crunch|lucky charms|cocoa puffs|trix|chex|cerevita|crema de avellana|crema de avellanas|crema de mani|crema de pistacho|crema de avena|crema de maiz|crema para reposteria|crema pastelera|crema para el cafe|jell o|jello|bongel|bretzke|betty crocker|birch benders|bbndrs|bob s red mill|bob s|pillsbury|duncan hines|royal|coffeehat|baking soda',
   'Carnes y embutidos': 'carne|carnes|res|cerdo|pollo|alas|alitas|tasajo|bologna|aros de pollo|barritas de pollo|pechuga|pechugas|muslo|muslos|chuleta|chuletas|costilla|costillas|bistec|lomo|molida|filete|jamon|salchicha|salchichas|chorizo|chorizos|tocino|mortadela|salami|pavo|pescado|camaron|camarones|langostino|langostinos|pulpo|calamar|corvina|salmon|tilapia|hamburguesa|hamburguesas',
   'Panadería y snacks': 'pan|panes|arepa|arepas|arepitas|tortilla|tortillas|bollo|bollos|galleta|galletas|cereal en barra|granola bar|granola bars|granola barra|granola en barra|granola nature valley|chex mix|barra|barras|barrita|barritas|papitas|papas fritas|papas rizadas|papas onduladas|papas tostadas|chips|chocolate|chocolates|bombones|caramelos|gomitas|chicles|mani|bizcocho|pastel|rosquitas|tostadas|palomitas|dulce|dulces',
-  Bebidas: 'agua de coco|agua|jugo|jugos|nectar|soda|sodas|refresco|refrescos|gaseosa|bebida|bebidas|malta|cerveza|cervezas|vino|vinos|ron|seco|whisky|whiskey|vodka|ginebra|tequila|licor|sangria|coca cola|coke|pepsi|fanta|sprite|seven up|canada dry|schweppes|dr pepper|gatorade|powerade|red bull|monster',
+  Bebidas: 'agua de coco|agua|jugo|jugos|nectar|soda|sodas|refresco|refrescos|gaseosa|bebida|bebidas|malta|coca cola|coke|pepsi|fanta|sprite|seven up|canada dry|schweppes|dr pepper|gatorade|powerade|red bull|monster',
+  Licores: 'cerveza|cervezas|vino|vinos|ron|seco|whisky|whiskey|vodka|ginebra|gin|tequila|mezcal|licor|licores|sangria|champan|champagne|espumante|brandy|cognac|sake|vermut|sidra|limoncello|aguardiente',
   Limpieza: 'detergente|cloro|suavizante|lavaplatos|desinfectante|limpiador|limpiavidrios|desengrasante|blanqueador|jabon para ropa|jabon en polvo|servilletas|toallas de papel|papel toalla|bolsas de basura|bolsas para basura|esponja|esponjas|escoba|trapeador|insecticida|ambientador|aromatizante|papel aluminio|guantes|bicarbonato de limon|aceite 3 en 1|aceite rojo|baking soda multicleaner',
   Congelados: 'helado|helados|papas congeladas|nuggets|hielo|barra de helado|barras de helado|tequeno|tequenos|te pequeno',
   Otros: 'aceite de motor|aceite para motor|cigarrillos|cigarrillo|cigarillos|cigarros|marlboro|vape fume|termo para|carded',
@@ -217,12 +218,21 @@ const CATEGORY_RULES = [
   ['Lácteos y huevos', /\b(lacteo|lacteos|leche|leches|queso|quesos|yogur|yogurt|mantequilla|huevo|huevos)\b/],
   ['Congelados', /\b(congelado|congelados|helado|helados)\b/],
   ['Panadería y snacks', /\b(pan|panes|panaderia|galleta|galletas|snack|snacks|golosina|golosinas|dulces|chocolate|chocolates|arepa|arepas|tortilla|tortillas|bollo|bollos|barra|barras)\b/],
-  ['Bebidas', /\b(bebida|bebidas|agua|jugo|jugos|refresco|refrescos|soda|sodas|gaseosa|gaseosas|cola|malta|energizante|energizantes|energetica|energeticas|isotonica|cerveza|cervezas|vino|vinos|licor|licores|ron|whisky)\b/],
+  ['Licores', /\b(licor|cerveza|vino|whisky|whiskey|ron|vodka|tequila|mezcal|ginebra|champan|champagne|espumante|aguardiente|brandy|cognac|conac|sake|vermut|vermouth|sidra|sangria|limoncello|seco herrerano|brut|prosecco|cava|moscato|malbec|cabernet|chardonnay|sauvignon|merlot|syrah|pinot|rioja|vino tinto)(e?s)?\b/],
+  ['Bebidas', /\b(bebida|bebidas|agua|jugo|jugos|refresco|refrescos|soda|sodas|gaseosa|gaseosas|cola|malta|energizante|energizantes|energetica|energeticas|isotonica)\b/],
   ['Limpieza', /\b(limpieza|detergente|detergentes|cloro|desinfectante|lavaplatos|suavizante|lavanderia)\b/],
   ['Cuidado personal', /\b(cuidado personal|higiene|shampoo|champu|jabon|desodorante|dental|belleza|perfume|perfumes|fragancia|fragancias|papel higienico)\b/],
   // «Repostería» es harina, azúcar, bicarbonato y mezclas: despensa, no panadería.
   ['Despensa', /\b(despensa|abarrotes|arroz|frijol|frijoles|aceite|aceites|azucar|pasta|pastas|enlatado|enlatados|condimento|condimentos|salsa|salsas|harina|granos|cafe|sopa|sopas|atun|reposteria|hornear|desayuno|desayunos|cereal|cereales|avena|avenas|granola|gelatina|gelatinas|postre|postres|mermelada|mermeladas|bicarbonato|pancake|pancakes|glaseado)\b/],
 ];
+
+// Los licores se buscan y se comparan como todo lo demás, pero no salen en la vitrina de la
+// portada ni en la bienvenida de la app: como son caros, sus diferencias entre tiendas son de
+// $20 a $70 y se comían el ranking del ahorro, así que un comparador de canasta básica abría
+// con tres botellas de whisky.
+const ALCOHOL = /\b(chivas|buchanan|johnnie walker|black label|red label|blue label|old parr|jack daniels|jim beam|absolut|smirnoff|bacardi|abuelo|baileys|hennessy|moet|jose cuervo|don julio|jagermeister|malibu|captain morgan|grey goose|macallan|glenlivet|singleton|zacapa|flor de cana|whisky|whiskey|ron|vodka|tequila|mezcal|ginebra|gin|cerveza|vino|champan|champagne|espumante|licor|aguardiente|brandy|cognac|conac|sake|vermouth|vermut|sidra|sangria|limoncello|seco herrerano|brut|prosecco|cava|moscato|malbec|cabernet|chardonnay|sauvignon|merlot|syrah|pinot|rioja|vino tinto)(e?s)?\b/;
+
+export const isAlcohol = (name = '') => ALCOHOL.test(normalizeText(name));
 
 // Categorías que no salen del árbol de una tienda, sino de la configuración del bot (las
 // que no son súper: Panafoto y compañía). Esas son de fiar y le ganan al nombre del
@@ -236,11 +246,14 @@ export const OWN_CATEGORIES = new Map([
   ['escolar y oficina', 'Escolar y oficina'],
   ['ropa y calzado', 'Ropa y calzado'],
   ['comida preparada', 'Comida preparada'],
+  ['licores', 'Licores'],
 ]);
 
 export function canonicalCategory(categoryText = '', name = '') {
   const propia = OWN_CATEGORIES.get(normalizeText(categoryText));
   if (propia) return propia;
+  // Un licor es un licor aunque la tienda lo tenga guardado en «Bebidas».
+  if (isAlcohol(name)) return 'Licores';
   const fromName = categoryFromName(name);
   if (fromName) return fromName;
   const category = normalizeText(categoryText);

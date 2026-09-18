@@ -15,6 +15,7 @@ const CATEGORY_STYLE: Record<string, [string, string]> = {
   Electrodomésticos: ['🔌', '#eef2ff'],
   'Ferretería y hogar': ['🔧', '#f1f5f9'],
   Farmacia: ['💊', '#ecfeff'],
+  Licores: ['🍷', '#fdf2f8'],
   'Juguetería y deportes': ['🧸', '#fef2f8'],
   'Escolar y oficina': ['✏️', '#fffbeb'],
   'Ropa y calzado': ['👕', '#f5f3ff'],

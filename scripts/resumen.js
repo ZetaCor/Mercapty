@@ -5,10 +5,18 @@
 // acabado: si cada bot lo rehiciera, se repetiría el trabajo diez veces y con datos a medias.
 //
 //   npm run resumen
-import { openDb, rebuildAggregates } from '../server/db.js';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { openDb, rebuildAggregates, upsertStore, ROOT } from '../server/db.js';
 import { recategorize } from './lib/pipeline.js';
 
 const db = await openDb();
+
+const tiendas = JSON.parse(readFileSync(path.join(ROOT, 'data', 'stores.json'), 'utf8'));
+const enLaBase = new Set((await db.all('SELECT id FROM stores')).map((t) => t.id));
+const puestasAlDia = tiendas.filter((t) => enLaBase.has(t.id));
+for (const tienda of puestasAlDia) await upsertStore(db, tienda);
+console.log(`Datos al día de ${puestasAlDia.length} tiendas (nombre, color, logo).`);
 
 const moved = await recategorize(db);
 if (moved) console.log(`${moved} productos pasaron a la categoría que dice su nombre.`);

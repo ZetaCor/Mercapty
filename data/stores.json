@@ -285,6 +285,8 @@
     "searchUrl": "https://www.panafoto.com/catalogsearch/result/?q={q}",
     "platform": "Magento",
     "color": "#e2231a",
+    "logo": "https://s3.us-east-1.amazonaws.com/images.panafoto.com/B2CPana/icon/logo/logo_panafoto-blanco.svg",
+    "logoBg": "#e2231a",
     "icon": "https://www.panafoto.com/media/favicon/stores/20/logo_panafoto_copy.png",
     "connector": {
       "type": "magento",
@@ -325,6 +327,8 @@
     "searchUrl": "https://www.rodelag.com/search?q={q}",
     "platform": "Shopify",
     "color": "#d81e05",
+    "logo": "https://rodelag.com/cdn/shop/files/image_221.png?v=1781532656&width=600",
+    "icon": "https://rodelag.com/cdn/shop/files/rodelag-favicon-color.png?width=64",
     "connector": {
       "type": "shopify",
       "category": "Electrodomésticos",
@@ -338,6 +342,8 @@
     "searchUrl": "https://www.multimax.net/search?q={q}",
     "platform": "Shopify",
     "color": "#0057b8",
+    "logo": "https://www.multimax.net/cdn/shop/files/Logo_Web_checkout_1000x145_px_minified_1200x.svg?v=1677166596",
+    "icon": "https://www.multimax.net/cdn/shop/files/Logo_Perfil_MX_Rojo_180x180.png?v=1682085445",
     "connector": {
       "type": "shopify",
       "category": "Electrodomésticos",

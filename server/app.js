@@ -440,6 +440,15 @@ async function route(req, res) {
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' });
     return res.end(`google.com, ${ads.client.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0\n`);
   }
+  if (get && pathname === '/app-ads.txt') {
+    // Lo mismo, pero para los anuncios de la app (AdMob): quien compra publicidad busca este
+    // archivo en la web de la app y, si no lo encuentra, paga mucho menos o no puja. El número
+    // suele ser el mismo «pub-…» de AdSense; si la cuenta de AdMob es otra, va en ADMOB_CLIENT.
+    const id = (process.env.ADMOB_CLIENT ?? process.env.ADSENSE_CLIENT ?? '').trim();
+    if (!id) throw new HttpError(404, 'No encontrado');
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' });
+    return res.end(`google.com, ${id.replace(/^ca-/, '')}, DIRECT, f08c47fec0942fa0\n`);
+  }
   if (get && pathname === '/robots.txt') {
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' });
     return res.end(robotsTxt(siteOrigin(req)));

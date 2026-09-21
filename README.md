@@ -364,13 +364,24 @@ App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
 - **Mi lista** se guarda en el teléfono (AsyncStorage), con la misma forma que en la web.
 - **Juego** (`src/app/(tabs)/juego.tsx`): «tiro al chanchito». El cerdito del logo cruza la cancha con su
   moneda; se arrastra el dedo hacia abajo para tensar la flecha y se suelta para dispararla, en dirección
-  contraria al arrastre y con su peso encima, así que hay que adelantarse al blanco. Cinco flechas por ronda y
-  el cerdito corre más rápido con cada acierto; el récord se guarda en el teléfono. La fuerza del tiro se calcula
+  contraria al arrastre y con su peso encima, así que hay que adelantarse al blanco. **La meta son 100 aciertos
+  y quien llega se gana un producto** de las tiendas que comparamos: sale su foto, su tienda y su precio, y un
+  botón que abre WhatsApp con el mensaje ya escrito para reclamarlo (el producto se saca al azar de las ofertas
+  de `/api/deals`, que ya vienen cargadas). Se empieza con cinco flechas y **solo se pierde flecha cuando el tiro
+  falla**: si acierta, no se resta, así que la ronda dura lo que dure la puntería. Cada diez aciertos el cerdito
+  corre más rápido (de 120 a 300 píxeles por segundo en la meta) y cada cinco tiros entra un anuncio de pantalla
+  completa. El récord se guarda en el teléfono. La fuerza del tiro se calcula
   con el tamaño de la cancha (con el 45 % del estirón la flecha llega justo a la altura del cerdito), para que se
   sienta igual en un teléfono grande y en uno chico. Está hecho solo con `Animated` y `PanResponder` de React
   Native más el SVG del logo: no agrega código nativo, así que viaja como una actualización normal. Las cuentas
   van en un ref y se empujan a los valores animados cuadro a cuadro; React no se redibuja mientras la flecha
   vuela, y el bucle se detiene al salir de la pestaña.
+  - **Cuánto esquiva el cerdito es lo que decide si el premio se puede ganar.** Con cinco flechas solo se pueden
+    fallar cuatro tiros en toda la partida, así que `ESQUIVA_MIN` y `ESQUIVA_MAX` (2 % al empezar, 6 % en la meta)
+    tienen que quedarse en números chicos: a quien apunte siempre bien, el cerdito le quita unas cuatro flechas en
+    el camino a los 100, y así llega a la meta en unas seis de cada diez partidas. Si suben mucho, el premio se
+    vuelve imposible de ganar; si bajan a cero, lo gana cualquiera. La dificultad de verdad es la puntería, porque
+    al final el cerdito corre a más del doble. Una partida completa son unos 95 tiros, o sea unos 19 anuncios.
 - **Escanear** (botón de código de barras en Inicio y en Buscar, `src/app/escanear.tsx`): la cámara lee EAN, UPC
   y QR con un enlace de Mercapty. Si el código es de un solo producto abre su ficha; si hay varias presentaciones
   (unidad y paquete), la búsqueda. Usa la búsqueda por código de la API y funciona en Expo Go.
@@ -410,8 +421,9 @@ Probarla en tu celular, sin emulador:
    en la misma red Wi-Fi; si no, `npx expo start --tunnel`.
 
 Usa la API de producción; para probar otra: `EXPO_PUBLIC_API_URL=<dirección> npx expo start`. Revisión de
-tipos: `npx tsc --noEmit`. En Expo Go no aparece el splash nativo (sí el cerdito animado): se ve en una
-compilación de verdad.
+tipos: `npx tsc --noEmit`. En Expo Go no aparece el splash nativo (sí el cerdito animado) ni salen los anuncios
+de AdMob (`src/lib/ads.tsx` se da cuenta de que no está el módulo nativo y la app sigue sin ellos): las dos
+cosas se ven en una compilación de verdad.
 
 **Publicar en Google Play y App Store**, con EAS, que también compila la versión de iPhone sin tener Mac:
 
@@ -427,14 +439,21 @@ compilación de verdad.
    versión del SDK), hay que compilar y subir una versión nueva.
 
 Antes de publicar, confirma `ios.bundleIdentifier` y `android.package` en `mobile/app.json` (hoy
-`com.mercapty.app`): no se pueden cambiar después de publicar. AdSense no funciona dentro de una app; ahí se usa AdMob.
+`com.mercapty.app`): no se pueden cambiar después de publicar. AdSense no funciona dentro de una app; ahí se usa
+AdMob, que ya está puesto: [Anuncios en la app](#anuncios-en-la-app-google-admob).
 
 ## Contacto y redes
 
 WhatsApp, correo, Instagram y Facebook se configuran en un solo lugar, `server/contact.js`, y llegan por
 `/api/meta` a la web (columna «Contacto» del pie de página y botones «Escríbenos» en Tiendas, para los
-supermercados) y a la app (final de Tiendas), sin publicar otra versión de la app. Un campo vacío no se muestra.
-El correo también está escrito en `public/privacidad.html`: si cambia, cámbialo en los dos.
+supermercados) y a la app (final de Tiendas, y el botón para reclamar el premio del juego), sin publicar otra
+versión de la app. Un campo vacío no se muestra. El correo también está escrito en `public/privacidad.html`: si
+cambia, cámbialo en los dos.
+
+Cada canal se escribe de la forma más corta que funcione: el correo y el WhatsApp son el dato pelado, Instagram
+es el usuario sin `@` (`mercapty01`) y de ahí sale su dirección. Facebook comparte la página con un enlace corto
+que no lleva el nombre dentro (`facebook.com/share/…`), así que ese va como `{ text, url }`: el enlace entero y,
+aparte, el nombre que se ve. Cualquiera de los dos acepta las dos formas.
 
 ## Idiomas (español e inglés)
 
@@ -453,7 +472,7 @@ español. Para un texto nuevo, escríbelo con `t('…')` y agrega su traducción
   higiénico): lista `ENGLISH` en `server/api.js`.
 - Google indexa la web en español: las direcciones son las mismas en los dos idiomas.
 
-## Anuncios (Google AdSense)
+## Anuncios en la web (Google AdSense)
 
 Los espacios ya están colocados en la portada, la búsqueda y la ficha de producto, cada uno con su etiqueta
 «Publicidad». En tu computadora se ven como recuadros punteados; en la web no aparece nada —ni el script de
@@ -476,6 +495,75 @@ no está garantizada. A favor juegan las páginas con texto propio (portada, tie
 ficha de producto compara precios entre tiendas y enseña su historial, que es trabajo propio y no una copia. Si
 llega un rechazo, el camino conocido es sumar contenido que solo Mercapty pueda escribir —el súper más barato de
 la semana, el índice de la canasta básica— y volver a pedirlo.
+
+## Anuncios en la app (Google AdMob)
+
+AdSense no funciona dentro de una app: ahí se usa **AdMob**, que es de Google también pero con su propio panel,
+sus propios identificadores y su propio pago. En la app hay dos clases de anuncio:
+
+- **Franja (banner)** abajo de Inicio, dentro de los resultados de Buscar, en la ficha de producto y debajo de la
+  cancha del juego. Si Google no manda ninguno, la franja no deja hueco: el espacio desaparece.
+- **Pantalla completa (intersticial)** en el juego, **cada cinco tiros**. Entra entre tiro y tiro, nunca encima
+  del cartel del premio, y mientras se ve uno ya se va cargando el siguiente.
+
+Todo vive en `mobile/src/lib/ads.tsx` (y `ads.web.tsx`, que no muestra nada porque la versión web del proyecto usa
+AdSense). **Mientras no pongas tus identificadores, la app usa los de prueba de Google**: se ven anuncios de
+mentira que dicen «Test Ad», sirven para revisar el diseño y no ponen en riesgo la cuenta.
+
+### Cómo sacar tus identificadores, paso a paso
+
+1. Entra en [admob.google.com](https://admob.google.com) con la misma cuenta de Google de AdSense y acepta las
+   condiciones. AdMob va por debajo de AdSense: si AdSense aún no está aprobado, puedes crear la cuenta igual,
+   pero no cobrarás hasta que lo esté.
+2. **Apps** → **Agregar app**. Te pregunta si ya está publicada: si todavía no está en Google Play, di que no y
+   ponle el nombre `Mercapty`. Hazlo **dos veces**, una para Android y otra para iOS: son dos apps distintas para
+   AdMob aunque para ti sea la misma.
+3. Anota el **ID de app** de cada una. Tiene una virgulilla: `ca-app-pub-0000000000000000~1111111111`.
+4. En cada app: **Bloques de anuncios** → **Agregar bloque** → **Banner**, ponle `Franja Mercapty`. Repite con
+   **Intersticial**, `Pantalla completa juego`. Son cuatro bloques en total (dos por plataforma).
+5. Anota el **ID de cada bloque**. Ese lleva barra, no virgulilla: `ca-app-pub-0000000000000000/2222222222`.
+6. Pega los seis números en `mobile/app.json`, sin inventar nada: los de la virgulilla en el bloque del plugin
+   `react-native-google-mobile-ads` (hoy están los de ejemplo de Google) y los de la barra en `extra.admob`:
+
+   ```json
+   "extra": {
+     "admob": {
+       "android": { "banner": "ca-app-pub-…/…", "interstitial": "ca-app-pub-…/…" },
+       "ios":     { "banner": "ca-app-pub-…/…", "interstitial": "ca-app-pub-…/…" }
+     }
+   }
+   ```
+
+7. **Hay que compilar de nuevo**, no basta con `eas update`: AdMob trae código nativo y los ID de app se escriben
+   dentro del paquete. Por eso `mobile/app.json` sube a **1.2.0** al añadirlo (ver más arriba: una app ya instalada
+   no puede descargar código nativo nuevo). Después de compilar y subir, las actualizaciones normales sí pueden
+   cambiar dónde va cada anuncio, porque eso es solo código.
+8. En Vercel → **Environment Variables**, agrega `ADMOB_CLIENT` con tu número `pub-…` y haz **Redeploy**. Con eso
+   `https://mercapty.com/app-ads.txt` se genera solo. Ese archivo es el que mira quien compra publicidad para
+   comprobar que los espacios son de verdad tuyos; sin él se paga mucho menos. Si tu AdMob usa el mismo `pub-…`
+   que AdSense, basta con tener ya `ADSENSE_CLIENT` y no hace falta la variable nueva. En AdMob → **Configuración
+   de la app** → **app-ads.txt** te dice qué línea espera y si ya la encontró (tarda días en revisarla).
+9. Para cobrar, en AdMob → **Pagos**: dirección en Panamá, datos de impuestos y cuenta. Google manda un PIN por
+   correo postal al llegar a 10 USD y paga a partir de 100 USD.
+
+### Cosas que conviene saber
+
+- **No toques tus propios anuncios.** Un par de clics tuyos en la app publicada basta para que Google cierre la
+  cuenta. Para probar están los ID de prueba, que es justo lo que hay puesto ahora.
+- **En Expo Go no salen**, porque AdMob es código nativo y Expo Go no lo trae. `ads.tsx` se da cuenta y la app
+  funciona igual, sin anuncios. Para verlos: `npx expo run:android` o una compilación de EAS.
+- **Consentimiento (Europa).** Al arrancar, la app llama a `AdsConsent.gatherConsent()`: en Europa muestra el
+  cartel que exige la ley y en Panamá no pregunta nada. El texto del cartel se configura en AdMob → **Privacidad
+  y mensajes**, igual que en la web, y no lleva código.
+- **iPhone.** Apple pide el permiso de seguimiento (App Tracking Transparency) si quieres anuncios personalizados.
+  Sin él los anuncios igual salen, solo que sin personalizar y pagando algo menos. Si algún día lo quieres:
+  `npx expo install expo-tracking-transparency`, agrégalo a `plugins` con su texto de permiso y pide el permiso
+  antes de `iniciarAnuncios()`.
+- Los anuncios están limitados a contenido apto para todo público (`MaxAdContentRating.PG`).
+- **Cada cinco tiros puede ser mucho.** Como acertar no gasta flecha, una buena partida son más de cien tiros, o
+  sea más de veinte anuncios seguidos. Google mira que no se abuse del anuncio de pantalla completa y, si le
+  parece demasiado, deja de mandar (el hueco simplemente se salta y el siguiente toca cinco tiros después). Si
+  ves que dejan de llegar, sube `ANUNCIO_CADA` en `juego.tsx`: es un número y nada más.
 
 ## Google (SEO)
 
@@ -522,7 +610,7 @@ connectors/     bots: vtex.js, woocommerce.js, instaleap.js, ribasmith.js, magen
 scripts/        ingest.js: corre los bots y guarda en la base · super99.js: bot de Súper 99 · lib/pipeline.js
 server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local), contact.js (contacto)
 public/         shell.html (la plantilla que rellena el servidor), styles.css, js/ (app.js, i18n.js, images.js, views/)
-mobile/         app de Expo: src/app (pantallas), src/components (cerdito, tarjetas…), src/lib (API, lista)
+mobile/         app de Expo: src/app (pantallas), src/components (cerdito, tarjetas…), src/lib (API, lista, ads)
 data/           stores.json, feeds/   · generados (fuera de git): mercapty.db, images/, admin-key.txt
 .github/        workflows/precios.yml: bots dos veces al día · super99.yml: Súper 99 cada noche
 ```

@@ -13,6 +13,7 @@ import { StoreAvatar } from '@/components/store-avatar';
 import { T } from '@/components/text';
 import { ErrorState, Note, Panel, SectionHead, Tag } from '@/components/ui';
 import { C, PAD, R, shadow } from '@/constants/theme';
+import { AdBanner } from '@/lib/ads';
 import { goUrl, WEB_URL, type Offer, type Product } from '@/lib/api';
 import { displayGtin, formatDay, money, timeAgo, titleCase, unitPriceText } from '@/lib/format';
 import { hlParts, useI18n } from '@/lib/i18n';
@@ -102,6 +103,8 @@ export default function Producto() {
               ))}
             </View>
           </View>
+
+          <AdBanner style={styles.anuncio} />
 
           {product.similar.sameBrand.length + product.similar.others.length > 0 && (
             <View style={styles.section}>
@@ -227,6 +230,7 @@ const styles = StyleSheet.create({
   bestStore: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4, marginBottom: 16 },
   bestActions: { flexDirection: 'row', gap: 8 },
   section: { marginTop: 32 },
+  anuncio: { marginTop: 28 },
   subhead: { paddingHorizontal: PAD, marginBottom: 10 },
   offers: { marginHorizontal: PAD, borderWidth: 1, borderColor: C.border, borderRadius: R.lg, overflow: 'hidden', backgroundColor: '#fff' },
   offer: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 14 },

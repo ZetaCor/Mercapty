@@ -15,6 +15,7 @@ import { StoreMarquee } from '@/components/store-marquee';
 import { T } from '@/components/text';
 import { ErrorState, Note, SectionHead } from '@/components/ui';
 import { C, PAD, R } from '@/constants/theme';
+import { AdBanner } from '@/lib/ads';
 import type { Category, Meta, ProductSummary, SearchResult } from '@/lib/api';
 import { categoryIcon, categoryTint } from '@/lib/categories';
 import { count, timeAgo } from '@/lib/format';
@@ -120,6 +121,8 @@ export default function Inicio() {
               <SectionHead title={t('Donde más ahorras eligiendo bien')} action={t('Ver más')} onAction={() => search({ orden: 'ahorro' })} />
               <ProductGrid items={deals.data} />
             </View>
+
+            <AdBanner style={styles.anuncio} />
 
             <View style={styles.section}>
               <SectionHead title={t('Productos')} action={t('Ver todos ({n})', { n: count(all.data.total) })} onAction={() => search()} />
@@ -237,5 +240,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   catIcon: { width: 50, height: 50, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  anuncio: { marginTop: 28 },
   legal: { marginTop: 32, paddingHorizontal: PAD, lineHeight: 19 },
 });

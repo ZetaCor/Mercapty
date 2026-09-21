@@ -1,13 +1,22 @@
-// Tiro al chanchito: un juego corto dentro de la app.
+// Tiro al chanchito: un juego corto dentro de la app, ahora con premio al final.
 //
 // El cerdito cruza la cancha con su moneda. Se arrastra el dedo hacia abajo para tensar el
 // arco —la flecha nunca se sale de la cancha, para poder apuntar— y se suelta: la flecha sale
 // en dirección contraria al arrastre y cae por su peso, así que hay que adelantarse al blanco.
-// Cinco flechas por ronda y el cerdito corre más rápido con cada acierto.
 //
-// El cerdito hace trampa: cuando la flecha va a darle, la ve venir y salta. Solo una de cada
-// diez veces no llega a tiempo, así que acertar cuesta. El salto es de verdad —la flecha pasa
-// por debajo—, no un resultado inventado: si el cerdito está en el aire, no hay acierto.
+// La meta son 100 aciertos y quien llega se gana un producto de las tiendas que comparamos:
+// sale su foto y un botón que abre WhatsApp con el mensaje escrito para reclamarlo. Se empieza
+// con cinco flechas y solo se pierde flecha cuando el tiro falla —si acierta no se resta—, así
+// que la ronda dura lo que dure la puntería. Cada diez aciertos el cerdito corre más rápido, y
+// cada cinco tiros entra un anuncio de pantalla completa (lib/ads.tsx).
+//
+// El cerdito sigue haciendo trampa: cuando la flecha va a darle, la ve venir y salta, y la
+// flecha le pasa por debajo de verdad, no es un resultado inventado. Pero ahora esquiva poco:
+// con cinco flechas solo se pueden fallar cuatro tiros en toda la partida, así que si
+// ESQUIVA_MAX sube mucho el premio se vuelve imposible de ganar. Con estos números, a quien
+// apunte siempre bien el cerdito le quita unas cuatro flechas en el camino a los 100: justo lo
+// que hace falta para que cueste. La dificultad de verdad es la puntería, porque al final el
+// cerdito corre a más del doble.
 //
 // Está hecho con lo que ya trae React Native (Animated y PanResponder) y el SVG del logo: no
 // agrega código nativo, así que viaja como una actualización normal, sin compilar de nuevo.
@@ -20,29 +29,52 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 import { Button } from '@/components/button';
+import { openExternal, whatsappWith } from '@/components/contact';
 import { PiggyHello } from '@/components/piggy-hello';
+import { ProductMedia } from '@/components/product-media';
 import { T } from '@/components/text';
 import { C, PAD, R } from '@/constants/theme';
+import { AdBanner, useIntersticial } from '@/lib/ads';
+import type { ContactChannel, Meta, ProductSummary } from '@/lib/api';
+import { money } from '@/lib/format';
 import { useI18n } from '@/lib/i18n';
+import { useStores } from '@/lib/stores';
+import { useFetch } from '@/lib/use-fetch';
 
 const MEJOR = 'mercapty:juego-mejor';
 
+const META = 100;            // aciertos que hay que juntar para ganarse el producto
 const CERDITO = 66;          // tamaño del blanco
 const FLECHA = 44;
 const ARCO = 96;             // ancho del arco de abajo
-const POR_RONDA = 5;         // flechas por ronda
+const POR_RONDA = 5;         // flechas; solo se gasta una cuando el tiro falla
+const ANUNCIO_CADA = 5;      // tiros entre un anuncio y el siguiente
 const TENSION_MAX = 90;      // cuánto se estira; corto, para que la flecha no se esconda
 const TENSION_MIN = 14;      // menos que esto no dispara
 const GRAVEDAD = 700;        // píxeles por segundo cada segundo
 const ESTIRON_JUSTO = 0.45;  // con este estirón la flecha llega justo a la altura del cerdito
 const VELOCIDAD = 120;       // lo que corre el cerdito al empezar
-const ACELERA = 26;          // lo que corre de más con cada acierto
+const ACELERA = 18;          // lo que corre de más…
+const CADA_CUANTOS = 10;     // …cada diez aciertos
 const SALTO = 78;            // lo que salta para esquivar
 const SALTO_DURA = 620;      // milisegundos que dura el salto
 const AVISO = 320;           // con cuánta antelación ve venir la flecha
-const PROB_ACIERTO = 0.1;    // una de cada diez veces no la esquiva
+const ESQUIVA_MIN = 0.02;    // esquiva 2 de cada 100 tiros al empezar…
+const ESQUIVA_MAX = 0.06;    // …y 6 de cada 100 al llegar a la meta
+
+// Corre más rápido cada diez aciertos: empieza en 120 y llega a 300 en la meta.
+const velocidad = (puntos: number) => VELOCIDAD + Math.floor(puntos / CADA_CUANTOS) * ACELERA;
+
+// Cuánto esquiva ahora: sube parejo desde ESQUIVA_MIN hasta ESQUIVA_MAX al llegar a la meta.
+const esquiva = (puntos: number) => ESQUIVA_MIN + (ESQUIVA_MAX - ESQUIVA_MIN) * Math.min(1, puntos / META);
+
+type Fin = null | 'sinFlechas' | 'premio';
 
 type Estado = {
+  puntos: number;
+  flechas: number;
+  acabado: boolean;   // ronda terminada: el arco deja de responder
+  tiros: number;      // para el anuncio de cada cinco; no se reinicia entre rondas
   cerditoX: number;
   cerditoVX: number;
   flechaX: number;
@@ -61,9 +93,16 @@ export default function Juego() {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const enfocado = useIsFocused();
+  const anuncio = useIntersticial();
+
+  // El premio sale de las ofertas de la portada, que ya se piden al arrancar la app: cuando
+  // alguien llega a los 100 el producto está ahí, sin esperar a la red.
+  const ofertas = useFetch<ProductSummary[]>('/api/deals?limit=8');
+  const meta = useFetch<Meta>('/api/meta');
+  const tiendas = useStores();
 
   const ancho = width - PAD * 2; // cancha
-  const alto = Math.max(340, height - insets.top - insets.bottom - 190);
+  const alto = Math.max(300, height - insets.top - insets.bottom - 280);
   const cerditoY = 36;
   const arcoX = ancho / 2;
   const arcoY = alto - TENSION_MAX - 40; // deja sitio para estirar sin salirse de la cancha
@@ -74,12 +113,16 @@ export default function Juego() {
   const [puntos, setPuntos] = useState(0);
   const [flechas, setFlechas] = useState(POR_RONDA);
   const [mejor, setMejor] = useState(0);
-  const [jugando, setJugando] = useState(true);
+  const [fin, setFin] = useState<Fin>(null);
+  const [premio, setPremio] = useState<ProductSummary | null>(null);
   const [aviso, setAviso] = useState('');
-  const tiros = useRef(0); // aquí entrará el anuncio cada dos tiros
 
   // Las cuentas del juego viven aquí, no en el estado de React: cambian 60 veces por segundo.
   const juego = useRef<Estado>({
+    puntos: 0,
+    flechas: POR_RONDA,
+    acabado: false,
+    tiros: 0,
     cerditoX: 0,
     cerditoVX: VELOCIDAD,
     flechaX: 0,
@@ -122,37 +165,60 @@ export default function Juego() {
     volverAlArco();
   }, [ancho, cerditoEnX, juego, volverAlArco]);
 
+  // El récord, las ofertas y el anuncio se leen de refs: así terminarTiro no se rehace en cada
+  // toque y el bucle de cuadros no se reinicia a media partida.
+  const mejorRef = useRef(0);
+  const ofertasRef = useRef<ProductSummary[]>([]);
+  const anuncioRef = useRef(anuncio);
+  useEffect(() => { mejorRef.current = mejor; }, [mejor]);
+  useEffect(() => { ofertasRef.current = ofertas.data ?? []; }, [ofertas.data]);
+  useEffect(() => { anuncioRef.current = anuncio; }, [anuncio]);
+
   const terminarTiro = useCallback((acerto: boolean) => {
     if (acerto && Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     }
+    juego.tiros += 1;
+
     if (acerto) {
-      setPuntos((p) => {
-        const nuevo = p + 1;
-        juego.cerditoVX = Math.sign(juego.cerditoVX) * (VELOCIDAD + nuevo * ACELERA);
-        setMejor((previo) => {
-          if (nuevo <= previo) return previo;
-          AsyncStorage.setItem(MEJOR, String(nuevo)).catch(() => {});
-          return nuevo;
-        });
-        return nuevo;
-      });
+      juego.puntos += 1;
+      setPuntos(juego.puntos);
+      juego.cerditoVX = Math.sign(juego.cerditoVX) * velocidad(juego.puntos);
+      if (juego.puntos > mejorRef.current) {
+        mejorRef.current = juego.puntos;
+        setMejor(juego.puntos);
+        AsyncStorage.setItem(MEJOR, String(juego.puntos)).catch(() => {});
+      }
+    } else {
+      juego.flechas -= 1; // solo el tiro fallado gasta flecha
+      setFlechas(juego.flechas);
     }
-    setFlechas((f) => {
-      const quedan = f - 1;
-      if (quedan <= 0) setJugando(false);
-      return quedan;
-    });
+
+    const gano = juego.puntos >= META;
+    juego.acabado = gano || juego.flechas <= 0;
+    if (gano) {
+      const lista = ofertasRef.current;
+      setPremio(lista.length ? lista[Math.floor(Math.random() * lista.length)] : null);
+      setFin('premio');
+    } else if (juego.flechas <= 0) {
+      setFin('sinFlechas');
+    }
+    // El anuncio entra entre tiro y tiro, nunca encima del premio.
+    if (!gano && juego.tiros % ANUNCIO_CADA === 0) anuncioRef.current.mostrar();
     volverAlArco();
   }, [juego, volverAlArco]);
 
   const nuevaRonda = useCallback(() => {
-    setPuntos(0);
-    setFlechas(POR_RONDA);
-    setJugando(true);
-    setAviso('');
+    juego.puntos = 0;
+    juego.flechas = POR_RONDA;
+    juego.acabado = false;
     juego.cerditoVX = VELOCIDAD;
     juego.saltoDesde = 0;
+    setPuntos(0);
+    setFlechas(POR_RONDA);
+    setFin(null);
+    setPremio(null);
+    setAviso('');
     volverAlArco();
   }, [juego, volverAlArco]);
 
@@ -168,7 +234,7 @@ export default function Juego() {
   }, [juego]);
 
   // Antes de soltar se mira si la flecha iba a darle: se repite el mismo movimiento en seco.
-  // Si iba a darle, el cerdito la ve venir y salta... salvo una de cada diez veces.
+  // Si iba a darle, el cerdito la ve venir y salta... de vez en cuando.
   const preverImpacto = useCallback((vx: number, vy: number) => {
     let cx = juego.cerditoX;
     let cvx = juego.cerditoVX;
@@ -268,7 +334,7 @@ export default function Juego() {
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderMove: (_, g) => {
-        if (juego.volando) return;
+        if (juego.volando || juego.acabado) return;
         const y = Math.max(0, Math.min(g.dy, TENSION_MAX));
         const x = Math.max(-TENSION_MAX, Math.min(g.dx, TENSION_MAX));
         juego.tirandoX = x;
@@ -282,7 +348,7 @@ export default function Juego() {
         const tension = Math.sqrt(tirandoX * tirandoX + tirandoY * tirandoY);
         juego.tirandoX = 0;
         juego.tirandoY = 0;
-        if (juego.volando || tension < TENSION_MIN) {
+        if (juego.volando || juego.acabado || tension < TENSION_MIN) {
           flechaEnX.setValue(juego.flechaX);
           flechaEnY.setValue(juego.flechaY);
           giro.setValue(0);
@@ -291,14 +357,13 @@ export default function Juego() {
         juego.vx = -tirandoX * fuerzaRef.current;
         juego.vy = -tirandoY * fuerzaRef.current;
         juego.volando = true;
-        tiros.current += 1; // cada dos tiros irá un anuncio, cuando se conecte AdMob
 
-        // Si la flecha iba a darle, el cerdito la ve venir y salta a tiempo, salvo una de
-        // cada diez veces. El salto se programa para justo antes del impacto.
+        // Si la flecha iba a darle, el cerdito la ve venir y salta a tiempo, pero solo de vez
+        // en cuando, y más seguido cuanto más alto va el marcador. El salto se programa para
+        // justo antes del impacto; el reloj es el del bucle de cuadros (performance.now).
         const impacto = preverRef.current(juego.vx, juego.vy);
-        const seDejaDar = Math.random() < PROB_ACIERTO;
-        // El reloj es el mismo que usa el bucle de cuadros (performance.now).
-        juego.esquivaEn = impacto !== null && !seDejaDar
+        const salta = Math.random() < esquiva(juego.puntos);
+        juego.esquivaEn = impacto !== null && salta
           ? performance.now() + Math.max(0, impacto - AVISO)
           : 0;
       },
@@ -313,6 +378,14 @@ export default function Juego() {
         <Dato valor={String(puntos)} etiqueta={t('Aciertos')} />
         <Dato valor={String(flechas)} etiqueta={t('Flechas')} />
         <Dato valor={String(mejor)} etiqueta={t('Tu récord')} />
+      </View>
+
+      {/* Cuánto falta para el premio. */}
+      <View style={styles.meta}>
+        <View style={styles.barra}>
+          <View style={[styles.barraLlena, { width: `${Math.min(100, (puntos / META) * 100)}%` }]} />
+        </View>
+        <T size={12} color={C.muted}>{t('{n} de {total} para ganarte un producto', { n: puntos, total: META })}</T>
       </View>
 
       <View style={[styles.cancha, { height: alto }]} {...dedo.panHandlers}>
@@ -349,20 +422,77 @@ export default function Juego() {
           <T w={700} size={14} color={C.promo} style={styles.esquiva}>{t('¡Lo esquivó!')}</T>
         )}
 
-        {jugando ? (
+        {fin === null && (
           <T size={12.5} color={C.muted} style={styles.ayuda}>
             {t('Arrastra hacia abajo y suelta para disparar')}
           </T>
-        ) : (
+        )}
+
+        {fin === 'sinFlechas' && (
           <View style={styles.fin}>
-            <T w={800} size={22} tight>{t('{n} de {total}', { n: puntos, total: POR_RONDA })}</T>
-            <T size={14} color={C.text2} style={{ textAlign: 'center' }}>
-              {puntos === POR_RONDA ? t('¡Todas! El cerdito se rindió.') : t('Tu récord es {n}.', { n: mejor })}
+            <T w={800} size={22} tight>{t('{n} de {total}', { n: puntos, total: META })}</T>
+            <T size={14} color={C.text2} style={styles.centro}>
+              {t('Te quedaste sin flechas. Tu récord es {n}.', { n: mejor })}
             </T>
             <Button title={t('Jugar otra vez')} variant="primary" onPress={nuevaRonda} />
           </View>
         )}
+
+        {fin === 'premio' && (
+          <Premio
+            producto={premio}
+            tienda={premio ? tiendas.byId.get(premio.bestStoreId)?.name ?? '' : ''}
+            whatsapp={meta.data?.contact?.whatsapp}
+            onOtraVez={nuevaRonda}
+          />
+        )}
       </View>
+
+      {/* Franja de anuncio bajo la cancha; si Google no manda ninguno, no deja hueco. */}
+      <AdBanner style={styles.anuncio} />
+    </View>
+  );
+}
+
+// Lo que se lleva quien termina los 100: un producto de verdad del catálogo y el botón para
+// reclamarlo por WhatsApp, con el mensaje ya escrito. La entrega se arregla por ahí.
+function Premio({ producto, tienda, whatsapp, onOtraVez }: {
+  producto: ProductSummary | null;
+  tienda: string;
+  whatsapp?: ContactChannel;
+  onOtraVez: () => void;
+}) {
+  const { t } = useI18n();
+  const nombre = producto?.name ?? '';
+  const reclamar = () => {
+    if (!whatsapp) return;
+    const texto = producto
+      ? t('¡Hola! Llegué a {n} aciertos en el juego de Mercapty y quiero reclamar mi premio: {producto}.', { n: META, producto: nombre })
+      : t('¡Hola! Llegué a {n} aciertos en el juego de Mercapty y quiero reclamar mi premio.', { n: META });
+    openExternal(whatsappWith(whatsapp, texto));
+  };
+  return (
+    <View style={styles.fin}>
+      <T size={34} style={{ lineHeight: 42 }} aria-hidden>🎉</T>
+      <T w={800} size={22} tight style={styles.centro}>{t('¡Llegaste a los {n}!', { n: META })}</T>
+      {producto ? (
+        <>
+          <T size={14} color={C.text2} style={styles.centro}>{t('Te ganaste este producto:')}</T>
+          <View style={styles.premio}>
+            <ProductMedia image={producto.image} category={producto.category} name={nombre} emojiSize={26} style={styles.premioFoto} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <T w={700} size={14.5} numberOfLines={2}>{nombre}</T>
+              <T size={12.5} color={C.muted} numberOfLines={1}>
+                {[tienda, money(producto.bestPrice)].filter(Boolean).join(' · ')}
+              </T>
+            </View>
+          </View>
+        </>
+      ) : (
+        <T size={14} color={C.text2} style={styles.centro}>{t('Escríbenos y te decimos qué producto te llevas.')}</T>
+      )}
+      {whatsapp && <Button title={t('Reclamar por WhatsApp')} variant="primary" onPress={reclamar} />}
+      <Button title={t('Jugar otra vez')} onPress={onOtraVez} />
     </View>
   );
 }
@@ -403,7 +533,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginHorizontal: PAD,
-    marginBottom: 10,
     paddingVertical: 12,
     borderWidth: 1,
     borderColor: C.border,
@@ -411,6 +540,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   dato: { alignItems: 'center' },
+  meta: { gap: 6, marginHorizontal: PAD, marginVertical: 10, alignItems: 'center' },
+  barra: { alignSelf: 'stretch', height: 6, borderRadius: 3, backgroundColor: C.soft2, overflow: 'hidden' },
+  barraLlena: { height: 6, borderRadius: 3, backgroundColor: C.brand },
   cancha: {
     marginHorizontal: PAD,
     borderRadius: R.xl,
@@ -423,11 +555,12 @@ const styles = StyleSheet.create({
   piso: { position: 'absolute', left: 0, right: 0, height: 16, backgroundColor: '#eaf2e8' },
   esquiva: { position: 'absolute', top: 8, left: 0, right: 0, textAlign: 'center' },
   ayuda: { position: 'absolute', bottom: 24, left: 0, right: 0, textAlign: 'center' },
+  centro: { textAlign: 'center' },
   fin: {
     position: 'absolute',
-    left: 24,
-    right: 24,
-    top: '30%',
+    left: 20,
+    right: 20,
+    top: '20%',
     gap: 10,
     alignItems: 'center',
     padding: 20,
@@ -436,4 +569,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.border,
   },
+  premio: {
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 10,
+    borderRadius: R.md,
+    borderWidth: 1,
+    borderColor: C.border,
+    backgroundColor: C.soft,
+  },
+  premioFoto: { width: 52, height: 52, borderRadius: 12 },
+  anuncio: { marginTop: 10 },
 });

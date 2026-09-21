@@ -2,7 +2,7 @@
   "expo": {
     "name": "Mercapty",
     "slug": "mercapty",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mercapty",
@@ -58,6 +58,13 @@
           "icon": "./assets/images/notification-icon.png",
           "color": "#1d4ed8"
         }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+        }
       ]
     ],
     "experiments": {
@@ -68,6 +75,10 @@
       "router": {},
       "eas": {
         "projectId": "a043a3b6-7eac-4f7a-8018-518dc0fcf602"
+      },
+      "admob": {
+        "android": { "banner": "", "interstitial": "" },
+        "ios": { "banner": "", "interstitial": "" }
       }
     },
     "runtimeVersion": {

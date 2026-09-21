@@ -17,6 +17,7 @@ import { UpdateBanner } from '@/components/app-updates';
 import { SplashOverlay } from '@/components/splash-overlay';
 import { ToastProvider } from '@/components/toast';
 import { C } from '@/constants/theme';
+import { iniciarAnuncios } from '@/lib/ads';
 import { prefetchHome } from '@/lib/api';
 import { I18nProvider, useI18n } from '@/lib/i18n';
 import { ListProvider } from '@/lib/list';
@@ -72,9 +73,11 @@ function App() {
   const { t, ready: langReady } = useI18n(); // el idioma guardado, antes de mostrar textos
   useNotificationTaps(); // tocar un aviso abre la ficha del producto
 
-  // Mientras corre el cerdito se piden los datos de la portada y de la bienvenida.
+  // Mientras corre el cerdito se piden los datos de la portada y de la bienvenida, y se
+  // enciende AdMob: los anuncios tardan unos segundos en llegar y así ya están cuando toca.
   const [dataReady, setDataReady] = useState(false);
   useEffect(() => {
+    iniciarAnuncios();
     const timer = setTimeout(() => setDataReady(true), PREFETCH_MAX_MS);
     prefetchHome().then(() => setDataReady(true));
     return () => clearTimeout(timer);

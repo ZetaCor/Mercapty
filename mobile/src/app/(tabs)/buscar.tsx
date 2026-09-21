@@ -12,6 +12,7 @@ import { LoadingPiggy } from '@/components/splash-overlay';
 import { T } from '@/components/text';
 import { EmptyState, ErrorState, Note } from '@/components/ui';
 import { C, F, PAD } from '@/constants/theme';
+import { AdBanner } from '@/lib/ads';
 import { getJson, type Category, type SearchResult } from '@/lib/api';
 import { categoryIcon } from '@/lib/categories';
 import { count } from '@/lib/format';
@@ -198,6 +199,7 @@ export default function Buscar() {
               {current.approximate && (
                 <Note tone="soft">{t('No encontramos productos con todas las palabras de «{q}». Te mostramos los más parecidos.', { q })}</Note>
               )}
+              <AdBanner style={styles.anuncio} />
             </View>
           }
           ListEmptyComponent={
@@ -260,4 +262,5 @@ const styles = StyleSheet.create({
     marginTop: -1,
   },
   row: { gap: 12, paddingHorizontal: PAD },
+  anuncio: { marginHorizontal: 0, marginTop: 12 },
 });

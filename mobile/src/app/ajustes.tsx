@@ -79,7 +79,7 @@ export default function Ajustes() {
             y qué contestó cada bloque de anuncios. Va escondido a propósito: es para revisar
             por qué no sale un anuncio, no algo que un usuario deba encontrar. */}
         <Pressable
-          onLongPress={() => abrirInspector().catch(() => toast(t('El inspector de anuncios solo abre en la app instalada.')))}
+          onLongPress={() => abrirInspector().catch((e: Error) => toast(e?.message || 'No se pudo abrir el inspector'))}
           delayLongPress={900}>
           <T w={700} size={16} tight accessibilityRole="header">{t('Versión de la app')}</T>
         </Pressable>

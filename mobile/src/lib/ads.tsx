@@ -36,25 +36,46 @@ const propios: Unidades = ((Constants.expoConfig?.extra?.admob ?? {}) as Record<
 const BANNER = propios.banner || admob?.TestIds.BANNER || null;
 const INTERSTICIAL = propios.interstitial || admob?.TestIds.INTERSTITIAL || null;
 
-// Se llama una vez al arrancar la app. Primero el permiso de datos —en Europa AdMob lo exige
-// y en el resto del mundo no pregunta nada— y después se enciende el SDK.
+// Cómo le fue al arranque de AdMob. Se guarda porque, si algo falla aquí, lo único que se ve
+// en la app es que no salen anuncios, y eso se confunde con no tener anuncios que mostrar.
+let encendido = false;
+let motivo: string | null = admob ? null : 'el módulo nativo no está en esta versión de la app';
+
+const porQue = (e: unknown) => (e instanceof Error && e.message ? e.message : String(e));
+
+// Se llama una vez al arrancar la app. Primero el permiso de datos —en Europa AdMob lo exige y
+// en el resto del mundo no pregunta nada— y después se enciende el SDK. Cada paso se cuida por
+// separado: la configuración es un extra y, si se cae, el SDK tiene que encenderse igual.
 export function iniciarAnuncios() {
   if (!admob) return;
   const { AdsConsent, MaxAdContentRating, default: mobileAds } = admob;
   AdsConsent.gatherConsent()
     .catch(() => {}) // sin consentimiento se sigue igual: Google sirve anuncios sin personalizar
-    .then(() => mobileAds().setRequestConfiguration({ maxAdContentRating: MaxAdContentRating.PG }))
-    .then(() => mobileAds().initialize())
-    .catch(() => {});
+    .then(() => {
+      try {
+        mobileAds().setRequestConfiguration({ maxAdContentRating: MaxAdContentRating.PG }).catch(() => {});
+      } catch {
+        // Da igual: solo limita el tipo de anuncio, no hace falta para encender el SDK.
+      }
+      return mobileAds().initialize();
+    })
+    .then(() => { encendido = true; })
+    .catch((e: unknown) => { motivo = porQue(e); });
 }
 
 // Inspector de AdMob: abre una pantalla de Google, encima de la app, que dice qué pidió y qué
 // contestó cada bloque («sin relleno», «app no aprobada»…). Es la forma de saber por qué no
-// sale un anuncio sin adivinar. Va escondido detrás de una pulsacion larga en Ajustes, porque
+// sale un anuncio sin adivinar. Va escondido detrás de una pulsación larga en Ajustes, porque
 // es para revisar, no algo que un usuario deba encontrar.
+//
+// Cuando no se puede abrir, el error dice por qué con todas las letras: si el inspector falla,
+// lo que falla casi siempre son también los anuncios, y ese motivo es justo lo que se busca.
 export function abrirInspector(): Promise<void> {
-  if (!admob) return Promise.reject(new Error('sin AdMob en esta version'));
-  return admob.default().openAdInspector();
+  if (!admob) return Promise.reject(new Error(`AdMob no está: ${motivo}`));
+  if (!encendido) return Promise.reject(new Error(`AdMob no encendió: ${motivo ?? 'todavía está arrancando'}`));
+  return admob.default().openAdInspector().catch((e: unknown) => {
+    throw new Error(`El inspector no abrió: ${porQue(e)}`);
+  });
 }
 
 type BannerProps = { style?: StyleProp<ViewStyle> };

@@ -455,6 +455,25 @@ tipos: `npx tsc --noEmit`. En Expo Go no aparece el splash nativo (sí el cerdit
 de AdMob (`src/lib/ads.tsx` se da cuenta de que no está el módulo nativo y la app sigue sin ellos): las dos
 cosas se ven en una compilación de verdad.
 
+**Repartir la app hoy, sin tienda.** Mientras no esté en Google Play, la app de Android se da como archivo
+(`.apk`). Se saca así:
+
+```bash
+cd mobile && eas build --platform android --profile preview
+```
+
+Al terminar, EAS deja el archivo alojado y da dos direcciones: la de la página de instalación
+(`expo.dev/accounts/isaac1709/projects/mercapty/builds/<id>`, que se abre sin cuenta) y la del archivo suelto
+(`expo.dev/artifacts/eas/<id>.apk`). **La segunda es la que va en `APK_URL`, arriba de
+`public/js/views/app-page.js`**, junto a `APK_VERSION`. Con eso el botón «Descargar para Android» de
+[mercapty.com/app](https://mercapty.com/app) apunta a la versión nueva y ese enlace, que no cambia nunca, es el
+único que hay que compartir. Dejar `APK_URL` vacío esconde el botón.
+
+Tres cosas de repartir fuera de la tienda: el teléfono pide permiso para instalar de un origen desconocido (la
+página lo explica), AdMob no paga mientras la app no esté en una tienda reconocida, y quien ya la tenga
+instalada sí recibe los cambios que son solo de código con `eas update --branch preview`, sin bajar otro
+archivo. Solo lo nativo necesita compilar y repartir un `.apk` nuevo.
+
 **Publicar en Google Play y App Store**, con EAS, que también compila la versión de iPhone sin tener Mac:
 
 1. `npm i -g eas-cli` y `eas login` (cuenta de Expo, gratis).

@@ -280,6 +280,17 @@ const EN = {
   'El precio más bajo, en tu bolsillo': 'The lowest price, in your pocket',
   'Instala Mercapty en tu celular en segundos. Se abre como una app, casi no ocupa espacio y no necesitas pasar por ninguna tienda de aplicaciones.':
     'Install Mercapty on your phone in seconds. It opens like an app, takes up almost no space and you don’t need to go through any app store.',
+  'La cámara y los avisos son de la app de Android, que puedes descargar aquí mismo. Lo demás funciona en cualquier celular instalando Mercapty desde el navegador.':
+    'The camera and the alerts are part of the Android app, which you can download right here. Everything else works on any phone: just install Mercapty from your browser.',
+  'Descargar para Android': 'Download for Android',
+  'Versión {v} para Android. Como todavía no está en Google Play, el teléfono te pedirá permiso para instalarla.':
+    'Version {v} for Android. It isn’t on Google Play yet, so your phone will ask for permission to install it.',
+  'Android · La app completa': 'Android · The full app',
+  'Toca [Descargar para Android] aquí arriba.': 'Tap [Download for Android] up above.',
+  'Chrome avisa que el archivo puede ser dañino: es lo que dice de todo lo que no viene de Google Play. Elige «Descargar de todos modos».':
+    'Chrome warns that the file may be harmful: it says that about anything that doesn’t come from Google Play. Choose “Download anyway”.',
+  'Abre el archivo descargado y, cuando te lo pida, permite instalar desde [esta fuente].':
+    'Open the downloaded file and, when asked, allow installing from [this source].',
   'Instalar Mercapty': 'Install Mercapty',
   'Cómo instalarla': 'How to install it',
   '✓ Ya tienes Mercapty instalada en este dispositivo.': '✓ Mercapty is already installed on this device.',

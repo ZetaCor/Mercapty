@@ -1,9 +1,18 @@
-// Página «Descarga la app» (/app). Hoy Mercapty se instala como app web,
-// sin tienda de aplicaciones; las versiones de App Store y Google Play vienen después.
+// Página «Descarga la app» (/app). Mercapty se instala como app web en cualquier celular, y en
+// Android además como app de verdad, bajando el archivo; las versiones de App Store y Google
+// Play vienen después.
 import { html, hl, icons } from '../ui.js';
 import { t } from '../i18n.js';
 import { phoneVisual } from './hero.js';
 import { canInstall, isStandalone, promptInstall } from '../install.js';
+
+// La app de Android todavía no está en Google Play, así que se reparte como archivo (.apk) y
+// lo aloja Expo. Cada compilación (`eas build --platform android --profile preview`) deja una
+// dirección nueva: al publicar una versión hay que cambiar estas dos líneas y volver a
+// desplegar, y así mercapty.com/app sigue siendo el único enlace que hay que compartir.
+// Dejar APK_URL vacío ('') esconde el botón y la página queda como antes.
+const APK_URL = 'https://expo.dev/artifacts/eas/Xl5hYK8VPg-GP8CvP-HboDKB6KUnB7N_vU-HWCUaRbg.apk';
+const APK_VERSION = '1.2.0';
 
 // El último dato dice dónde funciona: en la web instalable («web») o solo en la app de
 // Android, que lleva cámara y avisos («android»).
@@ -25,9 +34,11 @@ export async function renderAppPage() {
             <h1>${t('El precio más bajo, en tu bolsillo')}</h1>
             <p>${t('Instala Mercapty en tu celular en segundos. Se abre como una app, casi no ocupa espacio y no necesitas pasar por ninguna tienda de aplicaciones.')}</p>
             <div class="hero-actions">
-              <button class="btn btn-primary btn-lg" type="button" data-install hidden>${t('Instalar Mercapty')}</button>
+              ${APK_URL ? html`<a class="btn btn-primary btn-lg" href="${APK_URL}" rel="noopener">${t('Descargar para Android')}</a>` : ''}
+              <button class="btn btn-lg" type="button" data-install hidden>${t('Instalar Mercapty')}</button>
               <button class="btn btn-lg" type="button" data-scroll>${t('Cómo instalarla')}</button>
             </div>
+            ${APK_URL ? html`<p class="meta">${t('Versión {v} para Android. Como todavía no está en Google Play, el teléfono te pedirá permiso para instalarla.', { v: APK_VERSION })}</p>` : ''}
             <p class="installed-note" data-installed hidden>${t('✓ Ya tienes Mercapty instalada en este dispositivo.')}</p>
             <div class="store-badges on-light">
               <span class="store-badge">${icons.phone}<span><small>${t('Próximamente en')}</small>App Store</span></span>
@@ -49,12 +60,23 @@ export async function renderAppPage() {
                   where === 'web' ? t('Disponible') : t('En la app de Android')}</span>
               </article>`)}
           </div>
-          <p class="meta">${t('La cámara y los avisos son de la app de Android, que estará pronto en Google Play. Lo demás funciona hoy mismo instalando Mercapty desde el navegador.')}</p>
+          <p class="meta">${APK_URL
+            ? t('La cámara y los avisos son de la app de Android, que puedes descargar aquí mismo. Lo demás funciona en cualquier celular instalando Mercapty desde el navegador.')
+            : t('La cámara y los avisos son de la app de Android, que estará pronto en Google Play. Lo demás funciona hoy mismo instalando Mercapty desde el navegador.')}</p>
         </section>
 
         <section class="section" id="instalar">
           <div class="section-head"><h2>${t('Instálala hoy')}</h2></div>
           <div class="install-steps">
+            ${APK_URL ? html`
+            <div class="panel">
+              <h3>${t('Android · La app completa')}</h3>
+              <ol>
+                <li>${hl(t('Toca [Descargar para Android] aquí arriba.'), 'b')}</li>
+                <li>${t('Chrome avisa que el archivo puede ser dañino: es lo que dice de todo lo que no viene de Google Play. Elige «Descargar de todos modos».')}</li>
+                <li>${hl(t('Abre el archivo descargado y, cuando te lo pida, permite instalar desde [esta fuente].'), 'b')}</li>
+              </ol>
+            </div>` : ''}
             <div class="panel">
               <h3>Android · Chrome</h3>
               <ol>

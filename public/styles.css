@@ -536,9 +536,15 @@ a.footer-badge:hover { background: var(--brand); }
 }
 /* Lo que va debajo de los botones es letra chica, no otro párrafo del texto de arriba: hay que
    ser más específico que «.app-hero-copy p», que si no les quita el margen y el color. */
-.app-hero-copy .hero-actions { margin-top: 1.75rem; }
+/* Los botones y su letra chica son un solo bloque, y es ese bloque el que se separa de lo de
+   arriba y de lo de abajo; la letra chica va pegada al botón porque habla de él. Antes el hueco
+   de arriba era 1.75rem y el de abajo .9rem, y el ojo lo veía torcido: el párrafo de arriba
+   suma además su interlineado, así que el blanco real era de unos 33 px contra 18 px. */
+.app-hero-copy .hero-actions { margin-top: 1.25rem; }
 .app-hero-copy .hero-note,
-.app-hero-copy .installed-note { max-width: 46ch; margin: .9rem 0 0; font-size: .85rem; line-height: 1.5; }
+.app-hero-copy .installed-note { max-width: 46ch; margin: .7rem 0 0; font-size: .85rem; line-height: 1.5; }
+/* Y el bloque entero se despega de las insignias de las tiendas. */
+.app-hero-copy .store-badges { margin-top: 1.4rem; }
 .app-hero-copy .hero-note { color: var(--muted); }
 .app-hero-copy .installed-note { color: var(--good); }
 /* En el celular cada botón ocupa su renglón entero: dos de anchos distintos, uno al lado del

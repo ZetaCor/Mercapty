@@ -6,12 +6,12 @@ import { t } from '../i18n.js';
 import { phoneVisual } from './hero.js';
 import { canInstall, isStandalone, promptInstall } from '../install.js';
 
-// La app de Android todavía no está en Google Play, así que se reparte como archivo (.apk) y
-// lo aloja Expo. Cada compilación (`eas build --platform android --profile preview`) deja una
-// dirección nueva: al publicar una versión hay que cambiar estas dos líneas y volver a
-// desplegar, y así mercapty.com/app sigue siendo el único enlace que hay que compartir.
+// La app de Android todavía no está en Google Play, así que se reparte como archivo (.apk).
+// Vive en las «releases» de GitHub, no en EAS: EAS borra las suyas a los catorce días. Esta
+// dirección apunta a la última release publicada, así que no hay que tocarla nunca: al sacar
+// una versión, scripts/subir-apk.js sube el archivo y solo cambia APK_VERSION.
 // Dejar APK_URL vacío ('') esconde el botón y la página queda como antes.
-const APK_URL = 'https://expo.dev/artifacts/eas/i0oePs41Wf754XxWmHIQaKYelLmKJx0VaSDPH3jLwHQ.apk';
+const APK_URL = 'https://github.com/ZetaCor/Mercapty/releases/latest/download/mercapty.apk';
 const APK_VERSION = '1.2.0';
 
 // El último dato dice dónde funciona: en la web instalable («web») o solo en la app de

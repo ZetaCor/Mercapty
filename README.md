@@ -484,7 +484,7 @@ botón de la web apunta ahí, un día deja de funcionar sin avisar.
 Por eso el APK se guarda en **Vercel Blob**, el mismo almacenamiento donde van las fotos de los productos:
 
 ```bash
-npx vercel env pull .env.local        # una vez: trae BLOB_READ_WRITE_TOKEN
+npx vercel env pull .env.local --environment=production   # trae BLOB_READ_WRITE_TOKEN
 node --env-file=.env.local scripts/subir-apk.js <enlace del .apk de EAS> 1.2.0
 ```
 

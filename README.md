@@ -511,7 +511,8 @@ Play cada teléfono se bajaría bastante menos, porque la tienda le manda solo l
 
 Tres cosas de repartir fuera de la tienda: el teléfono pide permiso para instalar de un origen desconocido (la
 página lo explica), AdMob no paga mientras la app no esté en una tienda reconocida, y quien ya la tenga
-instalada sí recibe los cambios que son solo de código con `eas update --branch preview`, sin bajar otro
+instalada sí recibe los cambios que son solo de código con
+`eas update --branch preview --environment preview` (sin `--environment` no corre en modo no interactivo), sin bajar otro
 archivo. Solo lo nativo necesita compilar y repartir un `.apk` nuevo.
 
 **Publicar en Google Play y App Store**, con EAS, que también compila la versión de iPhone sin tener Mac:

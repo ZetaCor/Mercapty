@@ -11,7 +11,7 @@ import { canInstall, isStandalone, promptInstall } from '../install.js';
 // dirección nueva: al publicar una versión hay que cambiar estas dos líneas y volver a
 // desplegar, y así mercapty.com/app sigue siendo el único enlace que hay que compartir.
 // Dejar APK_URL vacío ('') esconde el botón y la página queda como antes.
-const APK_URL = 'https://expo.dev/artifacts/eas/Xl5hYK8VPg-GP8CvP-HboDKB6KUnB7N_vU-HWCUaRbg.apk';
+const APK_URL = 'https://expo.dev/artifacts/eas/i0oePs41Wf754XxWmHIQaKYelLmKJx0VaSDPH3jLwHQ.apk';
 const APK_VERSION = '1.2.0';
 
 // El último dato dice dónde funciona: en la web instalable («web») o solo en la app de

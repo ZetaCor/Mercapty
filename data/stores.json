@@ -178,6 +178,7 @@
     "icon": "https://www.ribasmith.com/favicon.ico",
     "connector": {
       "type": "ribasmith",
+      "mode": "departments",
       "maxPages": 30
     }
   },

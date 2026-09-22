@@ -152,7 +152,7 @@ Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 | El Machetazo | VTEX | ✅ Bot activo: recorre **sus 11 departamentos completos** (API pública de catálogo): súper, farmacia, tecnología, hogar, ferretería, juguetería, deportes, escolar, sedería y fiestas |
 | Superunico | WooCommerce | ✅ Bot activo (Store API pública) |
 | Súper 99 | Magento | ✅ Bot propio: lee sus páginas de producto una por una (traen código de barras). La cola se reparte en **tres turnos en paralelo**: unas 15 000 páginas cada noche, una vuelta completa al catálogo en tres noches |
-| Riba Smith | Next.js | ✅ Bot activo: busca los términos de canasta básica en su web, ahora hasta 30 páginas por término. Publica el código de barras sin el dígito verificador: se completa; lo que no tiene código se une por nombre, tamaño y marca |
+| Riba Smith | Next.js | ✅ Bot activo: **recorre sus 25 departamentos completos** (1 439 páginas, unos 28 800 productos, ~55 min). Antes buscaba términos de canasta básica y solo traía 10 900. Publica el código de barras sin el dígito verificador: se completa; lo que no tiene código se une por nombre, tamaño y marca |
 | Supermercados Rey | Instaleap | ✅ Bot activo: **recorre su árbol de categorías completo** (`getCategory` + `getProductsByCategory`, 100 productos por página) |
 | Metro Plus | Tipti | ⏳ Vende en línea por Tipti, cuya API exige iniciar sesión: hace falta un acuerdo o un feed |
 | PriceSmart | Nuxt + Bloomreach | ⛔ Su robots.txt bloquea expresamente a los bots que copian datos: solo con acuerdo o feed |
@@ -246,19 +246,19 @@ final, con `npm run resumen`, cuando ya están todas: por eso los bots lo saltan
   El id de cada departamento aparece en el campo `categoriesIds` de cualquier producto
   (`/api/catalog_system/pub/products/search?ft=leche`).
 - **WooCommerce** (`connectors/woocommerce.js`): recorre el catálogo completo por la Store API.
-- **Instaleap** (`connectors/instaleap.js`): Supermercados Rey. Busca los términos de `GROCERY_QUERIES`
-  (`connectors/util.js`: unos 100, entre canasta básica, sodas y marcas, licores, limpieza, bebé y
-  mascotas) en la API de catálogo de Instaleap, que no permite listar el catálogo completo. Si falta un
-  producto de Rey o de Riba Smith, se agrega la palabra a esa lista. Rey y Riba Smith leen hasta 4 páginas
-  por palabra (`"maxPages": 4` en `data/stores.json`): así entran los ~200 rones de Rey y los ~160 de Riba
-  Smith, que con 2 páginas quedaban a la mitad.
-- **Riba Smith** (`connectors/ribasmith.js`): busca en su web los mismos términos que VTEX y lee los datos
-  que la página incluye: precio con ITBMS, oferta con fechas e inventario. Su campo `sku` es el código de
+- **Instaleap** (`connectors/instaleap.js`): Supermercados Rey. Con `"mode": "categories"` recorre su árbol
+  de categorías completo (`getCategory` + `getProductsByCategory`, 100 productos por página). Sin ese modo
+  busca los términos de `GROCERY_QUERIES` (`connectors/util.js`: unos 100, entre canasta básica, sodas y
+  marcas, licores, limpieza, bebé y mascotas), que es lo que había antes: la API de Instaleap no deja pedir
+  el catálogo de una vez, y por búsqueda se quedaba a un tercio de lo que Rey publica.
+- **Riba Smith** (`connectors/ribasmith.js`): con `"mode": "departments"` recorre el catálogo completo por
+  departamento (`/dep_product/<nombre>-<id>?page=N`; `skipDepartments` omite los que no se quieran), y lee los
+  datos que la página incluye: precio con ITBMS, oferta con fechas e inventario. Su campo `sku` es el código de
   barras sin el dígito verificador (`744100350023` = Coca-Cola lata `7441003500235`); el bot lo completa
-  para que se una con las demás tiendas. Con `"mode": "departments"` recorre el catálogo completo por
-  departamento (`/dep_product/<nombre>-<id>?page=N`; `skipDepartments` omite los que no son de súper), pero
-  son cientos de páginas de 20 productos (solo Bebé tiene 38): demasiados minutos de GitHub Actions para un
-  repositorio privado. Si una página falla, el bot reintenta y, si sigue fallando, la salta.
+  para que se una con las demás tiendas. Son 25 departamentos y 1 439 páginas de 20 productos —unos 28 800 en
+  total, cerca de 55 minutos—: antes iba por los términos de canasta básica porque eso no cabía en los minutos
+  de GitHub Actions de un repositorio privado, y así solo entraban 10 900. Con el repositorio público ya cabe.
+  Si una página falla, el bot reintenta y, si sigue fallando, la salta.
 - **Súper 99** (`connectors/super99.js` y `scripts/super99.js`, `npm run super99`): sus listados los arma un
   buscador externo que exige su clave, pero la página de cada producto trae nombre, marca, precio, precio
   anterior, código de barras (UPC), existencias y categorías, y su robots.txt permite leerla. Son unas 42 500

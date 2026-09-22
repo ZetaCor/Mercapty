@@ -1,14 +1,13 @@
 // Ajustes de la app: idioma, versión y volver a ver la bienvenida. Se abre con la rueda
 // dentada de la cabecera de Inicio, para no mezclarlos con el contenido de Tiendas.
-import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 
 import { UpdateStatus } from '@/components/app-updates';
 import { Button } from '@/components/button';
 import { LangSwitch } from '@/components/lang-switch';
 import { T } from '@/components/text';
-import { useToast } from '@/components/toast';
 import { C, PAD, R } from '@/constants/theme';
-import { abrirInspector } from '@/lib/ads';
+import { abrirInspector, estadoDeLosAnuncios } from '@/lib/ads';
 import { useI18n } from '@/lib/i18n';
 import { CAN_NOTIFY, useNotifications, type Prefs } from '@/lib/notifications';
 import { useOnboarding } from '@/lib/onboarding';
@@ -27,7 +26,6 @@ export default function Ajustes() {
   const { t } = useI18n();
   const { reset } = useOnboarding();
   const { estado, prefs, sePuedePreguntar, activar, abrirAjustesDelTelefono, setPref } = useNotifications();
-  const toast = useToast();
   const aviso = (key: keyof Prefs, etiqueta: string) => (
     <Aviso etiqueta={etiqueta} valor={prefs[key]} onChange={(v) => setPref(key, v)} />
   );
@@ -75,11 +73,19 @@ export default function Ajustes() {
       </View>
 
       <View style={styles.block}>
-        {/* Una pulsación larga sobre el título abre el inspector de AdMob, que dice qué pidió
-            y qué contestó cada bloque de anuncios. Va escondido a propósito: es para revisar
-            por qué no sale un anuncio, no algo que un usuario deba encontrar. */}
+        {/* Una pulsación larga sobre el título cuenta cómo van los anuncios: si AdMob encendió
+            y qué contestó Google a la última franja y al último intersticial. Va escondido a
+            propósito: es para revisar por qué no sale un anuncio, no algo que un usuario deba
+            encontrar. El inspector de Google queda a un toque más, pero solo abre en un
+            teléfono registrado como dispositivo de pruebas en AdMob. */}
         <Pressable
-          onLongPress={() => abrirInspector().catch((e: Error) => toast(e?.message || 'No se pudo abrir el inspector'))}
+          onLongPress={() => Alert.alert('Anuncios', estadoDeLosAnuncios(), [
+            { text: 'Cerrar', style: 'cancel' },
+            {
+              text: 'Inspector',
+              onPress: () => abrirInspector().catch((e: Error) => Alert.alert('Inspector', e?.message ?? 'No se pudo abrir')),
+            },
+          ])}
           delayLongPress={900}>
           <T w={700} size={16} tight accessibilityRole="header">{t('Versión de la app')}</T>
         </Pressable>

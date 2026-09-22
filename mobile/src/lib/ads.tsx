@@ -78,6 +78,27 @@ export function abrirInspector(): Promise<void> {
   });
 }
 
+// Lo último que contestó Google a cada clase de anuncio. El inspector de arriba solo abre en
+// un teléfono registrado como dispositivo de pruebas en AdMob, que es un rodeo largo para lo
+// que casi siempre se quiere saber: si el anuncio no se pidió, no llegó, o llegó y no se vio.
+// Esto se lee sin registrar nada.
+let ultimaFranja: string | null = null;
+let ultimoIntersticial: string | null = null;
+
+/** Un párrafo en castellano con el estado de los anuncios, para el diagnóstico de Ajustes. */
+export function estadoDeLosAnuncios(): string {
+  if (!admob) return `AdMob no está en esta versión de la app: ${motivo}`;
+  if (!encendido) return `AdMob no encendió: ${motivo ?? 'todavía está arrancando'}`;
+  const dePrueba = !propios.banner && !propios.interstitial;
+  return [
+    `AdMob encendido${dePrueba ? ', con los bloques de prueba de Google' : ''}.`,
+    `Franja: ${ultimaFranja ?? 'todavía sin respuesta (abre Inicio o Buscar y vuelve)'}.`,
+    `Pantalla completa: ${ultimoIntersticial ?? 'todavía sin respuesta (entra al Juego y vuelve)'}.`,
+    '',
+    '«Sin anuncio disponible» (no fill) quiere decir que Google recibió la petición y contestó que no tenía nada que mandar. Es lo normal mientras la app no esté publicada en una tienda.',
+  ].join('\n');
+}
+
 type BannerProps = { style?: StyleProp<ViewStyle> };
 
 /** Lo que una pantalla necesita saber del anuncio de pantalla completa. */
@@ -103,8 +124,8 @@ function construirBanner(lib: AdMob) {
         <lib.BannerAd
           unitId={BANNER}
           size={lib.BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-          onAdLoaded={() => setCargado(true)}
-          onAdFailedToLoad={() => setCargado(false)}
+          onAdLoaded={() => { ultimaFranja = 'llegó y se está viendo'; setCargado(true); }}
+          onAdFailedToLoad={(e) => { ultimaFranja = porQue(e); setCargado(false); }}
         />
       </View>
     );
@@ -115,7 +136,14 @@ function construirBanner(lib: AdMob) {
 // empieza a cargar el siguiente: así el de dentro de cinco tiros ya está listo cuando toca.
 function construirIntersticial(lib: AdMob) {
   return function useIntersticial(): Intersticial {
-    const { status, show, load } = lib.useInterstitialAd({ adUnitId: INTERSTICIAL });
+    const anuncio = lib.useInterstitialAd({ adUnitId: INTERSTICIAL });
+    const { status, show, load } = anuncio;
+    const fallo = anuncio.error?.message ?? null;
+    useEffect(() => {
+      if (status === 'loaded') ultimoIntersticial = 'listo para salir';
+      else if (status === 'no-fill') ultimoIntersticial = `sin anuncio disponible (${fallo ?? 'no fill'})`;
+      else if (status === 'error') ultimoIntersticial = fallo ?? 'error sin mensaje';
+    }, [fallo, status]);
     useEffect(() => {
       if (status === 'closed') load();
     }, [load, status]);

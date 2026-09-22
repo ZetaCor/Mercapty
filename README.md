@@ -163,6 +163,8 @@ Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 | El Fuerte | Shopify | ✅ Bot activo: su catálogo público de Shopify (unos 11 500 productos). Sus cajones propios («ELECTRO», «COLCHONES», «DAMAS») se traducen con `categoryMap` |
 | Arrocha | Shopify | ✅ Bot activo: **18 800 productos**, la farmacia y el cuidado personal que faltaban. Dejó Magento y ahora publica su catálogo en Shopify, así que se lee con el mismo bot que Melo. Sin código de barras: se une por nombre, marca y tamaño |
 | Mr Precio | WordPress | ⛔ No vende en línea: su web solo tiene sucursales y un PDF de ofertas (es del Grupo Rey) |
+| Titán | Shopify | ✅ Bot activo: publica **25 000 productos** (el tope que Shopify deja leer en `/products.json`), pero solo un 20 % está en existencia, así que aporta unas **4 800 ofertas vivas**. Variedades: hogar, juguetes, cosmética, escolar y electrónica. Ojo: hoy solo el 1,3 % se compara con otra tienda —su catálogo es suyo— y eso debería subir cuando el bot de códigos de barras pase por ella |
+| American Pets | Shopify | ✅ Bot activo: 1 685 productos de mascotas (alimento premium, accesorios y farmacia veterinaria) |
 | Foodie Market | Wix | ⛔ No vende en línea: su web es informativa (sucursales, jugos, recetas) y no tiene tienda ni precios; su mapa del sitio son siete páginas y ninguna es de producto. Haría falta un feed suyo |
 
 **Cobertura: todo el catálogo, no una muestra.** Un comparador que no tiene el producto que la persona busca no
@@ -289,6 +291,13 @@ final, con `npm run resumen`, cuando ya están todas: por eso los bots lo saltan
   `scripts/codigos.js` (más abajo). `vendorAliases` unifica marcas
   («MELO Alimentos» → «Melo») y `categoryMap` traduce los cajones propios de cada tienda a nuestras categorías
   («Dermocosmética» y «Hair Care» de Arrocha → Cuidado personal; «ELECTRO» de El Fuerte → Electrodomésticos).
+  Cuando los cajones son cientos, `categoryRules` hace lo mismo por patrón: una lista ordenada de
+  `[palabras, categoría]` contra el nombre del cajón, y gana la primera que coincida. Titán tiene **969 cajones**
+  distintos («CORTINA DE BAÑO», «PISTAS CARRO», «SABANAS QUEEN»): a mano no se sostenía y sin reglas el 65 % de
+  su catálogo caía en «Otros»; con ellas queda en 12 %, como el de las demás tiendas. Igual que el mapa, las
+  reglas valen solo para esa tienda, porque fuera de su catálogo esas palabras significan otra cosa.
+  Shopify no deja pasar de 25 000 productos en `/products.json` (a la página 101 responde 400), así que el bot
+  corta ahí: Titán llega justo al tope.
   Es el bot más barato de sumar: una tienda nueva de Shopify no necesita código, solo su ficha en
   `data/stores.json`.
 - **Códigos de barras** (`scripts/codigos.js`, `npm run codigos`): las tiendas de Shopify publican su catálogo

@@ -312,6 +312,46 @@
     }
   },
   {
+    "id": "titan",
+    "name": "Titán",
+    "homepage": "https://titan.com.pa",
+    "searchUrl": "https://titan.com.pa/search?q={q}",
+    "platform": "Shopify",
+    "color": "#e60028",
+    "logo": "https://titan.com.pa/cdn/shop/files/titan-logo-blanco-PNG.png?v=1751734887&width=600",
+    "logoBg": "#0f172a",
+    "icon": "https://titan.com.pa/cdn/shop/files/titan-favicon.png?crop=center&height=192&v=1711557904&width=192",
+    "connector": {
+      "type": "shopify",
+      "maxPages": 100,
+      "categoryRules": [
+        ["muneca|carro|figura de accion|figuras accion|pista|rompecabeza|armable|peluche|nerf|lanzador|slime|masilla|didactic|preescolar|inflable|patin|patines|scooter|juguete|bicicleta|monopatin|triciclo|pelota|juego de mesa|coleccionable|disfraz|animales|bebote|pistola|espada|burbuja|globos|piscina|vehiculo|deportiv|dardo|yoyo|carta|puzzle|bloques|set de", "Juguetería y deportes"],
+        ["cortina|sabana|toalla|comforter|sobrecama|cojin|mantel|individuales|forro|cenefa|almohad|edredon|colcha|alfombra|tapete|colchon|protector de colchon|box spring", "Ferretería y hogar"],
+        ["olla|sarten|plato|taza|vaso|copa|jarra|bowl|cuchill|envase|canister|cocina|utensilio|cubiert|bandeja|molde|termo|hielera|licuadora manual|colador|tabla de picar|vajilla|escurridor|cucharon|cuchara|tenedor|caldero|paila|olleta|pichel|salero|azucarer|panera|fuente", "Ferretería y hogar"],
+        ["espejo|florero|macetero|portarretrato|cuadro|adorno|vela|reloj|decorat|navidad|navide|lampara|organizador|percha|gancho|canasta|papelera|basurero|escoba|trapeador|herramienta|ferreteria|jardin|mueble|silla|mesa|estante|repisa|armario|sofa|gavetero|closet|caja multiuso|soporte|iluminacion|bombillo|extension electrica|regleta|flores artificiales|planta artificial|cesto|bano|ducha|griferia|candado|pintura|cable", "Ferretería y hogar"],
+        ["esmalte|tinte|cabello|maquillaje|labial|pestan|rubor|corrector|sombra|delineador|perfume|fragancia|colonia|crema|desodorante|shampoo|champu|jabon|cepillo dental|afeitar|essence|stay beautiful|belleza|cosmetic|unas|brocha|peine|secador|plancha de cabello|splash|horquilla|capilar|polvo|rimel|mascara de|vogue|max factor|revlon|maybelline|loreal|l oreal|covergirl|nyx|wet n wild|almay|sally hansen|bozzano|nivea|pond s|acondicionador|gel de", "Cuidado personal"],
+        ["mochila|cartuchera|cuaderno|libreta|lapiz|lapices|boligrafo|marcador|crayon|tijera|pegamento|escolar|oficina|papeleria|carpeta|archivador|calculadora|libro", "Escolar y oficina"],
+        ["pañal|panal|biberon|chupon|coche|cuna|bebe|infantil|maternidad", "Bebé"],
+        ["camisa|camiseta|pantalon|vestido|blusa|short|falda|medias|calcetin|ropa|zapato|sandalia|chancla|gorra|sombrero|cartera|bolso|correa|reloj de pulsera|lentes de sol", "Ropa y calzado"],
+        ["televisor|celular|audifono|parlante|bocina|laptop|tablet|computadora|impresora|abanico|ventilador|microonda|refrigerad|congelador|lavadora|secadora|estufa|licuadora|batidora|cafetera|tostador|freidora|plancha|aspiradora|consola|videojuego|camara|electro|smartwatch|audio|bluetooth|cargador|power bank|mouse|teclado|monitor|pantalla|bateria", "Electrodomésticos"],
+        ["perro|gato|mascota", "Mascotas"]
+      ]
+    }
+  },
+  {
+    "id": "americanpets",
+    "name": "American Pets",
+    "homepage": "https://www.americanpetspanama.com",
+    "searchUrl": "https://www.americanpetspanama.com/search?q={q}",
+    "platform": "Shopify",
+    "color": "#1d4ed8",
+    "connector": {
+      "type": "shopify",
+      "category": "Mascotas",
+      "maxPages": 20
+    }
+  },
+  {
     "id": "metroplus",
     "name": "Metro Plus",
     "homepage": "https://metroplus.com.pa",

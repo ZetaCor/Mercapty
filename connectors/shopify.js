@@ -4,8 +4,13 @@
 // existencias, foto y enlace. Ese catálogo no trae el código de barras, así que
 // estos productos se unen con las otras tiendas por nombre, marca y tamaño.
 import { BOT_HEADERS, fetchText, sleep } from './util.js';
+import { normalizeText } from '../server/lib/normalize.js';
 
 const PAGE_SIZE = 250;
+// Shopify no deja pasar de 25 000 productos en /products.json: a la página 101 con 250
+// por página responde 400 («Page * Limit exceeds the 25000 limit») y el bot perdería la
+// tienda entera. Titán llega justo a ese tope, así que la última página es la 100.
+const MAX_PAGES = Math.floor(25000 / PAGE_SIZE);
 
 export async function fetchOffers(store, { log = console.log } = {}) {
   const cfg = store.connector;
@@ -15,11 +20,22 @@ export async function fetchOffers(store, { log = console.log } = {}) {
   // los traduce a nuestras categorías. Vale solo para esa tienda, porque esas palabras en el
   // nombre de un producto significan otra cosa.
   const porTipo = cfg.categoryMap ?? {};
+  // Con cientos de cajones distintos (Titán tiene 969: «CORTINA DE BAÑO», «PISTAS CARRO»,
+  // «SABANAS QUEEN») un mapa nombre por nombre no se sostiene, así que `categoryRules` es una
+  // lista ordenada de [palabras, categoría]: gana la primera que aparezca en el nombre del
+  // cajón. Como el mapa, vale solo para esa tienda: fuera de su catálogo esas palabras
+  // significan otra cosa.
+  const reglas = (cfg.categoryRules ?? []).map(([palabras, categoria]) => [new RegExp(palabras), categoria]);
+  const porReglas = (tipo) => {
+    const t = normalizeText(tipo);
+    return t ? reglas.find(([re]) => re.test(t))?.[1] : null;
+  };
   // Las tiendas que venden una sola cosa (Multimax, Rodelag: electrónica y línea blanca)
   // traen su categoría en la configuración: sus propios tipos son un desorden («SMART»,
   // «OLLAS ELECTRICAS») y el nombre del producto no siempre lo dice.
   const offers = [];
-  for (let page = 1; page <= (cfg.maxPages ?? 40); page++) {
+  const maxPages = Math.min(cfg.maxPages ?? 40, MAX_PAGES);
+  for (let page = 1; page <= maxPages; page++) {
     // Con reintentos: Shopify corta con 429 a quien pide rápido, y un corte no debe
     // costar la tienda entera.
     const res = await fetchText(`${origin}/products.json?limit=${PAGE_SIZE}&page=${page}`, BOT_HEADERS);
@@ -35,7 +51,7 @@ export async function fetchOffers(store, { log = console.log } = {}) {
           title: name,
           name,
           brand: aliases[p.vendor] ?? p.vendor,
-          category: cfg.category ?? porTipo[p.product_type] ?? p.product_type ?? '',
+          category: cfg.category ?? porTipo[p.product_type] ?? porReglas(p.product_type) ?? p.product_type ?? '',
           size: null, // se deduce del nombre
           price: v.price,
           listPrice: v.compare_at_price,

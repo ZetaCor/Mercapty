@@ -6,6 +6,11 @@
 //   2. los que todavía no conoce (así el catálogo se completa en unos días);
 //   3. el resto, empezando por el que lleva más tiempo sin leerse.
 // Guarda cada 100 páginas, así una corrida cortada no pierde lo avanzado.
+// La misma cola se reparte entre varios turnos que corren a la vez
+// (SUPER99_PARTES y SUPER99_PARTE, uno por trabajo de GitHub Actions): cada uno
+// toma una de cada SUPER99_PARTES páginas, respetando el orden, así que en una
+// noche entran tres veces más productos sin pedirle a su web más de una página
+// por segundo entre todos.
 //   npm run super99                     -> corrida completa (GitHub Actions, de noche)
 //   SUPER99_MINUTES=2 npm run super99   -> prueba corta
 import { readFileSync } from 'node:fs';
@@ -57,7 +62,14 @@ const queue = [
   ...urls.filter((u) => !pages.has(u)),
   ...urls.filter((u) => pages.has(u) && !useful.has(u) && age(u) > (REVISIT[pages.get(u).status] ?? REVISIT.ok)).sort(oldestFirst),
 ];
-log(`  ${store.name}: ${queue.length} páginas por leer (${useful.size} se comparan con otras tiendas); tiempo: ${budget / 60000} min`);
+// El turno se queda con una de cada `partes` páginas. Como la cola ya viene ordenada
+// por urgencia, a todos los turnos les tocan páginas igual de urgentes y ninguno repite
+// el trabajo de otro.
+const partes = Math.max(1, Number(process.env.SUPER99_PARTES) || 1);
+const parte = Math.min(partes - 1, Math.max(0, Number(process.env.SUPER99_PARTE) || 0));
+const mias = partes > 1 ? queue.filter((_, i) => i % partes === parte) : queue;
+log(`  ${store.name}: ${queue.length} páginas por leer (${useful.size} se comparan con otras tiendas)`
+  + `${partes > 1 ? `, ${mias.length} en este turno (${parte + 1} de ${partes})` : ''}; tiempo: ${budget / 60000} min`);
 
 const ctx = { paths: await categoryPaths(new URL(store.homepage).origin), departments: new Set(cfg.departments.map(normalizeText)) };
 const matcher = await loadMatcher(db, store.id);
@@ -90,7 +102,7 @@ async function save() {
 }
 
 let done = 0;
-for (const url of queue) {
+for (const url of mias) {
   if (Date.now() - started > budget) break;
   const result = await fetchProduct(url, ctx);
   stats[result.status]++;
@@ -109,15 +121,17 @@ await save();
 const staleBefore = new Date(Date.now() - STALE_DAYS * DAY).toISOString();
 const stale = (await db.run('UPDATE offers SET in_stock = 0 WHERE store_id = ? AND in_stock = 1 AND updated_at < ?', [store.id, staleBefore])).rowsAffected;
 
-const moved = await recategorize(db);
-// El resumen que usa la web (mejor precio de cada producto y totales) se rehace aquí.
-await rebuildAggregates(db);
+// Con la cola repartida en turnos el resumen lo rehace scripts/resumen.js cuando todos
+// han terminado (.github/workflows/super99.yml): si lo hiciera cada turno, se repetiría
+// el trabajo y con datos a medias.
+const moved = process.env.SUPER99_SIN_RESUMEN === '1' ? 0 : await recategorize(db);
+if (process.env.SUPER99_SIN_RESUMEN !== '1') await rebuildAggregates(db);
 
 const notes = [
   `${stats.ok} productos`, `${stats.skip} fuera de súper`, `${stats.gone} ya no existen`, `${stats.error} con error`,
   stats.joined && `${stats.joined} unidos por nombre`, stale && `${stale} sin releer en ${STALE_DAYS} días`,
   moved && `${moved} cambiaron de categoría`,
 ].filter(Boolean);
-log(`✓ ${store.name}: ${done} páginas en ${Math.round((Date.now() - started) / 60000)} min (${notes.join(', ')}). Quedan ${queue.length - done} para la próxima corrida.`);
+log(`✓ ${store.name}: ${done} páginas en ${Math.round((Date.now() - started) / 60000)} min (${notes.join(', ')}). Quedan ${mias.length - done} para la próxima corrida.`);
 db.close();
 process.exitCode = done > 0 && stats.ok === 0 ? 1 : 0; // ninguna página útil: algo cambió en su web

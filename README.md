@@ -151,7 +151,7 @@ Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 | Super Xtra | VTEX | ✅ Bot activo: recorre **sus 12 departamentos completos** (API pública de catálogo), no solo los de súper |
 | El Machetazo | VTEX | ✅ Bot activo: recorre **sus 11 departamentos completos** (API pública de catálogo): súper, farmacia, tecnología, hogar, ferretería, juguetería, deportes, escolar, sedería y fiestas |
 | Superunico | WooCommerce | ✅ Bot activo (Store API pública) |
-| Súper 99 | Magento | ✅ Bot propio: lee sus páginas de producto una por una (traen código de barras), unas 5 000 cada noche |
+| Súper 99 | Magento | ✅ Bot propio: lee sus páginas de producto una por una (traen código de barras). La cola se reparte en **tres turnos en paralelo**: unas 15 000 páginas cada noche, una vuelta completa al catálogo en tres noches |
 | Riba Smith | Next.js | ✅ Bot activo: busca los términos de canasta básica en su web, ahora hasta 30 páginas por término. Publica el código de barras sin el dígito verificador: se completa; lo que no tiene código se une por nombre, tamaño y marca |
 | Supermercados Rey | Instaleap | ✅ Bot activo: **recorre su árbol de categorías completo** (`getCategory` + `getProductsByCategory`, 100 productos por página) |
 | Metro Plus | Tipti | ⏳ Vende en línea por Tipti, cuya API exige iniciar sesión: hace falta un acuerdo o un feed |
@@ -159,7 +159,11 @@ Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 | Super Kosher | Self-Point | ⛔ Su robots.txt lo permite, pero Cloudflare bloquea a los bots en su API de productos: solo con acuerdo o feed |
 | Super Carnes | Magento | ✅ Bot activo: lee sus 529 subcategorías de súper (hasta 160 productos por página, con código de barras): unos 3 800 productos en ~24 min |
 | Alimentos Melo | Shopify | ✅ Bot activo: su catálogo público de Shopify (unos 80 productos de pollo, cerdo, embutidos, jugos…) en una consulta. Sin código de barras: se une por nombre, marca y tamaño |
+| Super Barú | Shopify | ✅ Bot activo: su catálogo público de Shopify (unos 7 200 productos). Sin código de barras: se une por nombre, marca y tamaño |
+| El Fuerte | Shopify | ✅ Bot activo: su catálogo público de Shopify (unos 11 500 productos). Sus cajones propios («ELECTRO», «COLCHONES», «DAMAS») se traducen con `categoryMap` |
+| Arrocha | Shopify | ✅ Bot activo: **18 800 productos**, la farmacia y el cuidado personal que faltaban. Dejó Magento y ahora publica su catálogo en Shopify, así que se lee con el mismo bot que Melo. Sin código de barras: se une por nombre, marca y tamaño |
 | Mr Precio | WordPress | ⛔ No vende en línea: su web solo tiene sucursales y un PDF de ofertas (es del Grupo Rey) |
+| Foodie Market | Wix | ⛔ No vende en línea: su web es informativa (sucursales, jugos, recetas) y no tiene tienda ni precios; su mapa del sitio son siete páginas y ninguna es de producto. Haría falta un feed suyo |
 
 **Cobertura: todo el catálogo, no una muestra.** Un comparador que no tiene el producto que la persona busca no
 sirve, así que cada bot recorre el catálogo entero de su tienda y no una selección. Antes no era así y se notaba:
@@ -178,7 +182,6 @@ tiendas que venden lo mismo; sin al menos dos no hay nada que comparar y la cate
 | Rodelag | Shopify | ✅ Bot activo (catálogo público de Shopify), unos 3 400 productos con marca |
 | Do It Center | Magento | ⛔ Su robots.txt autoriza `/graphql` y el catálogo se lee bien, pero su CDN responde 403 a todo bot que se identifique y solo deja pasar a quien se hace pasar por navegador. No se disfraza el bot: hace falta pedirles permiso o un feed |
 | Novey | Magento | ⛔ Igual que Do It Center: 403 al bot identificado |
-| Arrocha | Magento | ⏳ Farmacia y cuidado personal, la que más falta hace: su Magento no abre `/graphql` y su buscador no sirve para leerlo, así que necesita un bot propio como el de Súper 99 |
 | Sysco Panamá | Magento | ⛔ Vende al por mayor a restaurantes: su catálogo se ve, pero los precios llegan vacíos si no se inicia sesión. Sin precio no hay comparación |
 
 La portada y el pie de página muestran automáticamente cuántos y cuáles supermercados tienen precios hoy.
@@ -260,22 +263,33 @@ final, con `npm run resumen`, cuando ya están todas: por eso los bots lo saltan
   buscador externo que exige su clave, pero la página de cada producto trae nombre, marca, precio, precio
   anterior, código de barras (UPC), existencias y categorías, y su robots.txt permite leerla. Son unas 42 500
   páginas (unas 40 horas a un ritmo que no sature su web), así que tiene su propio trabajo nocturno
-  (`.github/workflows/super99.yml`, 10:07 p. m.) que lee lo que alcanza en ~5 h 20 min (unas 5 000 páginas);
-  la noche siguiente sigue donde quedó. La primera vuelta al catálogo toma unas 8 noches. Orden: primero relee a diario los productos que también venden otras tiendas (los que
-  sirven para comparar), luego los que aún no conoce y después el resto, del que lleva más tiempo sin leerse.
+  (`.github/workflows/super99.yml`, 10:07 p. m.). **La cola se reparte en tres turnos que corren a la vez**
+  (`SUPER99_PARTES` y `SUPER99_PARTE`: cada uno toma una de cada tres páginas, respetando el orden), y cada
+  turno lee lo que alcanza en ~5 h 20 min (unas 5 000 páginas): unas 15 000 por noche entre los tres, y la
+  noche siguiente siguen donde quedaron. Así la primera vuelta al catálogo toma tres noches en vez de ocho,
+  que es lo que hacía que al escanear un código en el súper el producto a veces no apareciera. Aun repartido,
+  su web recibe menos de una página por segundo entre los tres turnos. Orden: primero relee a diario los
+  productos que también venden otras tiendas (los que sirven para comparar), luego los que aún no conoce y
+  después el resto, del que lleva más tiempo sin leerse.
   La tabla `store_pages` guarda cuándo se leyó cada página y qué se encontró. Solo guarda productos de sus
   departamentos de súper (`departments` en `data/stores.json`); farmacia, ferretería o juguetería se saltan.
-  Un precio que no se relee en 14 días deja de mostrarse. Prueba corta: `SUPER99_MINUTES=2 npm run super99`.
+  Un precio que no se relee en 14 días deja de mostrarse. Como los turnos corren a la vez, el resumen que usa
+  la web lo rehace un trabajo aparte cuando los tres acaban (`npm run resumen`): por eso los turnos lo saltan
+  con `SUPER99_SIN_RESUMEN=1`. Prueba corta: `SUPER99_MINUTES=2 npm run super99`.
 - **Magento por categorías** (`connectors/magento.js`): Super Carnes. Sus páginas de categoría traen hasta 160
   productos con nombre, precio, precio anterior, foto y código de barras (su SKU, que también va al final de
   la dirección del producto). Sus categorías cargan más productos al bajar (no hay páginas `?p=2`), así que se
   leen las subcategorías finales de sus departamentos de súper (`departments`), que su mapa del sitio lista y
   que caben en una página. Su API interna (GraphQL) responde 403 a los bots, así que no se usa.
-- **Shopify** (`connectors/shopify.js`): Alimentos Melo. Toda tienda Shopify publica su catálogo en
+- **Shopify** (`connectors/shopify.js`): Alimentos Melo, Super Barú, El Fuerte, Arrocha, Multimax y Rodelag.
+  Toda tienda Shopify publica su catálogo en
   `/products.json` (hasta 250 productos por página): nombre, marca, tipo, presentación, precio, precio anterior,
   existencias y foto. No trae el código de barras, así que estos productos se unen por nombre, marca y tamaño;
   los que no dicen su tamaño aparecen solo con el precio de esa tienda. `vendorAliases` unifica marcas
-  («MELO Alimentos» → «Melo»).
+  («MELO Alimentos» → «Melo») y `categoryMap` traduce los cajones propios de cada tienda a nuestras categorías
+  («Dermocosmética» y «Hair Care» de Arrocha → Cuidado personal; «ELECTRO» de El Fuerte → Electrodomésticos).
+  Es el bot más barato de sumar: una tienda nueva de Shopify no necesita código, solo su ficha en
+  `data/stores.json`.
 - **Feed** (`connectors/feed.js`): para tiendas socias que comparten su inventario en CSV/JSON con
   las columnas `sku,gtin,nombre,marca,categoria,presentacion,precio,precio_regular,disponible,url,imagen`
   (ejemplo en `data/feeds/minisuper-ejemplo.csv`).
@@ -287,7 +301,8 @@ Cuidados que tienen los bots:
 - Un recorrido completo tarda cerca de una hora (Super Carnes unos 24 minutos, Super Xtra 8 y El Machetazo 6,
   porque se leen completos) y corre dos veces al día. El repositorio es público, así que los minutos de GitHub Actions no
   tienen límite. Si vuelve a ser privado (2 000 minutos gratis al mes), hay que dejar una sola corrida
-  (`cron: '17 10 * * *'`) y apagar la de Súper 99, que por sí sola usa unas 5 horas cada noche.
+  (`cron: '17 10 * * *'`) y apagar la de Súper 99, que por sí sola usa unas 16 horas cada noche (tres turnos
+  de cinco); para dejarla en una sola, basta con poner `parte: [0]` y `SUPER99_PARTES: 1` en su workflow.
 
 Para sumar una tienda, crea `connectors/<nombre>.js` con
 `fetchOffers(store) -> [{ sku, gtin, name, brand, category, size, price, listPrice, inStock, url, image }]`

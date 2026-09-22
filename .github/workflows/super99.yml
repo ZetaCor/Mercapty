@@ -1,8 +1,11 @@
 # Bot de Súper 99: su web solo deja leer los productos uno por uno (unas 42 500
-# páginas), así que cada corrida lee lo que alcanza en ~5 h 20 min (unas 5 000)
-# y la siguiente sigue donde quedó (ver scripts/super99.js). Corre de noche para no
-# cargar su web en horas de compra. El repositorio es público: los minutos de
-# GitHub Actions no tienen límite (cada trabajo, hasta 6 horas).
+# páginas), así que la cola se reparte en tres turnos que corren a la vez y cada uno
+# lee lo que alcanza en ~5 h 20 min (unas 5 000 páginas); la noche siguiente siguen
+# donde quedaron (ver scripts/super99.js). Entre los tres entran unas 15 000 páginas
+# por noche —una vuelta completa al catálogo en tres noches en vez de ocho—, y aun así
+# su web recibe menos de una página por segundo entre todos. Corre de noche para no
+# cargarla en horas de compra. El repositorio es público: los minutos de GitHub Actions
+# no tienen límite (cada trabajo, hasta 6 horas).
 name: Súper 99
 
 on:
@@ -21,6 +24,10 @@ jobs:
   bot:
     runs-on: ubuntu-latest
     timeout-minutes: 350
+    strategy:
+      fail-fast: false   # que un turno caído no cancele a los demás
+      matrix:
+        parte: [0, 1, 2]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,6 +36,28 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run super99
+        env:
+          SUPER99_PARTE: ${{ matrix.parte }}
+          SUPER99_PARTES: 3
+          SUPER99_SIN_RESUMEN: '1'
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+
+  # Cuando los tres turnos terminan (aunque alguno haya fallado) se rehace una sola vez
+  # el resumen que usa la web: mejor precio de cada producto y totales.
+  resumen:
+    needs: bot
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run resumen
         env:
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}

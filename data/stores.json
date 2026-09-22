@@ -279,6 +279,38 @@
     }
   },
   {
+    "id": "arrocha",
+    "name": "Arrocha",
+    "homepage": "https://arrocha.com",
+    "searchUrl": "https://arrocha.com/search?q={q}",
+    "platform": "Shopify",
+    "color": "#ef1a1a",
+    "logo": "https://arrocha.com/cdn/shop/files/logo_test_1-min_1_901x265.png?v=1613790793",
+    "logoBg": "#0f172a",
+    "icon": "https://arrocha.com/cdn/shop/files/logo_arrocha_social_media_76a8c315-e21d-48dc-a897-6a215d74caa6_192x192_crop_center.png?v=1629121242",
+    "connector": {
+      "type": "shopify",
+      "maxPages": 90,
+      "categoryMap": {
+        "Cosméticos": "Cuidado personal",
+        "Cosméticos Finos": "Cuidado personal",
+        "Dermocosmética": "Cuidado personal",
+        "Hair Care": "Cuidado personal",
+        "Capilar": "Cuidado personal",
+        "Salud": "Farmacia",
+        "Sport Nutrition": "Farmacia",
+        "Electrónica": "Electrodomésticos",
+        "Videojuegos": "Juguetería y deportes",
+        "Libros": "Escolar y oficina",
+        "Hallmark": "Escolar y oficina",
+        "Adornos": "Ferretería y hogar",
+        "Navidad": "Ferretería y hogar",
+        "Velas y Fragancias": "Ferretería y hogar",
+        "Ropa y Accesorios": "Ropa y calzado"
+      }
+    }
+  },
+  {
     "id": "metroplus",
     "name": "Metro Plus",
     "homepage": "https://metroplus.com.pa",
@@ -307,6 +339,16 @@
     "color": "#1e3a8a",
     "enabled": false,
     "note": "Cloudflare bloquea a los bots en su API de productos; solo con un acuerdo o un feed"
+  },
+  {
+    "id": "foodie",
+    "name": "Foodie Market",
+    "homepage": "https://www.foodiemarketpanama.com",
+    "searchUrl": null,
+    "platform": "Wix",
+    "color": "#8cc63f",
+    "enabled": false,
+    "note": "no vende en línea: su web (Wix) es informativa —sucursales, jugos, recetas— y no tiene tienda ni precios; su mapa del sitio son siete páginas y ninguna es de producto. Haría falta un feed suyo"
   },
   {
     "id": "mrprecio",
@@ -471,16 +513,6 @@
     "color": "#f7a600",
     "enabled": false,
     "note": "ferretería y hogar; su robots.txt sí autoriza /graphql, pero su CDN responde 403 a cualquier bot identificado, igual que Do It Center y Novey"
-  },
-  {
-    "id": "arrocha",
-    "name": "Arrocha",
-    "homepage": "https://www.arrocha.com",
-    "searchUrl": "https://www.arrocha.com/catalogsearch/result/?q={q}",
-    "platform": "Magento",
-    "color": "#0a9b49",
-    "enabled": false,
-    "note": "farmacia y cuidado personal, la que más falta hace; su Magento no abre /graphql y el buscador no sirve para leerlo, así que necesita un bot propio como el de Súper 99"
   },
   {
     "id": "sysco",

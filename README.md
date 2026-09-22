@@ -477,10 +477,25 @@ cd mobile && eas build --platform android --profile preview
 
 Al terminar, EAS deja el archivo alojado y da dos direcciones: la de la página de instalación
 (`expo.dev/accounts/isaac1709/projects/mercapty/builds/<id>`, que se abre sin cuenta) y la del archivo suelto
-(`expo.dev/artifacts/eas/<id>.apk`). **La segunda es la que va en `APK_URL`, arriba de
-`public/js/views/app-page.js`**, junto a `APK_VERSION`. Con eso el botón «Descargar para Android» de
-[mercapty.com/app](https://mercapty.com/app) apunta a la versión nueva y ese enlace, que no cambia nunca, es el
-único que hay que compartir. Dejar `APK_URL` vacío esconde el botón.
+(`expo.dev/artifacts/eas/<id>.apk`). Las dos sirven para probar, **pero ninguna dura**: en el plan gratuito EAS
+borra los archivos a los catorce días (la respuesta lo dice, `rule-id="expire-internal-free-builds"`). Si el
+botón de la web apunta ahí, un día deja de funcionar sin avisar.
+
+Por eso el APK se guarda en **Vercel Blob**, el mismo almacenamiento donde van las fotos de los productos:
+
+```bash
+npx vercel env pull .env.local        # una vez: trae BLOB_READ_WRITE_TOKEN
+node --env-file=.env.local scripts/subir-apk.js <enlace del .apk de EAS> 1.2.0
+```
+
+El script baja el archivo, lo sube y escribe la dirección nueva y la versión en `APK_URL` y `APK_VERSION`,
+arriba de `public/js/views/app-page.js`. Después queda commitear y desplegar, y el botón «Descargar para
+Android» de [mercapty.com/app](https://mercapty.com/app) ya entrega la versión nueva; ese enlace no cambia
+nunca y es el único que hay que compartir. Dejar `APK_URL` vacío esconde el botón. Cuando ya nadie use el APK
+anterior, se quita del almacenamiento con `scripts/subir-apk.js --borrar <dirección del blob>`.
+
+El APK pesa unos 145 MB porque lleva el código de todos los procesadores Android en un solo archivo. Por Google
+Play cada teléfono se bajaría bastante menos, porque la tienda le manda solo lo suyo.
 
 Tres cosas de repartir fuera de la tienda: el teléfono pide permiso para instalar de un origen desconocido (la
 página lo explica), AdMob no paga mientras la app no esté en una tienda reconocida, y quien ya la tenga
@@ -676,7 +691,7 @@ AdMob → **Apps** → **Confirmar apps** se enlaza la ficha de Play cuando est�
 ```
 api/index.js    función de Vercel (usa server/app.js)
 connectors/     bots: vtex.js, woocommerce.js, instaleap.js, ribasmith.js, magento.js, shopify.js, super99.js, feed.js
-scripts/        ingest.js: corre los bots y guarda en la base · super99.js: bot de Súper 99 · codigos.js: bot de códigos de barras · lib/pipeline.js
+scripts/        ingest.js: corre los bots y guarda en la base · super99.js: bot de Súper 99 · codigos.js: bot de códigos de barras · subir-apk.js: guarda el APK en Blob · lib/pipeline.js
 server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local), contact.js (contacto)
 public/         shell.html (la plantilla que rellena el servidor), styles.css, js/ (app.js, i18n.js, images.js, views/)
 mobile/         app de Expo: src/app (pantallas), src/components (cerdito, tarjetas…), src/lib (API, lista, ads)

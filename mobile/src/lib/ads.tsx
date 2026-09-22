@@ -95,7 +95,7 @@ export function estadoDeLosAnuncios(): string {
     `Franja: ${ultimaFranja ?? 'todavía sin respuesta (abre Inicio o Buscar y vuelve)'}.`,
     `Pantalla completa: ${ultimoIntersticial ?? 'todavía sin respuesta (entra al Juego y vuelve)'}.`,
     '',
-    '«Sin anuncio disponible» (no fill) quiere decir que Google recibió la petición y contestó que no tenía nada que mandar. Es lo normal mientras la app no esté publicada en una tienda.',
+    '«Sin anuncio» (no fill) quiere decir que Google recibió la petición y contestó que no tenía nada que mandar. Los dos motivos normales son que la cuenta de AdMob siga en revisión («Account not approved yet»: tarda hasta 24 h, a veces semanas) o que la app todavía no esté publicada en una tienda que AdMob reconozca.',
   ].join('\n');
 }
 

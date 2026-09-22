@@ -522,10 +522,16 @@ sus propios identificadores y su propio pago. En la app hay dos clases de anunci
   del cartel del premio, y mientras se ve uno ya se va cargando el siguiente.
 
 Todo vive en `mobile/src/lib/ads.tsx` (y `ads.web.tsx`, que no muestra nada porque la versión web del proyecto usa
-AdSense). **Mientras no pongas tus identificadores, la app usa los de prueba de Google**: se ven anuncios de
-mentira que dicen «Test Ad», sirven para revisar el diseño y no ponen en riesgo la cuenta.
+AdSense). Los identificadores de Mercapty (`pub-9612254533723437`) ya están puestos en `mobile/app.json`. Si se
+dejan vacíos, la app usa los de prueba de Google: anuncios de mentira que dicen «Test Ad», útiles para revisar el
+diseño sin poner en riesgo la cuenta.
 
-### Cómo sacar tus identificadores, paso a paso
+**Para que AdMob pague, la app tiene que estar publicada en una tienda que reconozca** (Google Play, App Store,
+Amazon Appstore, Samsung Galaxy Store, Xiaomi GetApps, OPPO, VIVO). Mientras solo se reparta como APK suelto,
+AdMob da «publicación limitada de anuncios»: sirve para comprobar que todo funciona, pero no entra dinero. En
+AdMob → **Apps** → **Confirmar apps** se enlaza la ficha de Play cuando esté publicada.
+
+### Cómo se sacaron esos identificadores (por si hay que rehacerlo)
 
 1. Entra en [admob.google.com](https://admob.google.com) con la misma cuenta de Google de AdSense y acepta las
    condiciones. AdMob va por debajo de AdSense: si AdSense aún no está aprobado, puedes crear la cuenta igual,
@@ -538,7 +544,7 @@ mentira que dicen «Test Ad», sirven para revisar el diseño y no ponen en ries
    **Intersticial**, `Pantalla completa juego`. Son cuatro bloques en total (dos por plataforma).
 5. Anota el **ID de cada bloque**. Ese lleva barra, no virgulilla: `ca-app-pub-0000000000000000/2222222222`.
 6. Pega los seis números en `mobile/app.json`, sin inventar nada: los de la virgulilla en el bloque del plugin
-   `react-native-google-mobile-ads` (hoy están los de ejemplo de Google) y los de la barra en `extra.admob`:
+   `react-native-google-mobile-ads` y los de la barra en `extra.admob`:
 
    ```json
    "extra": {
@@ -564,7 +570,8 @@ mentira que dicen «Test Ad», sirven para revisar el diseño y no ponen en ries
 ### Cosas que conviene saber
 
 - **No toques tus propios anuncios.** Un par de clics tuyos en la app publicada basta para que Google cierre la
-  cuenta. Para probar están los ID de prueba, que es justo lo que hay puesto ahora.
+  cuenta. Si hace falta probar tocándolos, vacía los cuatro `extra.admob` de `app.json` y compila: con eso vuelven
+  los anuncios de prueba, donde el clic no cuenta.
 - **En Expo Go no salen**, porque AdMob es código nativo y Expo Go no lo trae. `ads.tsx` se da cuenta y la app
   funciona igual, sin anuncios. Para verlos: `npx expo run:android` o una compilación de EAS.
 - **Consentimiento (Europa).** Al arrancar, la app llama a `AdsConsent.gatherConsent()`: en Europa muestra el

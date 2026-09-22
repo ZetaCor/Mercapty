@@ -126,7 +126,26 @@ const SCHEMA = [
     status     TEXT NOT NULL, -- ok | skip (no es de súper) | gone (ya no existe) | error
     PRIMARY KEY (store_id, url)
   )`,
+  // Códigos de barras que el catálogo de la tienda no publica y que el bot de
+  // scripts/codigos.js va a buscar a la ficha de cada producto. Se guardan aparte
+  // para que el bot de precios siga siendo rápido: cuando recorre la tienda, lee
+  // esta tabla y le pega el código a cada oferta.
+  `CREATE TABLE IF NOT EXISTS store_barcodes (
+    store_id   TEXT NOT NULL,
+    sku        TEXT NOT NULL, -- el mismo que guarda la oferta (en Shopify, el id de la variante)
+    gtin       TEXT,          -- ya normalizado a 14 dígitos; vacío si la tienda no lo publica
+    fetched_at TEXT NOT NULL,
+    status     TEXT NOT NULL, -- ok | vacio (la tienda no lo publica) | gone | error
+    PRIMARY KEY (store_id, sku)
+  )`,
 ];
+
+// Los códigos que el bot de scripts/codigos.js ya encontró para una tienda,
+// listos para pegárselos a sus ofertas: sku -> código de barras.
+export async function loadBarcodes(db, storeId) {
+  const rows = await db.all('SELECT sku, gtin FROM store_barcodes WHERE store_id = ? AND gtin IS NOT NULL', [storeId]);
+  return new Map(rows.map((r) => [r.sku, r.gtin]));
+}
 
 function toObjects({ columns, rows }) {
   return rows.map((row) => Object.fromEntries(columns.map((c, i) => [c, row[i]])));
@@ -242,6 +261,10 @@ const PRODUCT_UPSERT = `
         OR (products.brand IS NOT NULL AND instr(lower(products.name), lower(products.brand)) = 0
             AND instr(lower(excluded.name), lower(products.brand)) > 0)
       THEN excluded.name ELSE products.name END,
+    -- Un producto que se guardó sin código de barras lo recibe cuando alguna tienda lo
+    -- trae (hoy, el bot de scripts/codigos.js): sin esto el escáner de la app no lo
+    -- encuentra nunca. El que ya tiene código no se toca.
+    gtin       = COALESCE(products.gtin, excluded.gtin),
     category   = CASE WHEN products.category IS NULL OR products.category = 'Otros' THEN excluded.category ELSE products.category END,
     size_label = COALESCE(products.size_label, excluded.size_label),
     size_value = COALESCE(products.size_value, excluded.size_value),

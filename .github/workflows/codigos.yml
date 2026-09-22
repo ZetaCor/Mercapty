@@ -1,0 +1,57 @@
+# Bot de códigos de barras: las tiendas de Shopify publican su catálogo entero en
+# /products.json, pero ese catálogo nunca trae el código de barras. Son unas 46 000
+# ofertas (Arrocha, El Fuerte, Super Barú, Rodelag, Multimax, Melo) que solo se unen
+# por nombre y que el escáner de la app no encuentra. La ficha de cada producto sí lo
+# trae, en /products/<handle>.js, así que este bot las visita una por una y guarda lo
+# que encuentra en la tabla store_barcodes; el bot de precios se lo pega a cada oferta
+# en su siguiente corrida (ver scripts/codigos.js).
+#
+# Son unos 43 400 productos a visitar. La cola se reparte en dos turnos que corren a la
+# vez y cada uno lee lo que alcanza en 5 horas: la primera vuelta toma unas tres noches.
+# Después casi no hay trabajo, porque un código de barras no cambia y solo hacen falta
+# los productos nuevos. Corre de noche, antes de la corrida de precios de la mañana,
+# para que los códigos de la noche entren ese mismo día.
+name: Códigos de barras
+
+on:
+  schedule:
+    - cron: '7 4 * * *'  # 11:07 p. m. de Panamá (UTC-5)
+  workflow_dispatch:
+    inputs:
+      tiendas:
+        description: 'Solo estas tiendas, separadas por espacios (vacío = todas las de Shopify)'
+        type: string
+        default: ''
+
+concurrency:
+  group: codigos
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false   # que un turno caído no cancele al otro
+      matrix:
+        parte: [0, 1]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # El valor va por variable de entorno, no pegado al comando: así lo que se escriba
+      # en el campo no puede colarse como parte de la orden.
+      - run: npm run codigos -- $TIENDAS
+        env:
+          TIENDAS: ${{ inputs.tiendas }}
+          CODIGOS_PARTE: ${{ matrix.parte }}
+          CODIGOS_PARTES: 2
+          CODIGOS_MINUTES: 300
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}

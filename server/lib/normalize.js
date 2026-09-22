@@ -38,7 +38,11 @@ export function isValidGtin(gtin) {
 // publica "88209972267" en vez de "088209972267"); al rellenar a 14 dígitos
 // ambas formas terminan siendo el mismo código.
 export function normalizeGtin(raw) {
-  const digits = String(raw ?? '').replace(/\D/g, '');
+  let digits = String(raw ?? '').replace(/\D/g, '');
+  // Alguna tienda guarda el código con ceros de más («000030772087381», que es el
+  // UPC 030772087381 con tres ceros delante). Se quitan los que sobran; si aun así
+  // pasa de 14 dígitos, no es un código de barras.
+  if (digits.length > 14) digits = digits.replace(/^0+/, '');
   if (digits.length < 8 || digits.length > 14) return null;
   const gtin = digits.padStart(14, '0');
   // Códigos de circulación interna (prefijos 2, 02 y 04), que cada tienda

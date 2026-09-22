@@ -285,11 +285,26 @@ final, con `npm run resumen`, cuando ya están todas: por eso los bots lo saltan
   Toda tienda Shopify publica su catálogo en
   `/products.json` (hasta 250 productos por página): nombre, marca, tipo, presentación, precio, precio anterior,
   existencias y foto. No trae el código de barras, así que estos productos se unen por nombre, marca y tamaño;
-  los que no dicen su tamaño aparecen solo con el precio de esa tienda. `vendorAliases` unifica marcas
+  los que no dicen su tamaño aparecen solo con el precio de esa tienda; el código se lo consigue aparte
+  `scripts/codigos.js` (más abajo). `vendorAliases` unifica marcas
   («MELO Alimentos» → «Melo») y `categoryMap` traduce los cajones propios de cada tienda a nuestras categorías
   («Dermocosmética» y «Hair Care» de Arrocha → Cuidado personal; «ELECTRO» de El Fuerte → Electrodomésticos).
   Es el bot más barato de sumar: una tienda nueva de Shopify no necesita código, solo su ficha en
   `data/stores.json`.
+- **Códigos de barras** (`scripts/codigos.js`, `npm run codigos`): las tiendas de Shopify publican su catálogo
+  entero en `/products.json`, pero ese catálogo **nunca trae el código de barras**. Son unas 46 000 ofertas
+  (Arrocha, El Fuerte, Super Barú, Rodelag, Multimax y Melo) que solo se unen por nombre, marca y tamaño y que
+  el escáner de la app no encuentra aunque el producto esté en la base. La ficha de cada producto sí lo trae,
+  en `/products/<handle>.js`, con el de todas sus variantes en una sola petición, así que este bot las visita
+  una por una. Corre aparte del de precios (`.github/workflows/codigos.yml`, 11:07 p. m., dos turnos en
+  paralelo de 5 h) y **no lo estorba**: guarda lo que encuentra en la tabla `store_barcodes` y es
+  `scripts/ingest.js` quien, la próxima vez que recorre la tienda, le pega el código a cada oferta. Si este bot
+  falla o va a medias, los precios entran igual. Orden de la cola: primero los productos que otra tienda
+  también vende y todavía no tienen código (los que más ganan: el código los une y los hace escaneables),
+  después los que nunca ha visitado y al final los que toca releer. Un código no cambia, así que se relee cada
+  120 días; lo que dio error, a los dos. Son unos 43 400 productos: la primera vuelta toma unas tres noches y
+  después casi no hay trabajo. Prueba corta: `CODIGOS_MINUTES=2 npm run codigos -- rodelag`.
+  Una tienda se puede dejar fuera con `"barcodes": false` en su conector.
 - **Feed** (`connectors/feed.js`): para tiendas socias que comparten su inventario en CSV/JSON con
   las columnas `sku,gtin,nombre,marca,categoria,presentacion,precio,precio_regular,disponible,url,imagen`
   (ejemplo en `data/feeds/minisuper-ejemplo.csv`).
@@ -629,10 +644,10 @@ AdMob → **Apps** → **Confirmar apps** se enlaza la ficha de Play cuando est�
 ```
 api/index.js    función de Vercel (usa server/app.js)
 connectors/     bots: vtex.js, woocommerce.js, instaleap.js, ribasmith.js, magento.js, shopify.js, super99.js, feed.js
-scripts/        ingest.js: corre los bots y guarda en la base · super99.js: bot de Súper 99 · lib/pipeline.js
+scripts/        ingest.js: corre los bots y guarda en la base · super99.js: bot de Súper 99 · codigos.js: bot de códigos de barras · lib/pipeline.js
 server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storage.js (fotos), index.js (local), contact.js (contacto)
 public/         shell.html (la plantilla que rellena el servidor), styles.css, js/ (app.js, i18n.js, images.js, views/)
 mobile/         app de Expo: src/app (pantallas), src/components (cerdito, tarjetas…), src/lib (API, lista, ads)
 data/           stores.json, feeds/   · generados (fuera de git): mercapty.db, images/, admin-key.txt
-.github/        workflows/precios.yml: bots dos veces al día · super99.yml: Súper 99 cada noche
+.github/        workflows/precios.yml: bots dos veces al día · super99.yml: Súper 99 cada noche · codigos.yml: códigos de barras cada noche
 ```

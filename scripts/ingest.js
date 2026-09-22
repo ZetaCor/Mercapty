@@ -6,7 +6,7 @@
 // Súper 99 se lee producto por producto con su propio bot (scripts/super99.js).
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { openDb, upsertStore, upsertOffers, countInStock, markUnseenOffersOutOfStock, rebuildAggregates, ROOT } from '../server/db.js';
+import { openDb, upsertStore, upsertOffers, countInStock, loadBarcodes, markUnseenOffersOutOfStock, rebuildAggregates, ROOT } from '../server/db.js';
 import { connectors } from '../connectors/index.js';
 import { normalizeOffer, loadMatcher, attachByName, recategorize } from './lib/pipeline.js';
 
@@ -34,9 +34,17 @@ for (const store of stores) {
   const started = Date.now();
   const runStartedAt = new Date().toISOString();
   let offers;
+  let conCodigo = 0;
   try {
     const raw = await connector.fetchOffers(store, { root: ROOT, log: console.log });
-    offers = raw.map((r) => normalizeOffer(store, r)).filter(Boolean);
+    // Códigos de barras que el catálogo de la tienda no publica y que el bot de
+    // scripts/codigos.js ya fue a buscar a la ficha de cada producto (Shopify).
+    const codigos = await loadBarcodes(db, store.id);
+    offers = raw.map((r) => {
+      const gtin = !r.gtin && r.sku ? codigos.get(String(r.sku)) : null;
+      if (gtin) conCodigo++;
+      return normalizeOffer(store, gtin ? { ...r, gtin } : r);
+    }).filter(Boolean);
   } catch (err) {
     failures++;
     console.error(`✗ ${store.name}: ${err.message}`);
@@ -60,7 +68,11 @@ for (const store of stores) {
     console.warn(`  ${store.name}: llegaron muchos menos productos que antes (${offers.length} de ${before}); no se marcan agotados`);
   }
   const seconds = Math.round((Date.now() - started) / 1000);
-  const notes = [joined && `${joined} unidas por nombre`, stale && `${stale} ya no publicadas`].filter(Boolean);
+  const notes = [
+    conCodigo && `${conCodigo} con código de barras guardado`,
+    joined && `${joined} unidas por nombre`,
+    stale && `${stale} ya no publicadas`,
+  ].filter(Boolean);
   console.log(`✓ ${store.name} (${store.connector.type}): ${offers.length} ofertas en ${seconds}s${notes.length ? `, ${notes.join(', ')}` : ''}`);
 }
 

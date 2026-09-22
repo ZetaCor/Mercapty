@@ -165,6 +165,7 @@ Para revisar las uniones: `INGEST_SHOW_MATCHES=1 npm run ingest -- ribasmith`.
 | Mr Precio | WordPress | ⛔ No vende en línea: su web solo tiene sucursales y un PDF de ofertas (es del Grupo Rey) |
 | Titán | Shopify | ✅ Bot activo: publica **25 000 productos** (el tope que Shopify deja leer en `/products.json`), pero solo un 20 % está en existencia, así que aporta unas **4 800 ofertas vivas**. Variedades: hogar, juguetes, cosmética, escolar y electrónica. Ojo: hoy solo el 1,3 % se compara con otra tienda —su catálogo es suyo— y eso debería subir cuando el bot de códigos de barras pase por ella |
 | American Pets | Shopify | ✅ Bot activo: 1 685 productos de mascotas (alimento premium, accesorios y farmacia veterinaria) |
+| PetEntrega | VTEX | ✅ Bot activo: 1 155 productos de mascotas por sus 5 departamentos (perros, gatos, peces, roedores y aves). Pequeña, pero **el 99 % trae código de barras**, así que se une de verdad: el 10,6 % ya se compara con otra tienda, ocho veces más que Titán. Se lee con espera de 2,5 s (`delayMs`) por ser una tienda chica |
 | Foodie Market | Wix | ⛔ No vende en línea: su web es informativa (sucursales, jugos, recetas) y no tiene tienda ni precios; su mapa del sitio son siete páginas y ninguna es de producto. Haría falta un feed suyo |
 
 **Cobertura: todo el catálogo, no una muestra.** Un comparador que no tiene el producto que la persona busca no
@@ -246,7 +247,10 @@ final, con `npm run resumen`, cuando ya están todas: por eso los bots lo saltan
   Trae código de barras, precio, precio regular, disponibilidad, foto y enlace. Si la tienda responde 429
   o 5xx, o se corta la red, espera y reintenta. Sin ese modo, busca los términos de `GROCERY_QUERIES`.
   El id de cada departamento aparece en el campo `categoriesIds` de cualquier producto
-  (`/api/catalog_system/pub/products/search?ft=leche`).
+  (`/api/catalog_system/pub/products/search?ft=leche`), o en el árbol completo
+  (`/api/catalog_system/pub/category/tree/3`). Una tienda chica puede pedir más calma: `delayMs` sube la
+  espera entre peticiones (PetEntrega va a 2,5 s). El CDN de imágenes de VTEX responde 429 a los bots
+  identificados, pero eso no estorba: las fotos las carga el navegador del cliente, no el bot.
 - **WooCommerce** (`connectors/woocommerce.js`): recorre el catálogo completo por la Store API.
 - **Instaleap** (`connectors/instaleap.js`): Supermercados Rey. Con `"mode": "categories"` recorre su árbol
   de categorías completo (`getCategory` + `getProductsByCategory`, 100 productos por página). Sin ese modo

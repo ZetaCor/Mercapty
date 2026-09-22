@@ -352,6 +352,42 @@
     }
   },
   {
+    "id": "petentrega",
+    "name": "PetEntrega",
+    "homepage": "https://www.petentrega.com.pa",
+    "searchUrl": "https://www.petentrega.com.pa/{q}?_q={q}&map=ft",
+    "platform": "VTEX",
+    "color": "#0f766e",
+    "icon": "https://petentregapanama.vteximg.com.br/arquivos/favicon.png",
+    "connector": {
+      "type": "vtex",
+      "mode": "categories",
+      "delayMs": 2500,
+      "departments": [
+        {
+          "id": 1,
+          "name": "Perros"
+        },
+        {
+          "id": 2,
+          "name": "Gatos"
+        },
+        {
+          "id": 59,
+          "name": "Peces"
+        },
+        {
+          "id": 71,
+          "name": "Roedores"
+        },
+        {
+          "id": 81,
+          "name": "Aves"
+        }
+      ]
+    }
+  },
+  {
     "id": "metroplus",
     "name": "Metro Plus",
     "homepage": "https://metroplus.com.pa",

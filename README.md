@@ -660,12 +660,12 @@ AdMob → **Apps** → **Confirmar apps** se enlaza la ficha de Play cuando est�
 - **Por qué no salen anuncios.** En Ajustes, una pulsación larga sobre el título «Versión de la app» abre un
   cuadro con el estado: si el SDK encendió y qué contestó Google a la última franja y al último intersticial.
   Los mensajes que importan:
-  -  — la cuenta de AdMob sigue en revisión. Google revisa toda cuenta nueva antes de
+  - `Account not approved yet` — la cuenta de AdMob sigue en revisión. Google revisa toda cuenta nueva antes de
     aprobarla: normalmente hasta 24 horas, en casos raros hasta dos semanas. Hasta entonces, todas las
     peticiones vuelven vacías aunque esté todo bien puesto. No hay nada que arreglar, solo esperar el correo.
-  -  /  — la petición salió bien y Google contestó que no tenía nada. Con la
+  - `no-fill` / `lack of ad inventory` — la petición salió bien y Google contestó que no tenía nada. Con la
     cuenta ya aprobada, lo que queda por mirar es que la app esté publicada en una tienda reconocida.
-  -  — eso sí es un fallo de la app, y el mensaje dice cuál.
+  - `AdMob no encendió: …` — eso sí es un fallo de la app, y el mensaje dice cuál.
   El inspector de Google, que va a un toque más en ese mismo cuadro, solo abre si el teléfono está registrado
   como dispositivo de pruebas en AdMob (**Configuración** → **Dispositivos de prueba**); sin registrarlo
   contesta «the device is not in test mode».

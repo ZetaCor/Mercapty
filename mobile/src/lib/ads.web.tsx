@@ -6,5 +6,6 @@ export type Intersticial = { listo: boolean; mostrar: () => void };
 const SIN_ANUNCIO: Intersticial = { listo: false, mostrar: () => {} };
 
 export const iniciarAnuncios = () => {};
+export const abrirInspector = (): Promise<void> => Promise.reject(new Error('sin AdMob en la web'));
 export const AdBanner = () => null;
 export const useIntersticial = (): Intersticial => SIN_ANUNCIO;

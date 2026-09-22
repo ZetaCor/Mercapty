@@ -48,6 +48,15 @@ export function iniciarAnuncios() {
     .catch(() => {});
 }
 
+// Inspector de AdMob: abre una pantalla de Google, encima de la app, que dice qué pidió y qué
+// contestó cada bloque («sin relleno», «app no aprobada»…). Es la forma de saber por qué no
+// sale un anuncio sin adivinar. Va escondido detrás de una pulsacion larga en Ajustes, porque
+// es para revisar, no algo que un usuario deba encontrar.
+export function abrirInspector(): Promise<void> {
+  if (!admob) return Promise.reject(new Error('sin AdMob en esta version'));
+  return admob.default().openAdInspector();
+}
+
 type BannerProps = { style?: StyleProp<ViewStyle> };
 
 /** Lo que una pantalla necesita saber del anuncio de pantalla completa. */

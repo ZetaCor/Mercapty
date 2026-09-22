@@ -1,12 +1,14 @@
 // Ajustes de la app: idioma, versión y volver a ver la bienvenida. Se abre con la rueda
 // dentada de la cabecera de Inicio, para no mezclarlos con el contenido de Tiendas.
-import { ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 
 import { UpdateStatus } from '@/components/app-updates';
 import { Button } from '@/components/button';
 import { LangSwitch } from '@/components/lang-switch';
 import { T } from '@/components/text';
+import { useToast } from '@/components/toast';
 import { C, PAD, R } from '@/constants/theme';
+import { abrirInspector } from '@/lib/ads';
 import { useI18n } from '@/lib/i18n';
 import { CAN_NOTIFY, useNotifications, type Prefs } from '@/lib/notifications';
 import { useOnboarding } from '@/lib/onboarding';
@@ -25,6 +27,7 @@ export default function Ajustes() {
   const { t } = useI18n();
   const { reset } = useOnboarding();
   const { estado, prefs, sePuedePreguntar, activar, abrirAjustesDelTelefono, setPref } = useNotifications();
+  const toast = useToast();
   const aviso = (key: keyof Prefs, etiqueta: string) => (
     <Aviso etiqueta={etiqueta} valor={prefs[key]} onChange={(v) => setPref(key, v)} />
   );
@@ -72,7 +75,14 @@ export default function Ajustes() {
       </View>
 
       <View style={styles.block}>
-        <T w={700} size={16} tight accessibilityRole="header">{t('Versión de la app')}</T>
+        {/* Una pulsación larga sobre el título abre el inspector de AdMob, que dice qué pidió
+            y qué contestó cada bloque de anuncios. Va escondido a propósito: es para revisar
+            por qué no sale un anuncio, no algo que un usuario deba encontrar. */}
+        <Pressable
+          onLongPress={() => abrirInspector().catch(() => toast(t('El inspector de anuncios solo abre en la app instalada.')))}
+          delayLongPress={900}>
+          <T w={700} size={16} tight accessibilityRole="header">{t('Versión de la app')}</T>
+        </Pressable>
         <UpdateStatus />
       </View>
 

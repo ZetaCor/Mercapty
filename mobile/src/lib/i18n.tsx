@@ -155,6 +155,7 @@ const EN: Record<string, string> = {
   '¡Hola! Llegué a {n} aciertos en el juego de Mercapty y quiero reclamar mi premio.': 'Hi! I reached {n} hits in the Mercapty game and I would like to claim my prize.',
   'Jugar otra vez': 'Play again',
   Publicidad: 'Advertisement',
+  'El inspector de anuncios solo abre en la app instalada.': 'The ad inspector only opens in the installed app.',
   'Hola, buenos días': 'Hi, good morning',
   'Hola, buenas tardes': 'Hi, good afternoon',
   'Hola, buenas noches': 'Hi, good evening',

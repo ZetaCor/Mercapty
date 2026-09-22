@@ -534,6 +534,18 @@ a.footer-badge:hover { background: var(--brand); }
   .app-hero-visual { order: -1; }
   .app-hero-visual .phone { transform: scale(.8); margin: -40px 0; }
 }
+/* Lo que va debajo de los botones es letra chica, no otro párrafo del texto de arriba: hay que
+   ser más específico que «.app-hero-copy p», que si no les quita el margen y el color. */
+.app-hero-copy .hero-actions { margin-top: 1.75rem; }
+.app-hero-copy .hero-note,
+.app-hero-copy .installed-note { max-width: 46ch; margin: .9rem 0 0; font-size: .85rem; line-height: 1.5; }
+.app-hero-copy .hero-note { color: var(--muted); }
+.app-hero-copy .installed-note { color: var(--good); }
+/* En el celular cada botón ocupa su renglón entero: dos de anchos distintos, uno al lado del
+   otro y pegados a la izquierda, se veían desordenados. */
+@media (max-width: 560px) {
+  .app-hero-copy .hero-actions { display: grid; grid-template-columns: 1fr; }
+}
 .installed-note { margin: 1rem 0 0; color: var(--good); font-weight: 600; }
 .store-badges.on-light .store-badge { background: var(--text); border-color: var(--text); }
 .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1rem; }

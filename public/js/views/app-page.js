@@ -38,7 +38,7 @@ export async function renderAppPage() {
               <button class="btn btn-lg" type="button" data-install hidden>${t('Instalar Mercapty')}</button>
               <button class="btn btn-lg" type="button" data-scroll>${t('Cómo instalarla')}</button>
             </div>
-            ${APK_URL ? html`<p class="meta">${t('Versión {v} para Android. Como todavía no está en Google Play, el teléfono te pedirá permiso para instalarla.', { v: APK_VERSION })}</p>` : ''}
+            ${APK_URL ? html`<p class="hero-note">${t('Versión {v} para Android. Como todavía no está en Google Play, el teléfono te pedirá permiso para instalarla.', { v: APK_VERSION })}</p>` : ''}
             <p class="installed-note" data-installed hidden>${t('✓ Ya tienes Mercapty instalada en este dispositivo.')}</p>
             <div class="store-badges on-light">
               <span class="store-badge">${icons.phone}<span><small>${t('Próximamente en')}</small>App Store</span></span>

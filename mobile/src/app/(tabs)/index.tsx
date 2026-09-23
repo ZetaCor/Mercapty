@@ -95,11 +95,6 @@ export default function Inicio() {
             <Hero meta={meta.data} />
 
             <View style={styles.section}>
-              <SectionHead title={t('Supermercados que comparamos')} action={t('Ver tiendas')} onAction={() => router.navigate('/tiendas')} />
-              <StoreMarquee stores={stores.active} />
-            </View>
-
-            <View style={styles.section}>
               <SectionHead title={t('Categorías')} />
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cats}>
                 {categories.data.map((c) => (
@@ -120,6 +115,14 @@ export default function Inicio() {
             <View style={styles.section}>
               <SectionHead title={t('Donde más ahorras eligiendo bien')} action={t('Ver más')} onAction={() => search({ orden: 'ahorro' })} />
               <ProductGrid items={deals.data} />
+            </View>
+
+            {/* La franja de logos va aquí y no bajo el saludo, igual que en la web: el saludo
+                ya no dice en cuántos supermercados se compara, así que es esta franja la que
+                lo cuenta, y de paso separa la primera tanda de productos del anuncio. */}
+            <View style={styles.section}>
+              <SectionHead title={t('Supermercados que comparamos')} action={t('Ver tiendas')} onAction={() => router.navigate('/tiendas')} />
+              <StoreMarquee stores={stores.active} />
             </View>
 
             <AdBanner style={styles.anuncio} />

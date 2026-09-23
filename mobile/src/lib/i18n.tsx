@@ -159,7 +159,7 @@ const EN: Record<string, string> = {
   'Hola, buenas tardes': 'Hi, good afternoon',
   'Hola, buenas noches': 'Hi, good evening',
   '¿Qué vas a comprar hoy?': 'What are you buying today?',
-  'Hoy comparamos {p} productos y {o} precios {where}. Arma tu canasta y te decimos dónde te costará menos.': 'Today we compare {p} products and {o} prices {where}. Build your basket and we tell you where it costs less.',
+  'Arma tu canasta y te decimos en qué súper te costará menos.': 'Build your basket and we’ll tell you which supermarket costs you less.',
   'Los avisos están apagados en los permisos del teléfono.': 'Alerts are turned off in your phone settings.',
   'Abrir los permisos de Mercapty': 'Open Mercapty permissions',
   'Ahí: Notificaciones → Permitir. Al volver a la app quedan encendidos.': 'There: Notifications → Allow. They turn on when you come back.',

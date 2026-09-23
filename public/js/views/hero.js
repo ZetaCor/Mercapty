@@ -2,23 +2,10 @@
 // canasta y la app que viene). Se desliza con el dedo, con los puntos o las
 // flechas, y avanza solo cada pocos segundos.
 import { html, hl, money, storeAvatar, productMedia, timeAgo, icons } from '../ui.js';
-import { t, lang } from '../i18n.js';
+import { t } from '../i18n.js';
 
 const SLIDE_MS = 7000;
 const BASKET = [['🍚', 'Arroz'], ['🍗', 'Pollo'], ['🥚', 'Huevos'], ['🥛', 'Leche']];
-const listFormat = new Intl.ListFormat(lang, { style: 'long', type: 'conjunction' });
-
-// El número y los nombres salen de las tiendas que hoy tienen precios, para
-// que el texto nunca prometa más supermercados de los que se comparan.
-function activeStores(stores) {
-  const names = [...stores.values()].filter((s) => s.offers > 0).map((s) => s.name);
-  return {
-    where: names.length === 1
-      ? t('en 1 supermercado')
-      : names.length ? t('en {n} supermercados a la vez', { n: names.length }) : t('en los supermercados de Panamá'),
-    list: names.length ? listFormat.format(names) : t('los principales supermercados en línea de Panamá'),
-  };
-}
 
 // Tres productos reales con su mejor precio, flotando junto al texto.
 function priceStack(deals, stores) {
@@ -92,23 +79,20 @@ export function phoneVisual() {
 }
 
 export function renderHero({ meta, stores, deals }) {
-  const { where, list } = activeStores(stores);
   const slides = [
     {
       className: 'slide-main',
       label: t('El precio más bajo de tu canasta'),
       visual: priceStack(deals, stores),
+      // Ni cuántos productos hay ni cuántas tiendas se comparan: de eso habla la franja de
+      // logos, que va más abajo. Aquí solo la promesa y qué hacer con ella.
       body: html`
         <span class="eyebrow">${t('Canasta básica · Panamá')}</span>
-        <h1>${hl(t('El [precio más bajo] de tu canasta básica, {where}.', { where }))}</h1>
-        <p>${t('Mercapty compara arroz, pollo, huevos, leche y decenas de productos en {list}. Arma tu canasta y te decimos exactamente dónde te costará menos.', { list })}</p>
+        <h1>${hl(t('El [precio más bajo] de tu canasta básica.'))}</h1>
+        <p>${t('Mercapty compara arroz, pollo, huevos, leche y decenas de productos del súper. Arma tu canasta y te decimos exactamente dónde te costará menos.')}</p>
         <div class="hero-actions">
           <a class="btn btn-primary btn-lg" href="/buscar">${t('Arma tu canasta')}</a>
           <a class="btn btn-lg" href="/buscar?orden=ahorro">${t('Ver dónde se ahorra más')}</a>
-        </div>
-        <div class="hero-stats">
-          <div><b>${meta.products}</b><span>${t('productos')}</span></div>
-          <div><b>${meta.offers}</b><span>${t('precios comparados')}</span></div>
         </div>
         <div class="meta hero-updated">${t('Precios actualizados {ago}', { ago: timeAgo(meta.updatedAt) })}</div>`,
     },

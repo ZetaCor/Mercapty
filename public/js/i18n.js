@@ -141,8 +141,6 @@ const EN = {
   'No encontramos productos para esa búsqueda.': 'We didn’t find products for that search.',
   'Prueba con otra palabra (por ejemplo «leche», «arroz» o una marca) o': 'Try another word (for example “milk”, “rice” or a brand) or',
   'mira todo el catálogo': 'browse the whole catalog',
-  'en 1 supermercado': 'at 1 supermarket',
-  'en {n} supermercados a la vez': 'at {n} supermarkets at once',
   'en los supermercados de Panamá': 'at Panama’s supermarkets',
   'los principales supermercados en línea de Panamá': 'Panama’s main online supermarkets',
   Arroz: 'Rice',
@@ -159,13 +157,11 @@ const EN = {
   'Escanear código de barras': 'Scan barcode',
   'El precio más bajo de tu canasta': 'The lowest price for your basket',
   'Canasta básica · Panamá': 'Grocery basics · Panama',
-  'El [precio más bajo] de tu canasta básica, {where}.': 'The [lowest price] for your grocery basics, {where}.',
-  'Mercapty compara arroz, pollo, huevos, leche y decenas de productos en {list}. Arma tu canasta y te decimos exactamente dónde te costará menos.':
-    'Mercapty compares rice, chicken, eggs, milk and dozens of products at {list}. Build your basket and we’ll tell you exactly where it will cost you less.',
+  'El [precio más bajo] de tu canasta básica.': 'The [lowest price] for your grocery basics.',
+  'Mercapty compara arroz, pollo, huevos, leche y decenas de productos del súper. Arma tu canasta y te decimos exactamente dónde te costará menos.':
+    'Mercapty compares rice, chicken, eggs, milk and dozens of grocery products. Build your basket and we’ll tell you exactly where it will cost you less.',
   'Arma tu canasta': 'Build your basket',
   'Ver dónde se ahorra más': 'See where you save the most',
-  productos: 'products',
-  'precios comparados': 'prices compared',
   'Precios actualizados {ago}': 'Prices updated {ago}',
   'Arma tu canasta y ahorra en cada compra': 'Build your basket and save on every purchase',
   'Agrega lo que compras cada semana y te decimos si conviene comprar todo en un súper o repartir la compra entre varios.':

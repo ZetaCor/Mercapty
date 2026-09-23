@@ -164,12 +164,32 @@ function wrap(client) {
 // El servidor web no crea las tablas al arrancar: son ~25 sentencias que solo hacen falta
 // cuando los bots escriben, y en Vercel las pagaría cada arranque en frío, o sea la primera
 // visita después de un rato. Si faltaran (base recién creada), la API las crea al vuelo.
+// El cliente de Turso no trae tiempo de espera: si una petición se queda a medias, no vuelve
+// nunca y tampoco lanza error, así que conReintentos —que solo reintenta lo que falla— ni se
+// entera. Por eso el resumen se quedó colgado cuatro veces hasta que GitHub lo mató a los 30
+// minutos, y la web se pasó dos días enseñando cifras viejas con las tiendas nuevas en cero.
+// Con un límite, una petición muerta se corta, se puede reintentar y, si de verdad algo va
+// mal, la corrida falla a la vista en vez de quedarse esperando.
+const TIEMPO_LIMITE = Number(process.env.TURSO_TIMEOUT_MS) || 60000;
+
+function fetchConLimite(input, init = {}) {
+  const limite = AbortSignal.timeout(TIEMPO_LIMITE);
+  const signal = init.signal && typeof AbortSignal.any === 'function'
+    ? AbortSignal.any([init.signal, limite])
+    : init.signal ?? limite;
+  return fetch(input, { ...init, signal });
+}
+
 export async function openDb({ schema = !process.env.VERCEL } = {}) {
   let client;
   if (process.env.TURSO_DATABASE_URL) {
     // Cliente sin módulos nativos: funciona igual en Vercel y en GitHub Actions.
     const { createClient } = await import('@libsql/client/web');
-    client = createClient({ url: process.env.TURSO_DATABASE_URL, authToken: process.env.TURSO_AUTH_TOKEN });
+    client = createClient({
+      url: process.env.TURSO_DATABASE_URL,
+      authToken: process.env.TURSO_AUTH_TOKEN,
+      fetch: fetchConLimite,
+    });
   } else {
     if (process.env.VERCEL || process.env.CI) {
       throw new Error('Falta TURSO_DATABASE_URL: en producción la base de datos debe estar en Turso');
@@ -363,7 +383,7 @@ const REINTENTOS = 3;
 
 // Un tropiezo de red no debe costar la corrida entera. Las sentencias del resumen se pueden
 // repetir sin hacer daño —vuelven a dejar la misma fila—, así que se reintentan con pausa.
-async function conReintentos(fn) {
+export async function conReintentos(fn) {
   for (let intento = 1; ; intento += 1) {
     try {
       return await fn();

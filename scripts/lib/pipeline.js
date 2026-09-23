@@ -4,6 +4,7 @@
 import { storeSearchUrl } from '../../connectors/util.js';
 import { canonicalCategory, categoryFromName, isAlcohol, matchKey, normalizeGtin, parsePack, parseSize, OWN_CATEGORIES } from '../../server/lib/normalize.js';
 import { createMatcher } from '../../server/lib/matching.js';
+import { conReintentos } from '../../server/db.js';
 
 // Convierte la oferta cruda de cualquier conector al formato que guarda la base.
 export function normalizeOffer(store, raw) {
@@ -56,11 +57,11 @@ export async function recategorize(db) {
   const { tope } = await db.get('SELECT COALESCE(MAX(id), 0) AS tope FROM products');
   let cambiados = 0;
   for (let primero = 1; primero <= tope; primero += TANDA) {
-    const changes = (await db.all('SELECT id, name, category FROM products WHERE id BETWEEN ? AND ?', [primero, primero + TANDA - 1]))
+    const changes = (await conReintentos(() => db.all('SELECT id, name, category FROM products WHERE id BETWEEN ? AND ?', [primero, primero + TANDA - 1])))
       .map((p) => ({ id: p.id, from: p.category, to: isAlcohol(p.name) ? 'Licores' : categoryFromName(p.name) }))
       .filter((c) => c.to && c.to !== c.from && !propias.has(c.from));
     for (let i = 0; i < changes.length; i += 200) {
-      await db.batch(changes.slice(i, i + 200).map((c) => ({ sql: 'UPDATE products SET category = ? WHERE id = ?', args: [c.to, c.id] })));
+      await conReintentos(() => db.batch(changes.slice(i, i + 200).map((c) => ({ sql: 'UPDATE products SET category = ? WHERE id = ?', args: [c.to, c.id] }))));
     }
     cambiados += changes.length;
   }

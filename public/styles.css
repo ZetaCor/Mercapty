@@ -176,10 +176,6 @@ select, .input {
 .slide h1 span { background: linear-gradient(90deg, var(--brand), #7c3aed); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .slide-copy p { margin: 0; max-width: 56ch; color: var(--text-2); font-size: 1.05rem; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.5rem; }
-.hero-stats { display: flex; flex-wrap: wrap; gap: 2rem; margin-top: 1.75rem; }
-.hero-stats div { display: flex; flex-direction: column; }
-.hero-stats b { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
-.hero-stats span { color: var(--muted); font-size: .85rem; }
 .hero-updated { margin-top: 1rem; }
 
 /* Visuales del hero */

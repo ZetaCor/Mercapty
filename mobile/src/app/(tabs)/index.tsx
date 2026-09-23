@@ -92,7 +92,7 @@ export default function Inicio() {
             )}
             {/* Si hoy hay día de descuento, es lo primero de la portada; si no, el saludo. */}
             <PromoStrip />
-            <Hero meta={meta.data} names={stores.active.map((s) => s.name)} />
+            <Hero meta={meta.data} />
 
             <View style={styles.section}>
               <SectionHead title={t('Supermercados que comparamos')} action={t('Ver tiendas')} onAction={() => router.navigate('/tiendas')} />
@@ -140,10 +140,10 @@ export default function Inicio() {
 }
 
 // En la app no va el discurso de venta de la portada de la web: quien la abre ya la
-// instaló, y la abre otra vez cada semana. Un saludo, en qué está la base hoy y los dos
-// atajos de siempre. El número de tiendas sale de las que hoy tienen precios, para no
-// prometer más supermercados de los que se comparan.
-function Hero({ meta, names }: { meta: Meta; names: string[] }) {
+// instaló, y la abre otra vez cada semana. Un saludo y los dos atajos de siempre. Cuántos
+// productos y cuántas tiendas se comparan ya no se dicen aquí: de eso habla la franja de
+// logos que va más abajo.
+function Hero({ meta }: { meta: Meta }) {
   const { t } = useI18n();
   const hora = new Date().getHours();
   // De 6 de la mañana a 6 de la tarde es de día: sale el sol y se saluda con «días» o
@@ -152,28 +152,20 @@ function Hero({ meta, names }: { meta: Meta; names: string[] }) {
   const saludo = !dia
     ? t('Hola, buenas noches')
     : hora < 12 ? t('Hola, buenos días') : t('Hola, buenas tardes');
-  const where = names.length === 1
-    ? t('en 1 supermercado')
-    : names.length ? t('en {n} supermercados a la vez', { n: names.length }) : t('en los supermercados de Panamá');
   return (
     <View style={styles.hero}>
-      {/* El saludo va solo en su línea, con el sol o la luna a la derecha: así cabe entero */}
+      {/* El sol y la luna van sueltos junto al saludo. Antes iban dentro de un círculo de
+          color y a ese tamaño el emoji se veía plano, como un disco pintado. */}
       <View style={styles.saludoFila}>
-        <T w={800} size={24} tight numberOfLines={1} style={{ flex: 1 }} accessibilityRole="header">{saludo}</T>
-        <View style={[styles.cielo, { backgroundColor: dia ? C.warnSoft : C.brandSoft }]}>
-          <T size={24} style={{ lineHeight: 30 }}>{dia ? '☀️' : '🌙'}</T>
-        </View>
+        <T w={800} size={24} tight numberOfLines={1} style={{ flexShrink: 1 }} accessibilityRole="header">{saludo}</T>
+        <T size={26} style={{ lineHeight: 32 }} accessibilityElementsHidden>{dia ? '☀️' : '🌙'}</T>
       </View>
       <View style={styles.saludo}>
         <PiggyHello size={62} />
         <View style={{ flex: 1, gap: 4 }}>
           <T w={700} size={16} color={C.brand}>{t('¿Qué vas a comprar hoy?')}</T>
           <T size={15} color={C.text2} style={{ lineHeight: 22 }}>
-            {t('Hoy comparamos {p} productos y {o} precios {where}. Arma tu canasta y te decimos dónde te costará menos.', {
-              p: count(meta.products),
-              o: count(meta.offers),
-              where,
-            })}
+            {t('Arma tu canasta y te decimos en qué súper te costará menos.')}
           </T>
         </View>
       </View>
@@ -222,9 +214,8 @@ const styles = StyleSheet.create({
     experimental_backgroundImage:
       'radial-gradient(circle at 100% 0%, #e8efff 0%, rgba(232, 239, 255, 0) 60%), radial-gradient(circle at 0% 100%, #eafaf2 0%, rgba(234, 250, 242, 0) 55%)',
   },
-  saludoFila: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  saludoFila: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   saludo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  cielo: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   actions: { gap: 10, marginTop: 4 },
   section: { marginTop: 32 },
   cats: { gap: 12, paddingHorizontal: PAD, paddingVertical: 2 },

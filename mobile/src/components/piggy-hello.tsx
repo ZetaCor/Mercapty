@@ -1,9 +1,10 @@
 // El cerdito del logo, de pie, saludando con una moneda de oro en la mano: es
 // public/piggy-hello.svg de la web, rehecho con react-native-svg. El brazo que saluda es una
 // capa aparte, del tamaño del dibujo, que gira desde el hombro con los mismos keyframes del
-// <style> del SVG (animaciones CSS de Reanimated). Queda quieto si el teléfono pide reducir
-// el movimiento.
-import { Platform, StyleSheet, View, type ViewStyle } from 'react-native';
+// <style> del SVG (animaciones CSS de Reanimated). Además el cerdito entero respira y cada
+// tanto le brilla la moneda, así la portada no se siente congelada. Queda todo quieto si el
+// teléfono pide reducir el movimiento.
+import { Platform, StyleSheet, type ViewStyle } from 'react-native';
 import Animated, { useReducedMotion, type CSSAnimationKeyframes } from 'react-native-reanimated';
 import Svg, { Circle, Ellipse, Path, Rect } from 'react-native-svg';
 
@@ -28,14 +29,43 @@ const saludo: CSSAnimationKeyframes = {
   to: { transform: [{ rotate: '0deg' }] },
 };
 
+// El cerdito entero respira: sube y baja un par de píxeles, y se encoge un pelo al caer,
+// como quien toma impulso. Va al ritmo del saludo (los mismos 2 s) para que no se peleen.
+const respirar: CSSAnimationKeyframes = {
+  from: { transform: [{ translateY: 0 }, { scaleY: 1 }] },
+  '25%': { transform: [{ translateY: -2.5 }, { scaleY: 1.015 }] },
+  '55%': { transform: [{ translateY: 0 }, { scaleY: 0.99 }] },
+  '75%': { transform: [{ translateY: -1 }, { scaleY: 1.005 }] },
+  to: { transform: [{ translateY: 0 }, { scaleY: 1 }] },
+};
+
+// La moneda brilla de vez en cuando: un destello corto y una espera larga, así llama la
+// atención sin quedarse parpadeando en la cara de nadie.
+const brillo: CSSAnimationKeyframes = {
+  from: { opacity: 0 },
+  '6%': { opacity: 0.9 },
+  '14%': { opacity: 0 },
+  to: { opacity: 0 },
+};
+
 const Layer = ({ children }: { children: ReactNode }) => (
   <Svg viewBox={`0 0 ${VIEW} ${VIEW}`} style={StyleSheet.absoluteFill}>{children}</Svg>
 );
 
 export function PiggyHello({ size = 64 }: { size?: number }) {
   const still = useReducedMotion();
+  const anima = (name: CSSAnimationKeyframes, duration: number, delay = 0) => (still ? null : {
+    animationName: name,
+    animationDuration: duration,
+    animationTimingFunction: 'ease-in-out' as const,
+    animationIterationCount: 'infinite' as const,
+    animationFillMode: 'backwards' as const,
+    animationDelay: delay,
+  });
   return (
-    <View style={{ width: size, height: size, pointerEvents: 'none' }}>
+    <Animated.View
+      style={[{ width: size, height: size, pointerEvents: 'none', transformOrigin: pivot([48, 89]) },
+        anima(respirar, 2000)]}>
       <Layer>
         <Ellipse cx={48} cy={89} rx={22} ry={3.2} fill="#0f172a" opacity={0.1} />
 
@@ -77,24 +107,21 @@ export function PiggyHello({ size = 64 }: { size?: number }) {
         />
       </Layer>
 
-      {/* el brazo que saluda va por delante de la cabeza y es lo único que se mueve */}
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFill,
-          { transformOrigin: pivot(HOMBRO) },
-          !still && {
-            animationName: saludo,
-            animationDuration: 2000,
-            animationTimingFunction: 'ease-in-out',
-            animationIterationCount: 'infinite',
-            animationFillMode: 'backwards',
-          },
-        ]}>
+      {/* destello sobre la moneda, en su propia capa para que no le cambie el color */}
+      <Animated.View style={[StyleSheet.absoluteFill, anima(brillo, 4200, 700)]}>
+        <Layer>
+          <Path d="M19 60.5v-4M19 81.5v-4M8.5 69h-4M33.5 69h-4" stroke="#fef3c7" strokeWidth={2} strokeLinecap="round" />
+          <Circle cx={16} cy={66} r={2.2} fill="#fffbeb" />
+        </Layer>
+      </Animated.View>
+
+      {/* el brazo que saluda va por delante de la cabeza */}
+      <Animated.View style={[StyleSheet.absoluteFill, { transformOrigin: pivot(HOMBRO) }, anima(saludo, 2000)]}>
         <Layer>
           <Path d="M65 52L75 36" stroke="#f9a8c9" strokeWidth={9} strokeLinecap="round" fill="none" />
           <Circle cx={76} cy={33} r={6.5} fill="#f9a8c9" />
         </Layer>
       </Animated.View>
-    </View>
+    </Animated.View>
   );
 }

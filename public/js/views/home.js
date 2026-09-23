@@ -91,7 +91,6 @@ export async function renderHome({ stores, promos }) {
     html: html`
       ${renderHero({ meta, stores, deals })}
       ${promoStrip(promos, stores)}
-      ${storeMarquee(stores)}
 
       <section class="section">
         <div class="section-head"><h2>${t('Categorías')}</h2></div>
@@ -105,6 +104,11 @@ export async function renderHome({ stores, promos }) {
         </div>
         ${productGrid(deals, stores)}
       </section>
+
+      <!-- La franja de logos va aquí y no bajo el hero: el hero ya no dice cuántas tiendas
+           se comparan, así que esta franja es la que lo cuenta, y de paso separa la primera
+           tanda de productos del anuncio. -->
+      ${storeMarquee(stores)}
 
       ${adSlot('home')}
 

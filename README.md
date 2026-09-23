@@ -461,7 +461,7 @@ App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
 
 ### `runtimeVersion` fijo: qué significa y qué obliga
 
-`mobile/app.json` tiene **`"runtimeVersion": "1.2.0"`**, un valor fijo. Antes era `{ "policy": "appVersion" }`, que
+`mobile/app.json` tiene un **`runtimeVersion` fijo** (hoy `"1.3.0"`). Antes era `{ "policy": "appVersion" }`, que
 lo ataba a la versión visible de la app, y eso hacía inútil el canal de actualizaciones: Expo solo entrega una
 actualización a las apps cuyo `runtimeVersion` coincide, así que al subir la versión a 1.3.0 y publicar,
 **los teléfonos con el APK 1.2.0 no recibían nada** —su runtime era 1.2.0— y no había más remedio que hacer que
@@ -474,9 +474,14 @@ Con el valor fijo, la versión visible y la de compatibilidad se separan:
 | Solo código (pantallas, textos, precios, arreglos) | `eas update` y ya: les llega sola a todos |
 | Algo nativo (librería nueva, permiso, subir de SDK) | **subir `runtimeVersion` a mano**, compilar, publicar el APK y `npm run notify -- version` |
 
-El valor fijo es `1.2.0` y no `1.0.0` a propósito: es el que llevan grabado los APK que ya están instalados
-(la política `appVersion` con versión 1.2.0 daba exactamente esa cadena). Ponerle otro los habría dejado fuera
-del canal de actualizaciones para siempre.
+Al fijarlo se puso `1.2.0` y no `1.0.0` a propósito: era el que llevaban grabado los APK instalados entonces
+(la política `appVersion` con versión 1.2.0 daba exactamente esa cadena), y ponerle otro los habría dejado fuera
+del canal de actualizaciones para siempre. Subió a `1.3.0` con la compilación que trae los ID de app de AdMob
+propios y los paquetes de Expo al día, que son cambios nativos y no viajan por `eas update`.
+
+Los dos números se mueven por separado y significan cosas distintas: `version` es la que ve la gente, y
+`runtimeVersion` es con qué binario es compatible una actualización. Esta vez coinciden porque el cambio es
+nativo; la próxima, si es solo código, sube `version` (o ni eso) y `runtimeVersion` se queda quieto.
 
 **La contrapartida:** con una política automática, Expo subía el runtime solo. Ahora es responsabilidad tuya. Si
 tocas algo nativo y *no* subes el `runtimeVersion`, la actualización llegaría a una app que no tiene ese código
@@ -511,10 +516,10 @@ Por eso el APK no se reparte desde EAS sino desde las **releases de GitHub**, qu
 no caducan ni cobran por las descargas:
 
 ```bash
-node scripts/subir-apk.js <enlace del .apk de EAS> 1.2.0
+node scripts/subir-apk.js <enlace del .apk de EAS> 1.3.0
 ```
 
-El script baja el archivo, publica la release `v1.2.0` con el APK adjunto —siempre con el mismo nombre,
+El script baja el archivo, publica la release `v1.3.0` con el APK adjunto —siempre con el mismo nombre,
 `mercapty.apk`— y pone al día `APK_VERSION` en `public/js/views/app-page.js`. **`APK_URL` no se toca nunca**,
 porque apunta a la última release:
 

@@ -506,6 +506,11 @@ cosas se ven en una compilación de verdad.
 cd mobile && eas build --platform android --profile preview
 ```
 
+**Ojo con la carpeta:** ese `cd mobile` te deja ahí, y lo que viene después se corre **desde la raíz**. Los
+scripts de los bots y los avisos están en el `package.json` de la raíz; el de `mobile/` solo tiene los de Expo
+(`start`, `android`, `ios`, `web`, `lint`). Correr `npm run notify` dentro de `mobile/` responde
+«Missing script: notify».
+
 Al terminar, EAS deja el archivo alojado y da dos direcciones: la de la página de instalación
 (`expo.dev/accounts/isaac1709/projects/mercapty/builds/<id>`, que se abre sin cuenta) y la del archivo suelto
 (`expo.dev/artifacts/eas/<id>.apk`). Las dos sirven para probar, **pero ninguna dura**: en el plan gratuito EAS
@@ -516,7 +521,18 @@ Por eso el APK no se reparte desde EAS sino desde las **releases de GitHub**, qu
 no caducan ni cobran por las descargas:
 
 ```bash
-node scripts/subir-apk.js <enlace del .apk de EAS> 1.3.0
+cd .. && node scripts/subir-apk.js https://expo.dev/…/builds/<id> 1.3.0
+```
+
+Sirve tanto el enlace de la página de la compilación como el del archivo suelto o el puro identificador: si le
+das una página, le pregunta a `eas build:view` cuál es el `.apk`. No le pongas los `<>` alrededor del enlace —en
+la consola de Windows son redirección y el comando no arranca—; el script los quita igual por si acaso, y
+además comprueba que la compilación esté terminada y que su versión sea la que le pasas.
+
+Y para que quien ya tiene la app se entere de que hay otra, **desde la raíz**:
+
+```bash
+npm run notify -- version
 ```
 
 El script baja el archivo, publica la release `v1.3.0` con el APK adjunto —siempre con el mismo nombre,

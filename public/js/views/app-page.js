@@ -12,7 +12,7 @@ import { canInstall, isStandalone, promptInstall } from '../install.js';
 // una versión, scripts/subir-apk.js sube el archivo y solo cambia APK_VERSION.
 // Dejar APK_URL vacío ('') esconde el botón y la página queda como antes.
 const APK_URL = 'https://github.com/ZetaCor/Mercapty/releases/latest/download/mercapty.apk';
-const APK_VERSION = '1.2.0';
+const APK_VERSION = '1.3.0';
 
 // El último dato dice dónde funciona: en la web instalable («web») o solo en la app de
 // Android, que lleva cámara y avisos («android»).

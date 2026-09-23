@@ -36,8 +36,64 @@ function salir(mensaje) {
 
 const gh = (...args) => execFileSync('gh', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
-const [enlace, version] = process.argv.slice(2);
+let [enlace, version] = process.argv.slice(2);
 if (!enlace || !version) salir('Uso: node scripts/subir-apk.js <enlace del .apk de EAS> <versión>');
+
+// Los <> de la ayuda son un hueco para rellenar, no parte del comando: en la consola de
+// Windows «<» es redirección de entrada y el comando ni arranca. Se quitan y ya.
+enlace = enlace.replace(/^<|>$/g, '').trim();
+
+// El enlace que EAS enseña al terminar, y el que sale en la web, es el de la PÁGINA de la
+// compilación, no el del archivo: bajarlo trae HTML. Si se reconoce esa página (o el puro
+// identificador), se le pregunta a `eas` cuál es el .apk de verdad.
+const idDeCompilacion = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(enlace)
+  ? enlace
+  : /\/builds\/([0-9a-f-]{36})/i.exec(enlace)?.[1];
+if (idDeCompilacion) {
+  console.log(`Eso es la página de la compilación; le pregunto a EAS cuál es el archivo…`);
+  let datos;
+  try {
+    // En Windows `eas` es un .cmd y Node se niega a lanzarlo sin shell (EINVAL: es una
+    // protección suya contra inyección). `gh`, que se usa más abajo, es un .exe y por eso
+    // nunca dio guerra. Aquí el shell no abre ninguna puerta: el identificador ya pasó por
+    // la comprobación de arriba y solo puede tener dígitos, letras de la «a» a la «f» y
+    // guiones, así que no hay nada que se pueda colar como parte de la orden.
+    datos = JSON.parse(execFileSync(`eas build:view ${idDeCompilacion} --json`,
+      { cwd: path.join(ROOT, 'mobile'), encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], shell: true }));
+  } catch {
+    salir(`No pude preguntarle a EAS por esa compilación.
+Revisa que \`eas\` tenga sesión iniciada (\`eas whoami\`), o pasa directamente el enlace
+del archivo, del tipo https://expo.dev/artifacts/eas/….apk`);
+  }
+  if (datos.status !== 'FINISHED') salir(`Esa compilación está en ${datos.status}, todavía no hay APK que subir.`);
+  const archivo = datos.artifacts?.applicationArchiveUrl ?? datos.artifacts?.buildUrl;
+  if (!archivo) salir('Esa compilación no tiene archivo descargable.');
+  if (datos.appVersion && datos.appVersion !== version) {
+    salir(`La compilación es la ${datos.appVersion} y le estás poniendo ${version}.
+Publicar una con el número de otra deja la web ofreciendo algo que no es.`);
+  }
+  console.log(`  compilación ${datos.appVersion ?? '?'} (${datos.platform ?? '?'}): ${archivo}`);
+  enlace = archivo;
+}
+
+// El enlace de las releases es la SALIDA de este script, no su entrada: pasárselo bajaría el
+// APK que ya está publicado y lo volvería a subir con un número de versión nuevo. La app
+// vieja con etiqueta nueva, y sin que salte ningún error. Mejor negarse.
+if (enlace.includes(`github.com/${REPO}/releases`)) {
+  salir(`Ese es el enlace del que descarga la web, no el de la compilación.\n`
+    + 'Si se usa, se vuelve a publicar el APK que ya está, con otro número de versión.\n'
+    + 'El que hace falta es el que da EAS al terminar de compilar, del tipo\n'
+    + '  https://expo.dev/artifacts/eas/….apk');
+}
+
+// El número tiene que ser el mismo que tenía mobile/app.json al compilar: es el que quedó
+// dentro del APK y el que decide a qué versión le llegan las actualizaciones.
+const enApp = JSON.parse(await readFile(path.join(ROOT, 'mobile', 'app.json'), 'utf8')).expo?.version;
+if (enApp !== version) {
+  salir(`Pusiste la versión ${version}, pero mobile/app.json dice ${enApp}.\n`
+    + 'El APK lleva dentro la de app.json, así que publicarlo con otro número engaña a quien lo baje.\n'
+    + `Si esta compilación es la ${version}, cambia primero app.json y vuelve a compilar.`);
+}
 
 try {
   gh('auth', 'status');

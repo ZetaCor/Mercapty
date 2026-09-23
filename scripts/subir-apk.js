@@ -141,6 +141,9 @@ console.log('APK_VERSION quedó al día en app-page.js. Falta commitear y desple
 // a quien tenga una versión anterior a la de mobile/app.json, así que primero conviene que
 // esa versión sea la que se acaba de publicar.
 console.log(`
-Para avisar a los celulares de que hay versión nueva:
-  npm run notify -- version           (antes, con NOTIFY_DRY=1 para ver a cuántos iría)
-Solo lo reciben los que tengan una versión anterior a la de mobile/app.json.`);
+Para avisar a los celulares de que hay versión nueva, desde GitHub:
+  Actions → «Avisos de la mañana» → Run workflow → Qué avisar: version
+Ahí están las credenciales de Turso, que es donde se registran los teléfonos. Corriendo
+"npm run notify -- version" en esta máquina, sin esas credenciales, se mira la base local
+—vacía— y no se avisa a nadie. Solo lo reciben los que tengan una versión anterior a la de
+mobile/app.json, así que primero conviene desplegar la web con APK_VERSION al día.`);

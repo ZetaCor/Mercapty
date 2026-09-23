@@ -20,6 +20,7 @@ on:
           - lista
           - promos
           - ofertas
+          - version
 
 concurrency:
   group: avisos

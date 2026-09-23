@@ -305,6 +305,12 @@ if (!['lista', 'promos', 'ofertas', 'prueba', 'version'].includes(kind)) {
   process.exit(1);
 }
 
+// Sin las credenciales de Turso esto habla con la base local, que en una máquina de trabajo
+// está vacía: decía «0 teléfonos registrados» y parecía que no había a quién avisar, cuando
+// lo que pasaba es que estaba mirando donde no era. Ahora lo dice antes de nada.
+const enTurso = Boolean(process.env.TURSO_DATABASE_URL);
+console.log(enTurso ? 'Base: Turso (producción).' : 'Base: el archivo local data/mercapty.db (no hay TURSO_DATABASE_URL).');
+
 const db = await openDb();
 const devices = (await db.all('SELECT token, lang, prefs, products, version FROM devices')).map(parseDevice);
 const messages = devices.length
@@ -319,6 +325,10 @@ if (kind === 'lista') {
 
 if (!messages.length) {
   console.log(`Nada que avisar (${kind}): ${devices.length} teléfonos registrados.`);
+  if (!devices.length && !enTurso) {
+    console.log(`  Ningún teléfono se registra contra la base local: los de verdad están en Turso.
+  Desde GitHub: Actions → «Avisos de la mañana» → Run workflow, y ahí se elige cuál mandar.`);
+  }
 } else if (DRY) {
   console.log(`Prueba (${kind}): ${messages.length} avisos, no se envió nada.`);
   for (const m of messages.slice(0, 5)) {

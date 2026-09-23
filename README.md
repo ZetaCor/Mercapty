@@ -450,11 +450,37 @@ App nativa hecha con **Expo** (React Native, SDK 57). Lee la misma API de la web
   registrados, sin mirar preferencias. Desde GitHub: Actions → «Avisos de la mañana» → *Run workflow*, y ahí se
   elige cuál mandar.
 - **Los avisos necesitan una compilación nueva, no una actualización.** `expo-notifications` es código nativo: una
-  app ya instalada no lo tiene y no lo puede descargar. Por eso, al añadirlos, la versión de `mobile/app.json` sube
-  a 1.1.0: como `runtimeVersion` sigue a la versión, las actualizaciones nuevas ya no le llegan a la app 1.0.0 (que
-  se rompería al abrirlas) y sí a la que se compile a partir de ahora. Siempre que se agregue una librería nativa,
-  hay que subir la versión antes de publicar la actualización.
+  app ya instalada no lo tiene y no lo puede descargar. Siempre que se agregue una librería nativa hay que subir
+  el `runtimeVersion` antes de publicar la actualización, o la app vieja se rompería al abrirla.
+- **Aviso de versión nueva:** `npm run notify -- version`. Publicar un APK no avisa a nadie por sí solo, así que
+  este es el único modo de que quien ya tiene la app se entere de que hay otra que descargar. Cada teléfono manda
+  al registrarse la versión que tiene instalada, y el aviso va solo a los que estén por debajo de la de
+  `mobile/app.json`: quien ya actualizó no recibe nada. Los que nunca dijeron su versión sí lo reciben.
+  `scripts/subir-apk.js` lo recuerda al terminar de publicar.
 - Íconos y splash (`mobile/assets/images/`) salen de `public/icon.svg` y `public/loader.svg`.
+
+### `runtimeVersion` fijo: qué significa y qué obliga
+
+`mobile/app.json` tiene **`"runtimeVersion": "1.2.0"`**, un valor fijo. Antes era `{ "policy": "appVersion" }`, que
+lo ataba a la versión visible de la app, y eso hacía inútil el canal de actualizaciones: Expo solo entrega una
+actualización a las apps cuyo `runtimeVersion` coincide, así que al subir la versión a 1.3.0 y publicar,
+**los teléfonos con el APK 1.2.0 no recibían nada** —su runtime era 1.2.0— y no había más remedio que hacer que
+todo el mundo se bajara un APK por cada cambio, aunque fuera de una línea de JavaScript.
+
+Con el valor fijo, la versión visible y la de compatibilidad se separan:
+
+| Qué cambias | Qué hay que hacer |
+|---|---|
+| Solo código (pantallas, textos, precios, arreglos) | `eas update` y ya: les llega sola a todos |
+| Algo nativo (librería nueva, permiso, subir de SDK) | **subir `runtimeVersion` a mano**, compilar, publicar el APK y `npm run notify -- version` |
+
+El valor fijo es `1.2.0` y no `1.0.0` a propósito: es el que llevan grabado los APK que ya están instalados
+(la política `appVersion` con versión 1.2.0 daba exactamente esa cadena). Ponerle otro los habría dejado fuera
+del canal de actualizaciones para siempre.
+
+**La contrapartida:** con una política automática, Expo subía el runtime solo. Ahora es responsabilidad tuya. Si
+tocas algo nativo y *no* subes el `runtimeVersion`, la actualización llegaría a una app que no tiene ese código
+nativo y se rompería al abrirla. Ante la duda, súbelo: como mucho obligas a una descarga de más.
 
 Probarla en tu celular, sin emulador:
 

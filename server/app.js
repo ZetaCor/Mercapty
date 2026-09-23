@@ -75,8 +75,15 @@ const CACHE_READ = 'public, max-age=0, s-maxage=600, stale-while-revalidate=8640
 // Los días de descuento cambian al cambiar el día: se guardan poco y sin servir copias viejas.
 const CACHE_PROMOS = 'public, max-age=0, s-maxage=600';
 
+// En producción la API no necesita CORS: la web va en el mismo dominio y la app es nativa,
+// que no pasa por esa regla. En local sí hace falta, porque `expo start --web` sirve la app
+// desde otro puerto y sin esta cabecera el navegador corta las llamadas y la app aparece
+// como «Sin conexión»: así se puede revisar un cambio sin compilar el APK. Nunca se manda
+// desde Vercel, para no abrir la API pública a cualquier sitio.
+const CORS_LOCAL = process.env.VERCEL ? null : { 'Access-Control-Allow-Origin': '*' };
+
 function sendJson(res, status, body, cache = 'no-store') {
-  res.writeHead(status, { 'Content-Type': MIME['.json'], 'Cache-Control': cache });
+  res.writeHead(status, { 'Content-Type': MIME['.json'], 'Cache-Control': cache, ...CORS_LOCAL });
   res.end(JSON.stringify(body));
 }
 
@@ -427,6 +434,19 @@ async function route(req, res) {
   const { pathname, searchParams } = new URL(req.url, 'http://localhost');
   const get = req.method === 'GET' || req.method === 'HEAD';
   let m;
+
+  // Antes de un POST desde otro puerto el navegador pregunta si puede (OPTIONS). Solo en
+  // local, por lo mismo que CORS_LOCAL: si no se le contesta, la app en `expo start --web`
+  // no puede guardar la lista ni registrar el teléfono para los avisos.
+  if (CORS_LOCAL && req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      ...CORS_LOCAL,
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    });
+    return res.end();
+  }
 
   // Rutas que no necesitan la base de datos.
   if (get && (m = LOCAL_IMAGE_RE.exec(pathname))) {

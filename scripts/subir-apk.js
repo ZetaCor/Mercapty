@@ -80,3 +80,11 @@ await writeFile(PAGINA, antes.replace(linea, `const APK_VERSION = '${version}';`
 console.log(`\nPublicado: https://github.com/${REPO}/releases/tag/${etiqueta}`);
 console.log(`Lo baja el botón desde: https://github.com/${REPO}/releases/latest/download/${NOMBRE}`);
 console.log('APK_VERSION quedó al día en app-page.js. Falta commitear y desplegar.');
+// Publicar el APK no avisa a nadie: los teléfonos no se enteran solos de que hay uno nuevo
+// (eso solo pasa con EAS Update, que cambia el código pero no la app instalada). El aviso va
+// a quien tenga una versión anterior a la de mobile/app.json, así que primero conviene que
+// esa versión sea la que se acaba de publicar.
+console.log(`
+Para avisar a los celulares de que hay versión nueva:
+  npm run notify -- version           (antes, con NOTIFY_DRY=1 para ver a cuántos iría)
+Solo lo reciben los que tengan una versión anterior a la de mobile/app.json.`);

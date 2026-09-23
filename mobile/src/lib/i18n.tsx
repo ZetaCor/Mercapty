@@ -290,6 +290,7 @@ const EN: Record<string, string> = {
   'Bajó de precio algo de mi lista': 'Something in my list dropped in price',
   'Día de descuento de un súper': 'A supermarket’s discount day',
   'Ofertas del día': 'Deals of the day',
+  'Hay una versión nueva de la app': 'There’s a new version of the app',
   'Dijiste que no a los avisos. Se vuelven a activar desde los ajustes del teléfono.': 'You said no to alerts. Turn them back on in your phone’s settings.',
   'Te avisamos cuando baje de precio algo de tu lista o haya día de descuento en un súper.': 'We’ll let you know when something in your list drops in price or a supermarket has a discount day.',
   'Activar avisos': 'Turn on alerts',

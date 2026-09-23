@@ -5,11 +5,15 @@
 //   npm run notify -- promos    el día de descuento de hoy («Martes de frutas y verduras»)
 //   npm run notify -- ofertas   la rebaja más grande del día
 //   npm run notify -- prueba    un aviso de prueba a todos los teléfonos registrados
+//   npm run notify -- version   hay una versión nueva de la app, solo a quien va atrasado
 //
 // Con NOTIFY_DRY=1 no envía nada: solo imprime lo que mandaría, para probar.
 // Lo corre GitHub Actions: «lista» después de cada corrida de los bots y los otros dos por
 // la mañana (.github/workflows/avisos.yml).
-import { openDb } from '../server/db.js';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+
+import { openDb, ROOT } from '../server/db.js';
 import { productPath } from '../server/lib/normalize.js';
 import { activePromos } from '../server/promos.js';
 
@@ -45,6 +49,10 @@ const TEXTS = {
       title: 'Aviso de prueba',
       body: 'Si ves esto, los avisos de Mercapty funcionan en este teléfono.',
     }),
+    version: (v) => ({
+      title: `Mercapty ${v} ya está lista`,
+      body: 'Toca para descargar la versión nueva desde mercapty.com.',
+    }),
   },
   en: {
     dropOne: (d, store) => ({
@@ -72,6 +80,10 @@ const TEXTS = {
       title: 'Test alert',
       body: 'If you can read this, Mercapty alerts work on this phone.',
     }),
+    version: (v) => ({
+      title: `Mercapty ${v} is ready`,
+      body: 'Tap to download the new version from mercapty.com.',
+    }),
   },
 };
 
@@ -82,8 +94,9 @@ function parseDevice(row) {
   return {
     token: row.token,
     lang: row.lang === 'en' ? 'en' : 'es',
-    prefs: { lista: true, promos: true, ofertas: false, ...json(row.prefs, {}) },
+    prefs: { lista: true, promos: true, ofertas: false, version: true, ...json(row.prefs, {}) },
     products: json(row.products, []),
+    version: row.version ?? null,
   };
 }
 
@@ -194,6 +207,34 @@ async function fromTest(db, devices) {
   return devices.map((device) => ({ to: device.token, ...texts(device.lang).test(), data: { path: '/ajustes' } }));
 }
 
+// Aviso de versión nueva de la app. Solo a quien va atrasado: cada teléfono guarda al
+// registrarse la versión que tiene instalada, así que se compara con la de mobile/app.json y
+// se salta a quien ya actualizó. Los que nunca dijeron su versión (se registraron antes de
+// que existiera este dato) sí reciben el aviso: es mejor avisar de más que dejar a alguien
+// sin enterarse, que es justo lo que pasaba antes.
+function esAnterior(instalada, actual) {
+  if (!instalada) return true;
+  const partes = (v) => String(v).split('.').map(Number);
+  const [a, b] = [partes(instalada), partes(actual)];
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const x = a[i] ?? 0;
+    const y = b[i] ?? 0;
+    if (x !== y) return x < y;
+  }
+  return false;
+}
+
+async function fromVersion(db, devices) {
+  const actual = JSON.parse(readFileSync(path.join(ROOT, 'mobile', 'app.json'), 'utf8')).expo.version;
+  const atrasados = devices.filter((d) => d.prefs.version !== false && esAnterior(d.version, actual));
+  console.log(`  versión publicada: ${actual}; ${atrasados.length} de ${devices.length} teléfonos por debajo`);
+  return atrasados.map((device) => ({
+    to: device.token,
+    ...texts(device.lang).version(actual),
+    data: { path: '/ajustes', url: 'https://mercapty.com/app' },
+  }));
+}
+
 const storeNames = async (db) => new Map((await db.all('SELECT id, name FROM stores')).map((s) => [s.id, s.name]));
 
 // La foto del producto, a todo color, dentro del aviso desplegado. El ícono pequeño de la
@@ -259,15 +300,15 @@ async function send(db, messages) {
 // --- Programa ---
 
 const kind = process.argv[2] ?? 'lista';
-if (!['lista', 'promos', 'ofertas', 'prueba'].includes(kind)) {
-  console.error('Uso: npm run notify -- lista | promos | ofertas | prueba');
+if (!['lista', 'promos', 'ofertas', 'prueba', 'version'].includes(kind)) {
+  console.error('Uso: npm run notify -- lista | promos | ofertas | prueba | version');
   process.exit(1);
 }
 
 const db = await openDb();
-const devices = (await db.all('SELECT token, lang, prefs, products FROM devices')).map(parseDevice);
+const devices = (await db.all('SELECT token, lang, prefs, products, version FROM devices')).map(parseDevice);
 const messages = devices.length
-  ? await ({ lista: fromDrops, promos: fromPromos, ofertas: fromDeals, prueba: fromTest })[kind](db, devices)
+  ? await ({ lista: fromDrops, promos: fromPromos, ofertas: fromDeals, prueba: fromTest, version: fromVersion })[kind](db, devices)
   : [];
 
 // Lo que bajó ya se avisó: no se repite en la próxima corrida, la siga quien la siga.

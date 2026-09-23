@@ -47,6 +47,7 @@ export default function Ajustes() {
             {aviso('lista', t('Bajó de precio algo de mi lista'))}
             {aviso('promos', t('Día de descuento de un súper'))}
             {aviso('ofertas', t('Ofertas del día'))}
+            {aviso('version', t('Hay una versión nueva de la app'))}
           </>
         ) : estado === 'negado' ? (
           // Si el teléfono todavía deja preguntar, se vuelve a preguntar desde aquí; si ya no

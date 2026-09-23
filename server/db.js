@@ -101,6 +101,7 @@ const SCHEMA = [
     lang       TEXT,
     prefs      TEXT NOT NULL, -- JSON: qué avisos quiere
     products   TEXT NOT NULL, -- JSON: ids de «Mi lista»
+    version    TEXT,          -- versión de la app instalada, para avisar solo a quien va atrasado
     updated_at TEXT NOT NULL
   )`,
   // Bajadas de precio desde la corrida anterior, para avisar a los celulares que siguen ese
@@ -244,15 +245,17 @@ export async function createSearchIndex(db) {
   }
 }
 
-// Columnas de tiendas que llegaron después: las bases ya creadas las reciben aquí.
-const STORE_COLUMNS = ['logo', 'icon', 'logo_bg'];
+// Columnas que llegaron después: las bases ya creadas las reciben aquí.
+const NUEVAS_COLUMNAS = { stores: ['logo', 'icon', 'logo_bg'], devices: ['version'] };
 async function addStoreColumns(db) {
-  const have = new Set((await db.all('PRAGMA table_info(stores)')).map((c) => c.name));
-  for (const column of STORE_COLUMNS.filter((c) => !have.has(c))) {
-    try {
-      await db.run(`ALTER TABLE stores ADD COLUMN ${column} TEXT`);
-    } catch (err) {
-      if (!/duplicate column/i.test(err.message)) throw err; // otra instancia la agregó a la vez
+  for (const [tabla, columnas] of Object.entries(NUEVAS_COLUMNAS)) {
+    const have = new Set((await db.all(`PRAGMA table_info(${tabla})`)).map((c) => c.name));
+    for (const column of columnas.filter((c) => !have.has(c))) {
+      try {
+        await db.run(`ALTER TABLE ${tabla} ADD COLUMN ${column} TEXT`);
+      } catch (err) {
+        if (!/duplicate column/i.test(err.message)) throw err; // otra instancia la agregó a la vez
+      }
     }
   }
 }

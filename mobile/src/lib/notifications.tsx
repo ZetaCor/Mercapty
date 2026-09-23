@@ -17,11 +17,13 @@ import { useI18n } from './i18n';
 import { useList } from './list';
 import { useOnboarding } from './onboarding';
 
-export type Prefs = { lista: boolean; promos: boolean; ofertas: boolean };
+export type Prefs = { lista: boolean; promos: boolean; ofertas: boolean; version: boolean };
 
-// Lo de la lista y el día de descuento vienen encendidos; las ofertas del día, apagadas:
-// son las que más avisan y conviene que cada quien las prenda.
-const DEFAULT_PREFS: Prefs = { lista: true, promos: true, ofertas: false };
+// Lo de la lista, el día de descuento y la versión nueva vienen encendidos; las ofertas del
+// día, apagadas: son las que más avisan y conviene que cada quien las prenda. El de la
+// versión avisa poquísimo —una vez por publicación— y sin él no hay forma de enterarse de
+// que hay una app nueva que descargar.
+const DEFAULT_PREFS: Prefs = { lista: true, promos: true, ofertas: false, version: true };
 const KEY = 'mercapty:notificaciones';
 const KEY_PEDIDO = 'mercapty:avisos-pedidos';
 
@@ -95,10 +97,19 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   // Se guarda en el servidor el token con lo que quiere recibir y los productos que sigue.
   const registrar = (next: Prefs, productos = idsRef.current) => {
     if (!token.current) return;
-    const nada = !next.lista && !next.promos && !next.ofertas;
+    const nada = !next.lista && !next.promos && !next.ofertas && !next.version;
+    // Se manda también la versión instalada: con ella el aviso de app nueva va solo a quien
+    // va atrasado (ver scripts/notify.js).
     postJson('/api/devices', nada
       ? { token: token.current, remove: true }
-      : { token: token.current, platform: Platform.OS, lang, prefs: next, products: productos },
+      : {
+        token: token.current,
+        platform: Platform.OS,
+        lang,
+        prefs: next,
+        products: productos,
+        version: Constants.expoConfig?.version ?? null,
+      },
     ).catch(() => {});
   };
 

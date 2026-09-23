@@ -582,17 +582,21 @@ export function createApi(db) {
 
   // Avisos al celular: se guarda el token con lo que quiere recibir y los productos que
   // sigue. Se queda con los primeros 200 para que un envío raro no llene la fila.
-  function saveDevice({ token, platform, lang, prefs, products }) {
+  // `version` es la de la app instalada en ese teléfono: con ella el aviso de versión nueva
+  // se manda solo a quien va atrasado, y no a quien ya actualizó.
+  function saveDevice({ token, platform, lang, prefs, products, version }) {
     return db.run(`
-      INSERT INTO devices (token, platform, lang, prefs, products, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO devices (token, platform, lang, prefs, products, version, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(token) DO UPDATE SET platform = excluded.platform, lang = excluded.lang,
-        prefs = excluded.prefs, products = excluded.products, updated_at = excluded.updated_at`, [
+        prefs = excluded.prefs, products = excluded.products, version = excluded.version,
+        updated_at = excluded.updated_at`, [
       token,
       platform === 'ios' ? 'ios' : 'android',
       lang === 'en' ? 'en' : 'es',
       JSON.stringify(prefs ?? {}),
       JSON.stringify((Array.isArray(products) ? products : []).filter(Number.isInteger).slice(0, 200)),
+      /^\d+(\.\d+){0,2}$/.test(String(version ?? '')) ? String(version) : null,
       new Date().toISOString(),
     ]);
   }

@@ -86,7 +86,10 @@ jobs:
     needs: bots
     if: always()
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Rehacer el resumen crece con el catálogo. Con 30 minutos GitHub lo cortaba a medias y la
+    # web se quedaba con las cifras viejas: las tiendas nuevas salían con cero productos aunque
+    # sus bots hubieran terminado bien.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

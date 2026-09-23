@@ -45,15 +45,26 @@ export function normalizeOffer(store, raw) {
 // Los productos de las tiendas que no son súper ya vienen en su categoría buena y no se
 // tocan: aquí solo se arregla lo que las tiendas de súper guardaron en la sección
 // equivocada (ver OWN_CATEGORIES en server/lib/normalize.js).
+// Se lee por tandas de ids, no la tabla entera. Con Turso la base está al otro lado de la red:
+// pedir los 123 000 productos de una vez dejó colgado el resumen más de media hora y GitHub lo
+// cortó, así que la web se quedó sin recalcular y las tiendas nuevas salían con cero productos.
+// rebuildAggregates ya trabajaba así; esto le faltaba.
+const TANDA = 5000;
+
 export async function recategorize(db) {
   const propias = new Set(OWN_CATEGORIES.values());
-  const changes = (await db.all('SELECT id, name, category FROM products'))
-    .map((p) => ({ id: p.id, from: p.category, to: isAlcohol(p.name) ? 'Licores' : categoryFromName(p.name) }))
-    .filter((c) => c.to && c.to !== c.from && !propias.has(c.from));
-  for (let i = 0; i < changes.length; i += 200) {
-    await db.batch(changes.slice(i, i + 200).map((c) => ({ sql: 'UPDATE products SET category = ? WHERE id = ?', args: [c.to, c.id] })));
+  const { tope } = await db.get('SELECT COALESCE(MAX(id), 0) AS tope FROM products');
+  let cambiados = 0;
+  for (let primero = 1; primero <= tope; primero += TANDA) {
+    const changes = (await db.all('SELECT id, name, category FROM products WHERE id BETWEEN ? AND ?', [primero, primero + TANDA - 1]))
+      .map((p) => ({ id: p.id, from: p.category, to: isAlcohol(p.name) ? 'Licores' : categoryFromName(p.name) }))
+      .filter((c) => c.to && c.to !== c.from && !propias.has(c.from));
+    for (let i = 0; i < changes.length; i += 200) {
+      await db.batch(changes.slice(i, i + 200).map((c) => ({ sql: 'UPDATE products SET category = ? WHERE id = ?', args: [c.to, c.id] })));
+    }
+    cambiados += changes.length;
   }
-  return changes.length;
+  return cambiados;
 }
 
 // Productos que las demás tiendas tienen disponibles: contra ellos se une por

@@ -15,10 +15,12 @@ name: Actualizar precios
 
 on:
   schedule:
-    # 5:17 a. m. y 5:17 p. m. de Panamá (UTC-5). Con el repositorio público los minutos de
-    # GitHub Actions no se cobran. Si vuelve a ser privado (2 000 min gratis al mes), dejar
-    # una sola corrida: '17 10 * * *'.
-    - cron: '17 10,22 * * *'
+    # 5:17 a. m. de Panamá (UTC-5), una vez al día. Antes eran dos ('17 10,22 * * *') y lo que
+    # las quitó no fueron los minutos de GitHub —el repositorio es público y no se cobran—
+    # sino las escrituras de Turso: cada corrida reescribe todas las ofertas, cambien o no,
+    # unas 300 000 filas, y con dos al día el plan Developer (25 millones al mes) se agota y
+    # bloquea la base entera. Los precios de súper no cambian dos veces al día.
+    - cron: '17 10 * * *'
   workflow_dispatch:         # botón «Run workflow» para correrlo a mano
     inputs:
       solo_resumen:

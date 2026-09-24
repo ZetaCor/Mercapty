@@ -4,7 +4,7 @@ Comparador de precios de supermercados en línea de Panamá. El cliente busca un
 precio en cada tienda, cuál lo tiene más barato, y con un clic va a esa tienda a comprarlo.
 También arma una lista de compras y calcula si conviene comprar todo en un solo súper o repartir.
 
-Los precios los recogen **bots propios** que recorren las webs de los súper dos veces al día (Súper 99,
+Los precios los recogen **bots propios** que recorren las webs de los súper una vez al día (Súper 99,
 cada noche).
 
 ## Qué hace
@@ -209,7 +209,7 @@ Los cambios llegan a la web la próxima vez que corren los bots.
    crea `TURSO_DATABASE_URL` y `TURSO_AUTH_TOKEN` con los mismos valores del paso 1.
 5. **Redeploy** en Vercel para que tome las variables.
 6. **Primera carga de precios:** en GitHub → **Actions** → **Actualizar precios** → **Run workflow**.
-   Después corre sola dos veces al día (5:17 a. m. y 5:17 p. m. de Panamá). Súper 99 tiene su propio
+   Después corre sola una vez al día (5:17 a. m. de Panamá). Súper 99 tiene su propio
    trabajo, **Súper 99**, que corre cada noche a las 10:07 p. m.
 
 Panel de imágenes en producción: `https://mercapty.com/admin` (pide la `ADMIN_KEY`).
@@ -322,12 +322,25 @@ final, con `npm run resumen`, cuando ya están todas: por eso los bots lo saltan
   las columnas `sku,gtin,nombre,marca,categoria,presentacion,precio,precio_regular,disponible,url,imagen`
   (ejemplo en `data/feeds/minisuper-ejemplo.csv`).
 
+**Por qué una corrida al día y no dos.** No es por los minutos de GitHub, que en un repositorio público no se
+cobran, sino por las **escrituras de Turso**. Cada corrida reescribe todas las ofertas, cambien o no: dos
+escrituras por oferta (el producto y la oferta), unas 300 000 por corrida. Con dos corridas diarias eso pasa de
+los 25 millones al mes del plan Developer, y al superar cualquier métrica Turso **bloquea la base entera** —el
+error dice «reads are blocked», pero lo que se agotó pueden ser las escrituras—. La web se cae con ella. Pasó el
+23 de septiembre de 2026. Los precios de súper no cambian dos veces al día, así que la mitad de esas escrituras
+no compraba nada.
+
+El arreglo de fondo está pendiente: el plan da **100 lecturas por cada escritura** (2 500 millones contra 25),
+y el pipeline hace lo contrario —escribe 300 000 filas para averiguar qué cambió—. Se puede dar la vuelta:
+leer los SKU de la tienda, que es barato, y escribir solo lo que de verdad cambió. Hoy no se hace porque
+`updated_at` es lo que luego detecta qué productos desaparecieron (`markUnseenOffersOutOfStock`).
+
 Cuidados que tienen los bots:
 - Se identifican como `MercaptyBot` y esperan 1.5 s entre peticiones.
 - Si una tienda no responde o devuelve 0 productos, no se toca lo guardado.
 - Si llegan muchos menos productos que la vez anterior, no se marca nada como agotado.
 - Un recorrido completo tarda cerca de una hora (Super Carnes unos 24 minutos, Super Xtra 8 y El Machetazo 6,
-  porque se leen completos) y corre dos veces al día. El repositorio es público, así que los minutos de GitHub Actions no
+  porque se leen completos) y corre una vez al día. El repositorio es público, así que los minutos de GitHub Actions no
   tienen límite. Si vuelve a ser privado (2 000 minutos gratis al mes), hay que dejar una sola corrida
   (`cron: '17 10 * * *'`) y apagar la de Súper 99, que por sí sola usa unas 16 horas cada noche (tres turnos
   de cinco); para dejarla en una sola, basta con poner `parte: [0]` y `SUPER99_PARTES: 1` en su workflow.
@@ -768,5 +781,5 @@ server/         app.js (rutas), api.js (consultas), db.js (Turso/SQLite), storag
 public/         shell.html (la plantilla que rellena el servidor), styles.css, js/ (app.js, i18n.js, images.js, views/)
 mobile/         app de Expo: src/app (pantallas), src/components (cerdito, tarjetas…), src/lib (API, lista, ads)
 data/           stores.json, feeds/   · generados (fuera de git): mercapty.db, images/, admin-key.txt
-.github/        workflows/precios.yml: bots dos veces al día · super99.yml: Súper 99 cada noche · codigos.yml: códigos de barras cada noche
+.github/        workflows/precios.yml: bots una vez al día · super99.yml: Súper 99 cada noche · codigos.yml: códigos de barras cada noche
 ```

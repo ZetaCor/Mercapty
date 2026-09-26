@@ -211,8 +211,15 @@ function robotsTxt(origin) {
     `Sitemap: ${origin}/sitemap.xml`, ''].join('\n');
 }
 
+// Un producto agotado en todas las tiendas también lleva precios: los de la última vez que
+// se vieron. Antes se callaban y la ficha salía como «Product» sin «offers», que es lo que
+// Google marca como error crítico («debe especificarse offers, review o aggregateRating») y
+// deja la página fuera de los resultados enriquecidos. Son un tercio del catálogo, porque
+// tiendas como Titán tienen agotado el 80 %. Lo correcto no es callarlo sino declararlo:
+// mismo bloque de ofertas, con OutOfStock.
 function productJsonLd(product, available, origin) {
-  const prices = available.map((o) => o.price);
+  const conPrecio = available.length ? available : product.offers;
+  const prices = conPrecio.map((o) => o.price).filter((n) => Number.isFinite(n) && n > 0);
   const image = absoluteUrl(product.image, origin);
   return {
     '@context': 'https://schema.org',
@@ -226,7 +233,7 @@ function productJsonLd(product, available, origin) {
       offers: {
         '@type': 'AggregateOffer', priceCurrency: 'USD', offerCount: prices.length,
         lowPrice: Math.min(...prices).toFixed(2), highPrice: Math.max(...prices).toFixed(2),
-        availability: 'https://schema.org/InStock',
+        availability: available.length ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       },
     } : {}),
   };

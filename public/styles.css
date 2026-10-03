@@ -562,6 +562,9 @@ a.footer-badge:hover { background: var(--brand); }
 /* ---------- Anuncios ---------- */
 .ad-slot { margin: 2rem 0; text-align: center; }
 .ad-label { display: block; margin-bottom: .35rem; color: var(--muted); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; }
+/* Plegado hasta que llega un anuncio (ads.js). Alto 0 y no display:none: el espacio tiene que
+   conservar su ancho, que es lo que AdSense mide para saber qué anuncio pedir. */
+.ad-slot.ad-waiting { height: 0; margin: 0; overflow: hidden; }
 .ad-preview { display: grid; place-items: center; min-height: 110px; border: 2px dashed var(--border-2); border-radius: var(--r-lg); color: var(--muted); font-size: .85rem; }
 
 /* ---------- Páginas legales ---------- */

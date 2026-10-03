@@ -58,9 +58,26 @@ function colocarAnuncios(root) {
     ins.dataset.adFormat = 'auto';
     ins.dataset.fullWidthResponsive = 'true';
     box.replaceChildren(label, ins);
+    box.classList.add('ad-waiting');
     box.hidden = false;
+    desplegarSiLlega(box, ins);
     mostrarCuandoTengaAncho(box, ins);
   }
+}
+
+// El espacio queda plegado hasta que Google manda un anuncio. AdSense marca el <ins> con
+// data-ad-status="filled" cuando lo llena y "unfilled" cuando no tiene nada; mientras el sitio no
+// está aprobado no marca ninguna de las dos, y el <ins> igual se estira a 280 px: quedaba un hueco
+// en blanco con su rótulo «Publicidad» en medio de la portada.
+function desplegarSiLlega(box, ins) {
+  const observer = new MutationObserver(() => {
+    const status = ins.getAttribute('data-ad-status');
+    if (status === 'filled') box.classList.remove('ad-waiting');
+    else if (status === 'unfilled') box.hidden = true;
+    else return;
+    observer.disconnect();
+  });
+  observer.observe(ins, { attributes: true, attributeFilter: ['data-ad-status'] });
 }
 
 // AdSense necesita saber de qué ancho pedir el anuncio. Si el espacio todavía mide 0 —la vista
